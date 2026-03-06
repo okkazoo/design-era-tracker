@@ -234,7 +234,7 @@
 <body>
 
 <div class="header">
-  <p class="page-title">Design Era · Gothic Revival · tap details · hold complete</p>
+  <p class="page-title">Design Era · Gothic Revival · tap details · swipe complete</p>
   <p class="page-sub">Written Draft</p>
   <p class="progress-count" id="counter">0 of 8</p>
 </div>
@@ -687,25 +687,59 @@ function draw() {
     ctx.restore();
   });
 
-  // ④ Hold progress fill
-  if (pressIdx >= 0 && holdProg > 0 && !holdDone) {
-    const cell = cells[pressIdx];
+  // ④ Swipe progress fill
+  if (swipeIdx >= 0 && Math.abs(swipeFrac) > 0.005) {
+    const cell = cells[swipeIdx];
     const p = rrPath(cell.homeY);
     ctx.save();
     ctx.clip(p);
-    ctx.fillStyle = `rgba(184, 82, 32, ${0.25 + holdProg * 0.25})`;
-    ctx.fillRect(II, cell.homeY + II, (CW - II * 2) * holdProg, CH - II * 2);
+    const frac = Math.abs(swipeFrac);
+    const completing = swipeFrac > 0;  // right = complete, left = undo
+    const alpha = 0.18 + frac * 0.35;
+    ctx.fillStyle = completing
+      ? `rgba(184, 82, 32, ${alpha})`
+      : `rgba(160, 150, 140, ${alpha})`;
+    ctx.fillRect(II, cell.homeY + II, (CW - II * 2) * frac, CH - II * 2);
+
+    // threshold indicator — subtle tick mark at 40%
+    const threshX = II + (CW - II * 2) * SWIPE_THRESH;
+    ctx.strokeStyle = completing
+      ? `rgba(184, 82, 32, ${0.15 + frac * 0.2})`
+      : `rgba(160, 150, 140, ${0.15 + frac * 0.2})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(threshX, cell.homeY + II + 8);
+    ctx.lineTo(threshX, cell.homeY + CH - II - 8);
+    ctx.stroke();
+
+    // check / arrow icon past threshold
+    if (frac > SWIPE_THRESH * 0.8) {
+      const iconAlpha = Math.min((frac - SWIPE_THRESH * 0.8) / 0.15, 1);
+      ctx.font = '16px Literata, Georgia, serif';
+      ctx.fillStyle = completing
+        ? `rgba(184, 82, 32, ${iconAlpha * 0.7})`
+        : `rgba(160, 150, 140, ${iconAlpha * 0.7})`;
+      ctx.fillText(completing ? '✓' : '↩', CW / 2 - 6, cell.homeY + CH / 2 + 6);
+    }
+
     ctx.restore();
   }
 }
 
-// ── Long press to complete, tap for details ─────────────────────────────────
-const HOLD_MS = 500;
-let pressIdx    = -1;
+// ── Swipe to complete / undo ────────────────────────────────────────────────
+const SWIPE_THRESH = 0.40;  // 40% of cell width to commit
+let swipeIdx   = -1;
+let swipeStartX = 0;
+let swipeStartY = 0;
+let swipeFrac   = 0;        // -1→1, positive = right (complete), negative = left (undo)
+let swipeLocked = false;    // locked into horizontal swipe
+let swipeFired  = false;    // already toggled on this gesture
 let pressStart  = 0;
-let holdProg    = 0;   // 0→1 fill progress for held cell
-let holdDone    = false;
-let holdRaf     = null;
+
+// Spring-back animation state
+let springFrac  = 0;
+let springIdx   = -1;
+let springRaf   = null;
 
 function hitCell(clientY) {
   const rect = canvas.getBoundingClientRect();
@@ -717,71 +751,120 @@ function hitCell(clientY) {
   return -1;
 }
 
-function holdTick() {
-  if (pressIdx < 0) return;
-  const elapsed = Date.now() - pressStart;
-  holdProg = Math.min(elapsed / HOLD_MS, 1);
-  draw();
-
-  if (holdProg >= 1 && !holdDone) {
-    holdDone = true;
-    // haptic feedback
-    if (navigator.vibrate) navigator.vibrate(18);
-    toggleDone(pressIdx);
-    // flash then clear hold state
-    setTimeout(() => { holdProg = 0; draw(); }, 120);
+function springBack() {
+  springFrac *= 0.82;
+  if (Math.abs(springFrac) < 0.005) {
+    springFrac = 0; swipeFrac = 0; swipeIdx = -1; springIdx = -1;
+    draw();
+    springRaf = null;
     return;
   }
-  if (!holdDone) holdRaf = requestAnimationFrame(holdTick);
-}
-
-function cancelHold() {
-  if (holdRaf) { cancelAnimationFrame(holdRaf); holdRaf = null; }
-  pressIdx = -1; holdProg = 0; holdDone = false;
+  swipeFrac = springFrac;
   draw();
+  springRaf = requestAnimationFrame(springBack);
 }
 
-function onPressStart(clientY) {
-  const idx = hitCell(clientY);
-  if (idx < 0) return;
-  pressIdx   = idx;
-  pressStart = Date.now();
-  holdProg   = 0;
-  holdDone   = false;
-  holdRaf    = requestAnimationFrame(holdTick);
-}
-
-function onPressEnd(clientY) {
-  if (holdRaf) { cancelAnimationFrame(holdRaf); holdRaf = null; }
-  const elapsed = Date.now() - pressStart;
-  const idx = pressIdx;
-  pressIdx = -1; holdProg = 0;
-
-  if (holdDone) { holdDone = false; draw(); return; }  // already completed via hold
-  holdDone = false;
-  draw();
-
-  // Short tap → show detail panel
-  if (idx >= 0 && elapsed < 250) {
-    showDetail(idx);
-    draw();
-  }
-}
-
-// Pointer events (handles both touch and mouse)
 canvas.addEventListener('pointerdown', e => {
   e.preventDefault();
   canvas.setPointerCapture(e.pointerId);
-  onPressStart(e.clientY);
+
+  // Cancel any spring animation
+  if (springRaf) { cancelAnimationFrame(springRaf); springRaf = null; springIdx = -1; }
+
+  const idx = hitCell(e.clientY);
+  if (idx < 0) { swipeIdx = -1; return; }
+
+  swipeIdx    = idx;
+  swipeStartX = e.clientX;
+  swipeStartY = e.clientY;
+  swipeFrac   = 0;
+  swipeLocked = false;
+  swipeFired  = false;
+  pressStart  = Date.now();
+});
+
+canvas.addEventListener('pointermove', e => {
+  if (swipeIdx < 0 || swipeFired) return;
+
+  const dx = e.clientX - swipeStartX;
+  const dy = e.clientY - swipeStartY;
+
+  // Determine swipe direction lock
+  if (!swipeLocked && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+    if (Math.abs(dy) > Math.abs(dx)) {
+      // Vertical — cancel swipe, allow scroll
+      swipeIdx = -1; swipeFrac = 0; draw();
+      return;
+    }
+    swipeLocked = true;
+  }
+
+  if (!swipeLocked) return;
+
+  const cellInner = CW - II * 2;
+  const isDone = cells[swipeIdx].done;
+
+  // Right swipe = complete (only if not done), Left swipe = undo (only if done)
+  if (!isDone) {
+    swipeFrac = Math.max(0, Math.min(dx / cellInner, 1));
+  } else {
+    // For done cells, map right-to-left swipe as positive frac but styled as undo
+    swipeFrac = Math.max(0, Math.min(-dx / cellInner, 1));
+    if (swipeFrac > 0) swipeFrac = -swipeFrac;  // negative = undo direction
+  }
+
+  draw();
 });
 
 canvas.addEventListener('pointerup', e => {
-  onPressEnd(e.clientY);
+  const idx   = swipeIdx;
+  const elapsed = Date.now() - pressStart;
+  const frac  = Math.abs(swipeFrac);
+
+  if (idx < 0) return;
+
+  // Past threshold → toggle done
+  if (frac >= SWIPE_THRESH && !swipeFired) {
+    swipeFired = true;
+    if (navigator.vibrate) navigator.vibrate(18);
+    toggleDone(idx);
+    // Quick fill to 100% then fade out
+    swipeFrac = swipeFrac > 0 ? 1 : -1;
+    draw();
+    springFrac = swipeFrac;
+    springIdx  = idx;
+    setTimeout(() => { springRaf = requestAnimationFrame(springBack); }, 80);
+    return;
+  }
+
+  // Short tap with no real swipe → show detail panel
+  if (!swipeLocked && elapsed < 300) {
+    swipeIdx = -1; swipeFrac = 0;
+    showDetail(idx);
+    draw();
+    return;
+  }
+
+  // Below threshold → spring back
+  if (frac > 0.005) {
+    springFrac = swipeFrac;
+    springIdx  = idx;
+    springRaf  = requestAnimationFrame(springBack);
+  } else {
+    swipeIdx = -1; swipeFrac = 0; draw();
+  }
 });
 
-canvas.addEventListener('pointercancel', cancelHold);
+canvas.addEventListener('pointercancel', () => {
+  if (swipeIdx >= 0 && Math.abs(swipeFrac) > 0.005) {
+    springFrac = swipeFrac;
+    springIdx  = swipeIdx;
+    springRaf  = requestAnimationFrame(springBack);
+  } else {
+    swipeIdx = -1; swipeFrac = 0; draw();
+  }
+});
 
-// Prevent context menu on long press (mobile)
 canvas.addEventListener('contextmenu', e => e.preventDefault());
 
 // ── Reset ──────────────────────────────────────────────────────────────────
