@@ -43,30 +43,52 @@
 
   canvas { display: block; cursor: pointer; }
 
+  /* ── Canvas wrapper ───────────────────────────────────── */
+  .canvas-wrap {
+    position: relative;
+  }
+
   /* ── Detail panel ─────────────────────────────────────── */
   .detail-panel {
-    width: 100%;
-    max-width: 380px;
-    overflow: hidden;
-    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.25s ease,
-                margin 0.35s ease;
-    max-height: 0;
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 10;
     opacity: 0;
-    margin: 0;
+    transform: translateY(-6px);
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .detail-panel.open {
-    max-height: 500px;
     opacity: 1;
-    margin: 4px 0;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .detail-pointer {
+    width: 12px;
+    height: 12px;
+    background: rgba(255,252,245,0.88);
+    border: 1px solid rgba(160,150,140,0.25);
+    border-right: none;
+    border-bottom: none;
+    transform: rotate(45deg);
+    margin-left: 32px;
+    margin-bottom: -7px;
+    position: relative;
+    z-index: 1;
   }
 
   .detail-inner {
-    background: rgba(255,255,255,0.45);
+    background: rgba(255,252,245,0.88);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(160,150,140,0.25);
     border-radius: 16px;
     padding: 20px;
+    position: relative;
+    z-index: 2;
   }
 
   .detail-head {
@@ -217,11 +239,12 @@
   <p class="progress-count" id="counter">0 of 8</p>
 </div>
 
-<canvas id="c"></canvas>
+<div class="canvas-wrap" id="canvasWrap">
+  <canvas id="c"></canvas>
 
-<!-- Detail panel — injected between canvas and buttons -->
-<div class="detail-panel" id="detailPanel">
-  <div class="detail-inner">
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-pointer" id="detailPointer"></div>
+    <div class="detail-inner">
     <div class="detail-head">
       <span class="detail-title" id="detailTitle"></span>
       <span class="detail-day" id="detailDay"></span>
@@ -235,6 +258,7 @@
       <button class="action-btn btn-close" id="btnClose">close</button>
     </div>
   </div>
+</div>
 </div>
 
 <div class="bottom-row">
@@ -435,9 +459,13 @@ function showDetail(idx) {
   btnComp.textContent = isDone ? 'undo' : 'complete';
   btnComp.classList.toggle('is-done', isDone);
 
+  // Position panel right below the tapped cell
+  const cellBottom = cells[idx].homeY + CH + 4;
+  panel.style.top = cellBottom + 'px';
+
   panel.classList.add('open');
 
-  // Scroll panel into view on iPhone
+  // Scroll so both cell and panel are visible
   setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
 }
 
@@ -694,11 +722,27 @@ if (window.Telegram && window.Telegram.WebApp) {
   tg.expand();
 }
 
+// ── Resize wrapper to fit panel below last cell ────────────────────────────
+function updateWrapHeight() {
+  const wrap = document.getElementById('canvasWrap');
+  if (selectedIdx >= 0) {
+    const panelH = panel.querySelector('.detail-inner').offsetHeight + 20;
+    const needed = cells[selectedIdx].homeY + CH + 4 + panelH;
+    wrap.style.minHeight = Math.max(TH, needed) + 'px';
+  } else {
+    wrap.style.minHeight = TH + 'px';
+  }
+}
+
+const resizeObs = new MutationObserver(updateWrapHeight);
+resizeObs.observe(panel, { attributes: true, attributeFilter: ['class'] });
+
 // ── Init ───────────────────────────────────────────────────────────────────
 loadLS();
 recalcTargets();
 updateCounter();
 draw();
+document.getElementById('canvasWrap').style.minHeight = TH + 'px';
 </script>
 </body>
 </html>
