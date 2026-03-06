@@ -824,7 +824,7 @@ function draw() {
       ctx.fillStyle = 'rgba(123,139,111,0.45)';
       ctx.fillText(t.label, 16, y + 30);
 
-      ctx.font = '300 10px Literata, Georgia, serif';
+      ctx.font = '9px JetBrains Mono, monospace';
       ctx.fillStyle = 'rgba(123,139,111,0.45)';
       ctx.fillText(t.sub, 16, y + 48);
 
@@ -842,7 +842,7 @@ function draw() {
         ctx.fillStyle = textColour(Math.min(undoneA * selBoost, 1));
         ctx.fillText(t.label, 16, y + 30);
 
-        ctx.font = '300 10px Literata, Georgia, serif';
+        ctx.font = '9px JetBrains Mono, monospace';
         ctx.fillStyle = textColour(Math.min(undoneA * 0.7 * selBoost, 1));
         ctx.fillText(t.sub, 16, y + 48);
 
@@ -857,7 +857,7 @@ function draw() {
         ctx.fillStyle = textColour(doneA);
         ctx.fillText(t.done, 16, y + 30);
 
-        ctx.font = '300 10px Literata, Georgia, serif';
+        ctx.font = '9px JetBrains Mono, monospace';
         ctx.fillStyle = textColour(doneA * 0.75);
         ctx.fillText(t.sub, 16, y + 48);
 
