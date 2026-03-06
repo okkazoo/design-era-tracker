@@ -644,7 +644,7 @@ function mergedPathV(ytop, ybot, joins) {
 }
 
 // ── Border animation (center-top/bottom → corners → side midpoints) ─────
-function drawBorderAnim(homeY, progress) {
+function drawBorderAnim(homeY, progress, isDone) {
   const x0 = II, y0 = homeY + II;
   const x1 = CW - II, y1 = homeY + CH - II;
   const r = R - II;
@@ -657,7 +657,9 @@ function drawBorderAnim(homeY, progress) {
   const arm   = halfW + arcL + halfH;
   const dist  = progress * arm;
 
+  // Show the TARGET state border: completing → full stroke, uncompleting → faint stroke
   ctx.strokeStyle = STROKE;
+  ctx.globalAlpha = isDone ? 0.25 : 1;
   ctx.lineWidth = SW;
   ctx.lineCap = 'round';
 
@@ -711,6 +713,7 @@ function drawBorderAnim(homeY, progress) {
     { type: 'arc', cx: x0 + r, cy: y1 - r, sa: Math.PI/2, ea: Math.PI, ccw: false },
     { type: 'line', sx: x0, sy: y1 - r, ex: x0, ey: cy },
   ]);
+  ctx.globalAlpha = 1;
 }
 
 // ── Draw ───────────────────────────────────────────────────────────────────
@@ -844,7 +847,7 @@ function draw() {
 
   // ④ Hold border animation
   if (pressIdx >= 0 && holdProg > 0 && !holdDone) {
-    drawBorderAnim(cells[pressIdx].homeY, holdProg);
+    drawBorderAnim(cells[pressIdx].homeY, holdProg, cells[pressIdx].done);
   }
 }
 
