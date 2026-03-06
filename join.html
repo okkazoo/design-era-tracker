@@ -808,18 +808,15 @@ function draw() {
     const st = isFinal ? FINAL_STROKE : STROKE;
 
     if (cell.passed) {
-      // Passed: transitions from warm tint to solid fill
-      const [rs,gs,bs] = FILL_SOLID_RGB;
-      const pr = Math.round(201 + (rs-201)*solidFrac);
-      const pg = Math.round(122 + (gs-122)*solidFrac);
-      const pb = Math.round(58  + (bs-58)*solidFrac);
-      const pa = 0.10 + (0.92 - 0.10)*solidFrac;
+      // Passed: green fill that deepens in solid state
+      // Start: sage green tint, end: deep olive
+      const pr = Math.round(123 + (88-123)*solidFrac);
+      const pg = Math.round(139 + (115-139)*solidFrac);
+      const pb = Math.round(111 + (72-111)*solidFrac);
+      const pa = 0.12 + (0.88 - 0.12)*solidFrac;
       ctx.fillStyle = `rgba(${pr},${pg},${pb},${pa.toFixed(3)})`;
       ctx.fill(p);
-      const sr = Math.round(123 + (rs-123)*solidFrac);
-      const sg = Math.round(139 + (gs-139)*solidFrac);
-      const sb = Math.round(111 + (bs-111)*solidFrac);
-      ctx.strokeStyle = `rgb(${sr},${sg},${sb})`;
+      ctx.strokeStyle = PASS_STROKE;
       ctx.lineWidth = SW;
       ctx.globalAlpha = 0.55 + 0.45*solidFrac;
       ctx.stroke(p);
