@@ -269,9 +269,9 @@
 <body>
 
 <div class="header">
-  <p class="page-title">Design Era · Gothic Revival · tap details · hold complete</p>
+  <p class="page-title">Design Era · Gothic Revival</p>
   <p class="page-sub">Written Draft</p>
-  <p class="progress-count" id="counter">0 of 8</p>
+  <p class="progress-count" id="counter">Due Friday 14 March</p>
 </div>
 
 <div class="canvas-wrap" id="canvasWrap">
@@ -432,19 +432,7 @@ let tgtSolid  = 0;
 function doneCount() { return cells.filter(c => c.done).length; }
 function passCount() { return cells.filter(c => c.passed).length; }
 
-function updateCounter() {
-  const el = document.getElementById('counter');
-  const d = doneCount(), p = passCount();
-  if (d === N) {
-    el.textContent = 'all done';
-    el.classList.add('all-done');
-  } else {
-    let txt = d + ' of ' + N;
-    if (p > 0) txt += ' \u00b7 ' + p + ' passed';
-    el.textContent = txt;
-    el.classList.remove('all-done');
-  }
-}
+function updateCounter() { /* static due date, no-op */ }
 
 function recalcTargets() {
   tgtSolid = cells.every(c => c.done) ? 1 : 0;
