@@ -477,19 +477,19 @@ function refreshDetailButtons(idx) {
   const isDone = cells[idx].done;
   const isPassed = cells[idx].passed;
   if (isDone) {
-    btnComp.textContent = 'uncomplete';
+    btnComp.textContent = 'mark undone';
     btnComp.classList.add('is-done');
     btnPass.style.display = 'none';
   } else if (isPassed) {
-    btnComp.textContent = 'complete';
+    btnComp.textContent = 'mark done';
     btnComp.classList.remove('is-done');
-    btnPass.textContent = 'undo pass';
+    btnPass.textContent = 'unskip';
     btnPass.classList.add('is-passed');
     btnPass.style.display = '';
   } else {
-    btnComp.textContent = 'complete';
+    btnComp.textContent = 'mark done';
     btnComp.classList.remove('is-done');
-    btnPass.textContent = 'pass';
+    btnPass.textContent = 'skip';
     btnPass.classList.remove('is-passed');
     btnPass.style.display = '';
   }
@@ -544,14 +544,14 @@ function togglePass(idx) {
 }
 
 btnComp.addEventListener('click', () => {
-  if (selectedIdx >= 0) toggleDone(selectedIdx);
+  if (selectedIdx >= 0) { toggleDone(selectedIdx); hideDetail(); draw(); }
 });
 
 btnPass.addEventListener('click', () => {
-  if (selectedIdx >= 0) togglePass(selectedIdx);
+  if (selectedIdx >= 0) { togglePass(selectedIdx); hideDetail(); draw(); }
 });
 
-btnClose.addEventListener('click', hideDetail);
+btnClose.addEventListener('click', () => { hideDetail(); draw(); });
 
 // ── Animation ──────────────────────────────────────────────────────────────
 const S_FILL = 0.055, S_STROKE = 0.07, S_DIVOT = 0.06, S_TEXT = 0.045, S_SOLID = 0.04;
