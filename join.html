@@ -950,6 +950,9 @@ function cancelHold() {
   draw();
 }
 
+let pressStartX = 0, pressStartY = 0;
+const MOVE_THRESH = 10; // px — cancel hold if finger moves more than this
+
 canvas.addEventListener('pointerdown', e => {
   e.preventDefault();
   canvas.setPointerCapture(e.pointerId);
@@ -957,17 +960,20 @@ canvas.addEventListener('pointerdown', e => {
   const idx = hitCell(e.clientY);
   if (idx < 0) { pressIdx = -1; return; }
 
-  pressIdx   = idx;
-  pressStart = Date.now();
-  holdProg   = 0;
-  holdDone   = false;
-  holdRaf    = requestAnimationFrame(holdTick);
+  pressIdx    = idx;
+  pressStart  = Date.now();
+  pressStartX = e.clientX;
+  pressStartY = e.clientY;
+  holdProg    = 0;
+  holdDone    = false;
+  holdRaf     = requestAnimationFrame(holdTick);
 });
 
 canvas.addEventListener('pointermove', e => {
   if (pressIdx < 0) return;
-  const idx = hitCell(e.clientY);
-  if (idx !== pressIdx) cancelHold();
+  const dx = e.clientX - pressStartX;
+  const dy = e.clientY - pressStartY;
+  if (dx * dx + dy * dy > MOVE_THRESH * MOVE_THRESH) cancelHold();
 });
 
 canvas.addEventListener('pointerup', e => {
