@@ -820,49 +820,49 @@ function draw() {
 
     // Task number — top-right corner
     if (cell.passed) {
-      ctx.font = '300 12.5px Literata, Georgia, serif';
-      ctx.fillStyle = 'rgba(123,139,111,0.45)';
+      ctx.font = '300 14px Literata, Georgia, serif';
+      ctx.fillStyle = 'rgba(123,139,111,0.55)';
       ctx.fillText(t.label, 16, y + 30);
 
-      ctx.font = '9px JetBrains Mono, monospace';
-      ctx.fillStyle = 'rgba(123,139,111,0.45)';
-      ctx.fillText(t.sub, 16, y + 48);
+      ctx.font = '10px JetBrains Mono, monospace';
+      ctx.fillStyle = 'rgba(123,139,111,0.5)';
+      ctx.fillText(t.sub, 16, y + 49);
 
-      ctx.font = '300 14px Literata, Georgia, serif';
-      ctx.fillStyle = 'rgba(123,139,111,0.3)';
+      ctx.font = '300 16px Literata, Georgia, serif';
+      ctx.fillStyle = 'rgba(123,139,111,0.4)';
       const nw = ctx.measureText(num).width;
       ctx.fillText(num, CW - 14 - nw, y + 18);
     } else {
       const tf = cell.textFade;
-      const undoneA = (1 - tf) * 0.5;
-      const doneA   = tf * 0.92;
+      const undoneA = (1 - tf) * 0.6;
+      const doneA   = tf * 0.95;
 
       if (undoneA > 0.005) {
-        ctx.font = '300 12.5px Literata, Georgia, serif';
+        ctx.font = '300 14px Literata, Georgia, serif';
         ctx.fillStyle = textColour(Math.min(undoneA * selBoost, 1));
         ctx.fillText(t.label, 16, y + 30);
 
-        ctx.font = '9px JetBrains Mono, monospace';
-        ctx.fillStyle = textColour(Math.min(undoneA * 0.7 * selBoost, 1));
-        ctx.fillText(t.sub, 16, y + 48);
+        ctx.font = '10px JetBrains Mono, monospace';
+        ctx.fillStyle = textColour(Math.min(undoneA * 0.85 * selBoost, 1));
+        ctx.fillText(t.sub, 16, y + 49);
 
-        ctx.font = '300 14px Literata, Georgia, serif';
-        ctx.fillStyle = textColour(undoneA * 0.4 * selBoost);
+        ctx.font = '300 16px Literata, Georgia, serif';
+        ctx.fillStyle = textColour(undoneA * 0.5 * selBoost);
         const nw = ctx.measureText(num).width;
         ctx.fillText(num, CW - 14 - nw, y + 18);
       }
 
       if (doneA > 0.005) {
-        ctx.font = 'italic 300 12.5px Literata, Georgia, serif';
+        ctx.font = 'italic 300 14px Literata, Georgia, serif';
         ctx.fillStyle = textColour(doneA);
         ctx.fillText(t.done, 16, y + 30);
 
-        ctx.font = '9px JetBrains Mono, monospace';
-        ctx.fillStyle = textColour(doneA * 0.75);
-        ctx.fillText(t.sub, 16, y + 48);
+        ctx.font = '10px JetBrains Mono, monospace';
+        ctx.fillStyle = textColour(doneA * 0.8);
+        ctx.fillText(t.sub, 16, y + 49);
 
-        ctx.font = '300 14px Literata, Georgia, serif';
-        ctx.fillStyle = textColour(doneA * 0.45);
+        ctx.font = '300 16px Literata, Georgia, serif';
+        ctx.fillStyle = textColour(doneA * 0.5);
         const nw = ctx.measureText(num).width;
         ctx.fillText(num, CW - 14 - nw, y + 18);
       }
