@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Progress Report — Classroom - 12 Fashion + Textiles 2026</title>
+    <style>:root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface-2: #1c1c1c;
+    --border: #1e1e1e;
+    --border-light: #282828;
+    --text: #e4e4e4;
+    --text-mid: #999;
+    --text-dim: #666;
+    --accent: #c9a84c;
+    --accent-dim: #8a6d2b;
+    --green: #3ba55d;
+    --green-bg: rgba(59,165,93,0.08);
+    --orange: #e8922a;
+    --orange-bg: rgba(232,146,42,0.08);
+    --red: #d44;
+    --red-bg: rgba(221,68,68,0.07);
+    --blue: #5b9cf6;
+    --blue-bg: rgba(91,156,246,0.08);
+    --yellow: #d4b836;
+    --yellow-bg: rgba(212,184,54,0.08);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+    line-height: 1.55;
+    background: var(--bg);
+    color: var(--text);
+    padding: 1.25rem;
+    max-width: 640px;
+    margin: 0 auto;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ---- Header ---- */
+.page-header {
+    text-align: center;
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+}
+.page-header h1 {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.15rem;
+}
+.page-header .class-name {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+}
+.page-header .gen-date {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    margin-top: 0.5rem;
+}
+
+/* ---- Summary pills ---- */
+.summary-grid {
+    display: flex;
+    gap: 0.4rem;
+    margin: 0 0 1.5rem 0;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.summary-grid::-webkit-scrollbar { display: none; }
+.summary-card {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 100px;
+    color: white;
+    font-weight: 600;
+    white-space: nowrap;
+    font-size: 0.78rem;
+}
+.summary-card .count { font-size: 1.1em; }
+.summary-card .label { font-size: 0.75em; opacity: 0.9; }
+
+/* ---- Section headings ---- */
+h2 {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    margin: 1.5rem 0 0.75rem 0;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+}
+
+/* ---- Progress cards ---- */
+.progress-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin: 0.5rem 0;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.card-head {
+    padding: 0.85rem 1rem;
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.due-date {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.35rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.due-date .due-icon { flex-shrink: 0; }
+.due-unknown { color: var(--text-dim); font-style: italic; }
+.due-overdue { color: var(--red); }
+.due-soon { color: var(--orange); }
+.due-later { color: var(--text-mid); }
+
+.progress-card h3 {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--text);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+.progress-card h3 a { color: var(--text); text-decoration: none; }
+.progress-card h3 a:active { color: var(--accent); }
+
+.status-badge {
+    display: inline-block;
+    padding: 0.15rem 0.55rem;
+    border-radius: 100px;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: white;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.assignment-title {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-top: 0.2rem;
+}
+.assignment-title a { color: var(--text-dim); text-decoration: none; }
+
+/* Progress bar */
+.progress-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+}
+.progress-bar-wrap {
+    flex: 1;
+    background: var(--surface-2);
+    border-radius: 100px;
+    height: 6px;
+    overflow: hidden;
+}
+.progress-bar-fill {
+    height: 100%;
+    border-radius: 100px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 2px;
+}
+.progress-pct {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-mid);
+    min-width: 2.5rem;
+    text-align: right;
+}
+
+/* Chevron */
+.card-chevron {
+    display: flex;
+    justify-content: center;
+    padding: 0.3rem 0 0.1rem;
+}
+.card-chevron span {
+    font-size: 0.5rem;
+    color: var(--text-dim);
+    transition: transform 0.25s ease;
+}
+.progress-card.open .card-chevron span {
+    transform: rotate(180deg);
+}
+
+/* Card body (collapsible) */
+.card-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease;
+}
+.progress-card.open .card-body {
+    grid-template-rows: 1fr;
+}
+.card-body-inner {
+    overflow: hidden;
+}
+.card-body-content {
+    padding: 0 1rem 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.summary-text {
+    font-size: 0.8rem;
+    color: var(--text-mid);
+    margin-top: 0.75rem;
+    line-height: 1.5;
+}
+
+.word-count {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-top: 0.5rem;
+}
+.word-count strong { color: var(--accent); }
+
+/* Done / Remaining lists */
+.detail-lists {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+.detail-lists h4 {
+    margin: 0 0 0.35rem 0;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+.done-list h4 { color: var(--green); }
+.remaining-list h4 { color: var(--orange); }
+.detail-lists ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.detail-lists li {
+    font-size: 0.8rem;
+    color: var(--text-mid);
+    padding: 0.3rem 0 0.3rem 0.9rem;
+    position: relative;
+    line-height: 1.5;
+}
+.detail-lists li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.65rem;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+}
+.done-list li::before { background: var(--green); }
+.remaining-list li::before { background: var(--orange); }
+
+/* Next steps */
+.next-steps {
+    background: var(--green-bg);
+    border-left: 3px solid var(--green);
+    border-radius: 0 10px 10px 0;
+    padding: 0.75rem 1rem;
+    margin-top: 0.75rem;
+}
+.next-steps h4 {
+    margin: 0 0 0.4rem 0;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--green);
+}
+.next-steps ol {
+    margin: 0;
+    padding-left: 1.1rem;
+}
+.next-steps li {
+    font-size: 0.8rem;
+    color: var(--text-mid);
+    padding: 0.2rem 0;
+    line-height: 1.5;
+}
+.next-steps li::marker { color: var(--green); }
+
+.last-changed {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+}
+
+/* ---- Deadlines ---- */
+.deadlines-section {
+    margin: 0.5rem 0 1.5rem 0;
+}
+.deadline-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--orange);
+    border-radius: 0 10px 10px 0;
+    padding: 0.65rem 1rem;
+    margin: 0.4rem 0;
+}
+.deadline-date {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--orange);
+    letter-spacing: 0.04em;
+}
+.deadline-desc {
+    font-size: 0.82rem;
+    color: var(--text);
+    margin-top: 0.15rem;
+}
+.deadline-source {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    margin-top: 0.1rem;
+}
+.deadline-source a { color: var(--blue); text-decoration: none; }
+
+/* ---- Footer ---- */
+.footer {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.72rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+.footer a { color: var(--blue); text-decoration: none; }
+
+/* ---- Interactivity ---- */
+.progress-card .card-head:active {
+    background: var(--surface-2);
+}
+</style>
+</head>
+<body>
+    <div class="page-header">
+        <h1>Progress Report</h1>
+        <div class="class-name">Classroom - 12 Fashion + Textiles 2026</div>
+        <div class="gen-date">Generated 07 Mar 2026 at 06:56 &bull; 3 documents tracked</div>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card" style="background:#e53935"><span class="count">2</span><span class="label">Not Started</span></div>
+        <div class="summary-card" style="background:#fb8c00"><span class="count">1</span><span class="label">Barely Started</span></div>
+        <div class="summary-card" style="background:#fdd835"><span class="count">0</span><span class="label">In Progress</span></div>
+        <div class="summary-card" style="background:#43a047"><span class="count">0</span><span class="label">Mostly Done</span></div>
+        <div class="summary-card" style="background:#1e88e5"><span class="count">0</span><span class="label">Complete</span></div>
+    </div>
+
+    <h2>Classwork</h2>
+    <div class="progress-card">
+      <div class="card-head" onclick="this.parentElement.classList.toggle('open')">
+        <div class="due-date due-later">Due: THURSDAY - 2 APRIL 2026 - TERM 1 | WEEK 9</div>
+        <h3><a href="https://classroom.google.com/u/0/c/ODQwNjc0OTY5MjMz/a/ODQ0MzcyOTM3OTQy/details" target="_blank">Design era task sheet and hand in</a> <span class="status-badge" style="background:#e53935">Not Started</span></h3>
+        <div class="assignment-title">Design era task sheet and hand in</div>
+        <div class="progress-bar-row">
+            <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" style="width:0%;background:#e53935"></div>
+            </div>
+            <span class="progress-pct">0%</span>
+        </div>
+      </div>
+      <div class="card-body"><div class="card-body-inner"><div class="card-body-content">
+        <div class="summary-text">Submit your completed Design Era task sheet, the NZQA standard AS91340, your final presentation, and scans of your design drawings.</div>
+      </div></div></div>
+    </div>
+    <div class="progress-card">
+      <div class="card-head" onclick="this.parentElement.classList.toggle('open')">
+        <div class="due-date due-unknown">No due date</div>
+        <h3><a href="https://classroom.google.com/u/0/c/ODQwNjc0OTY5MjMz/a/ODQzOTI3MzA2NTI1/details" target="_blank">Create a mood board for your era</a> <span class="status-badge" style="background:#e53935">Not Started</span></h3>
+        <div class="assignment-title">Create a mood board for your era</div>
+        <div class="progress-bar-row">
+            <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" style="width:0%;background:#e53935"></div>
+            </div>
+            <span class="progress-pct">0%</span>
+        </div>
+      </div>
+      <div class="card-body"><div class="card-body-inner"><div class="card-body-content">
+        <div class="summary-text">Create an A3 mood board for your chosen design era. This mood board will be the first page of your portfolio and should visually represent the design movement through collaged images, color, and scale.</div>
+      </div></div></div>
+    </div>
+    <div class="progress-card">
+      <div class="card-head" onclick="this.parentElement.classList.toggle('open')">
+        <div class="due-date due-later">Due: FRIDAY - 6 MARCH 2026 - TERM 1 | WEEK 5</div>
+        <h3><a href="https://docs.google.com/document/d/1qhYTqs4MBMqSuItfAKnL4PDtX6ODZjupmVqqXqTUePE/edit?usp=classroom_web&amp;authuser=0" target="_blank">Coco-Inez Penn - Draft Design era written work</a> <span class="status-badge" style="background:#fb8c00">Barely Started</span></h3>
+        <div class="assignment-title">Design era/movement written</div>
+        <div class="progress-bar-row">
+            <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" style="width:15%;background:#fb8c00"></div>
+            </div>
+            <span class="progress-pct">15%</span>
+        </div>
+        <div class="card-chevron"><span>&#9660;</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-inner"><div class="card-body-content">
+        <div class="summary-text">Write and proofread the written part of your Design Era presentation, ensuring it includes your research, references, and images. This draft is due at the end of week six.</div>
+        <div class="word-count"><strong>370</strong> words written</div>
+        <div class="detail-lists">
+            <div class="done-list"><h4>Completed</h4><ul>
+                <li>You&#x27;ve got a good start on the introductory section of your Gothic Revival research, outlining what it is and some initial context.</li>
+                <li>You&#x27;ve identified some key figures and geographical spread.</li>
+                <li>You&#x27;ve touched on the Industrial Revolution and its impact, which is great context for the &#x27;Set the Scene&#x27; section.</li>
+            </ul></div>
+            <div class="remaining-list"><h4>Remaining</h4><ul>
+                <li>Flesh out the &#x27;Set the Scene&#x27; section more thoroughly, expanding on the social and political factors and how they specifically influenced the Gothic Revival.</li>
+                <li>Identify and explain the guiding principles of the movement.</li>
+                <li>Find and discuss a relevant quote.</li>
+                <li>Start researching and detailing the &#x27;Key Players&#x27; section, looking for specific details about designers beyond just their names.</li>
+                <li>Begin gathering examples for the &#x27;Key Pieces&#x27; section with images and details.</li>
+            </ul></div>
+        </div>
+        <div class="summary-text">You&#x27;ve got a solid foundation here, especially with the historical context. Now it&#x27;s time to build on that and really dig into the details for each section of the assignment.</div>
+        <div class="next-steps"><h4>Next steps</h4><ol>
+            <li>Open the document and add one or two more sentences to the section about the Industrial Revolution, connecting it more directly to the *reaction* that Gothic Revival represented.</li>
+            <li>Look for a short, impactful quote about the Gothic Revival or the dissatisfaction with industrialization from the era.</li>
+            <li>Start a new bullet point under &#x27;Key Players&#x27; and add the name of one designer, then do a quick search for one interesting fact about them.</li>
+        </ol></div>
+        <div class="last-changed">Last changed: FRIDAY - 6 MARCH 2026 - TERM 1 | WEEK 5</div>
+      </div></div></div>
+    </div>
+
+    <h2>Upcoming Deadlines</h2>
+    <div class="deadlines-section">
+    <div class="deadline-row">
+        <span class="deadline-date">MONDAY - 9 MARCH 2026 - TERM 1 | WEEK 6</span>
+        <span class="deadline-desc">Presentation written draft due for Design Era assessment.</span>
+        <span class="deadline-source">(<a href="../files/Attachment/Attachment.html" target="_blank">Attachment</a>)</span>
+    </div>
+    <div class="deadline-row">
+        <span class="deadline-date">MONDAY - 9 MARCH 2026 - TERM 1 | WEEK 6</span>
+        <span class="deadline-desc">Presentation written draft due for Design Era assessment.</span>
+        <span class="deadline-source">(<a href="../files/Attachment/Attachment.html" target="_blank">Attachment</a>)</span>
+    </div>
+    <div class="deadline-row">
+        <span class="deadline-date">MONDAY - 16 MARCH 2026 - TERM 1 | WEEK 7</span>
+        <span class="deadline-desc">Presentation written draft due for Design Era assessment.</span>
+        <span class="deadline-source">(<a href="../files/Design-Era-Task-Sheet-2026/Design-Era-Task-Sheet-2026.html" target="_blank">Design-Era-Task-Sheet-2026</a>)</span>
+    </div>
+    <div class="deadline-row">
+        <span class="deadline-date">THURSDAY - 2 APRIL 2026 - TERM 1 | WEEK 9</span>
+        <span class="deadline-desc">Final presentation and design ideas due for Design Era.</span>
+        <span class="deadline-source">(<a href="../files/Design-Era-Task-Sheet-2026/Design-Era-Task-Sheet-2026.html" target="_blank">Design-Era-Task-Sheet-2026</a>)</span>
+    </div>
+    <div class="deadline-row">
+        <span class="deadline-date">MONDAY - 20 APRIL 2026 - TERM 2 | WEEK 1</span>
+        <span class="deadline-desc">Written brief and design due for pattern adaptation.</span>
+        <span class="deadline-source">(<a href="../files/2026-student-Calendar/2026-student-Calendar.html" target="_blank">2026-student-Calendar</a>)</span>
+    </div>
+    <div class="deadline-row">
+        <span class="deadline-date">MONDAY - 4 MAY 2026 - TERM 2 | WEEK 3</span>
+        <span class="deadline-desc">Written brief and design due for pattern adaptation.</span>
+        <span class="deadline-source">(<a href="../files/2026-student-Calendar/2026-student-Calendar.html" target="_blank">2026-student-Calendar</a>)</span>
+    </div>
+    <div class="deadline-row">
+        <span class="deadline-date">MONDAY - 29 JUNE 2026 - TERM 2 | WEEK 11</span>
+        <span class="deadline-desc">Written assessment work for pattern adaptation due.</span>
+        <span class="deadline-source">(<a href="../files/2026-student-Calendar/2026-student-Calendar.html" target="_blank">2026-student-Calendar</a>)</span>
+    </div>
+    </div>
+
+    <div class="footer">
+        3 documents tracked &bull;
+        <a href="https://classroom.google.com/u/0/w/ODQwNjc0OTY5MjMz/t/all" target="_blank">View in Google Classroom</a>
+    </div>
+</body>
+</html>
