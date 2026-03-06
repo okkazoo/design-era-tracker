@@ -18,6 +18,8 @@
     padding: 36px 24px 90px;
     font-family: 'JetBrains Mono', monospace;
     gap: 16px;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   .header { text-align: center; }
@@ -41,7 +43,7 @@
   }
   .progress-count.all-done { color: #B8501E; }
 
-  canvas { display: block; cursor: pointer; touch-action: none; }
+  canvas { display: block; cursor: pointer; touch-action: none; -webkit-user-select: none; user-select: none; }
 
   /* ── Canvas wrapper ───────────────────────────────────── */
   .canvas-wrap {
