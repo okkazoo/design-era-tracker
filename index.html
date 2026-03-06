@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Design Era — Task Tracker</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface-2: #1c1c1c;
+    --border: #1e1e1e;
+    --text: #e8e8e8;
+    --text-dim: #666;
+    --text-mid: #999;
+    --accent: #c9a84c;
+    --accent-dim: #8a6d2b;
+    --accent-glow: rgba(201,168,76,0.15);
+    --green: #3ba55d;
+    --green-dim: rgba(59,165,93,0.12);
+    --red: #d44;
+    --red-dim: rgba(221,68,68,0.08);
+    --blue: #5b9cf6;
+    --ring-size: 120px;
+    --ring-stroke: 6;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 1rem 6rem;
+    -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
+  }
+
+  /* ---- Header with progress ring ---- */
+  .hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 0 1.5rem;
+    position: relative;
+  }
+
+  .ring-container {
+    position: relative;
+    width: var(--ring-size);
+    height: var(--ring-size);
+    margin-bottom: 1rem;
+  }
+
+  .ring-bg, .ring-fill {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .ring-bg circle, .ring-fill circle {
+    fill: none;
+    stroke-width: var(--ring-stroke);
+    cx: 60; cy: 60; r: 54;
+  }
+
+  .ring-bg circle { stroke: var(--surface-2); }
+
+  .ring-fill circle {
+    stroke: var(--accent);
+    stroke-linecap: round;
+    stroke-dasharray: 339.292;
+    stroke-dashoffset: 339.292;
+    transform: rotate(-90deg);
+    transform-origin: center;
+    transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: drop-shadow(0 0 6px var(--accent-glow));
+  }
+
+  .ring-text {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  .ring-pct {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .ring-label {
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 2px;
+  }
+
+  .hero-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    margin-bottom: 0.2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+  }
+
+  .hero-due {
+    margin-top: 0.6rem;
+    font-size: 0.65rem;
+    padding: 0.3rem 0.8rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    color: var(--text-dim);
+  }
+
+  /* ---- Divider ---- */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0 -1rem 1rem;
+  }
+
+  /* ---- Cards ---- */
+  .cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: all 0.25s ease;
+  }
+
+  .card.today {
+    border-color: var(--accent-dim);
+    box-shadow: 0 0 0 1px var(--accent-glow), 0 2px 12px var(--accent-glow);
+  }
+
+  .card.done { opacity: 0.45; }
+  .card.overdue { border-color: rgba(221,68,68,0.25); }
+
+  .card-head {
+    display: flex;
+    align-items: center;
+    padding: 0.9rem 1rem;
+    gap: 0.75rem;
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .check {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+
+  .check:active { transform: scale(0.85); }
+
+  .card.done .check {
+    background: var(--green);
+    border-color: var(--green);
+  }
+
+  .card.today .check {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  .card.overdue .check {
+    border-color: var(--red);
+  }
+
+  .card-info { flex: 1; min-width: 0; }
+
+  .card-day {
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    line-height: 1;
+    margin-bottom: 3px;
+  }
+
+  .card.today .card-day { color: var(--accent); }
+  .card.done .card-day { text-decoration: line-through; }
+
+  .card-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.2;
+  }
+
+  .card.done .card-name {
+    text-decoration: line-through;
+    color: var(--text-dim);
+  }
+
+  .card-right-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .card-date {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  .card-tag {
+    font-size: 0.55rem;
+    padding: 0.15rem 0.45rem;
+    border-radius: 100px;
+    background: rgba(255,255,255,0.04);
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  .chevron-wrap {
+    font-size: 0.55rem;
+    color: var(--text-dim);
+    transition: transform 0.25s ease;
+    flex-shrink: 0;
+    padding: 0 0.2rem;
+  }
+
+  .card.open .chevron-wrap { transform: rotate(180deg); }
+
+  /* ---- Card body (expandable) ---- */
+  .card-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease;
+  }
+
+  .card.open .card-body {
+    grid-template-rows: 1fr;
+  }
+
+  .card-body-inner {
+    overflow: hidden;
+  }
+
+  .card-body-content {
+    padding: 0 1rem 1rem;
+    padding-left: calc(1rem + 26px + 0.75rem); /* align with text */
+    border-top: 1px solid var(--border);
+  }
+
+  .card-body-content ul {
+    list-style: none;
+    margin-top: 0.6rem;
+  }
+
+  .card-body-content li {
+    font-size: 0.8rem;
+    color: var(--text-mid);
+    padding: 0.35rem 0;
+    padding-left: 0.9rem;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .card-body-content li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.7rem;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent-dim);
+  }
+
+  .deliverable {
+    font-size: 0.78rem;
+    color: var(--green);
+    margin-top: 0.75rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+
+  .deliverable-icon { flex-shrink: 0; }
+
+  .doc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.6rem;
+    padding: 0.4rem 0.75rem;
+    background: rgba(91,156,246,0.08);
+    border: 1px solid rgba(91,156,246,0.15);
+    border-radius: 8px;
+    color: var(--blue);
+    text-decoration: none;
+    font-size: 0.75rem;
+    transition: background 0.2s;
+  }
+
+  .doc-btn:active { background: rgba(91,156,246,0.15); }
+
+  /* ---- Bottom bar ---- */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 0.75rem 1rem;
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+    display: flex;
+    gap: 0.5rem;
+    z-index: 100;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(20,20,20,0.92);
+  }
+
+  .bottom-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.65rem;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+  }
+
+  .bottom-btn:active { transform: scale(0.96); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  .btn-secondary {
+    background: rgba(255,255,255,0.06);
+    color: var(--text-mid);
+    border: 1px solid var(--border);
+  }
+
+  /* ---- Confetti ---- */
+  .confetti-container {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 999;
+    overflow: hidden;
+  }
+
+  .confetti-piece {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    top: -10px;
+    opacity: 0;
+    border-radius: 2px;
+  }
+
+  @keyframes confettiFall {
+    0% { opacity: 1; top: -10px; transform: rotate(0deg) translateX(0); }
+    100% { opacity: 0; top: 110vh; transform: rotate(720deg) translateX(80px); }
+  }
+
+  /* ---- Celebration ---- */
+  .celebration {
+    text-align: center;
+    padding: 1.5rem 0;
+    display: none;
+  }
+
+  .celebration.show { display: block; }
+
+  .celebration-emoji {
+    font-size: 2.5rem;
+    animation: celebBounce 0.6s ease;
+  }
+
+  .celebration-text {
+    font-size: 0.85rem;
+    color: var(--green);
+    font-weight: 500;
+    margin-top: 0.5rem;
+  }
+
+  @keyframes celebBounce {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+  }
+
+  /* ---- Today pulse ---- */
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+    50% { box-shadow: 0 0 0 6px transparent; }
+  }
+
+  .card.today .check {
+    animation: pulse 2s ease-in-out infinite;
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="ring-container">
+    <svg class="ring-bg" viewBox="0 0 120 120"><circle></circle></svg>
+    <svg class="ring-fill" viewBox="0 0 120 120"><circle id="ringCircle"></circle></svg>
+    <div class="ring-text">
+      <div class="ring-pct" id="ringPct">0%</div>
+      <div class="ring-label">complete</div>
+    </div>
+  </div>
+  <div class="hero-title">&#9986;&#65039; Design Era</div>
+  <div class="hero-subtitle">Gothic Revival &bull; Fashion + Textiles</div>
+  <div class="hero-due">&#127919; Final hand-in: Apr 2</div>
+</div>
+
+<div class="divider"></div>
+
+<div class="cards" id="cards"></div>
+
+<div class="celebration" id="celebration">
+  <div class="celebration-emoji">&#127881;</div>
+  <div class="celebration-text">Written draft complete!</div>
+</div>
+
+<div class="bottom-bar">
+  <a class="bottom-btn btn-primary" href="https://docs.google.com/document/d/1qhYTqs4MBMqSuItfAKnL4PDtX6ODZjupmVqqXqTUePE/edit" target="_blank">&#128221; Open Draft</a>
+  <a class="bottom-btn btn-secondary" href="https://docs.google.com/document/d/165hVND8iHDwSE7idWdEvO1Mlh8BxPugOklV3zWaVKMQ/edit" target="_blank">&#128203; Task Sheet</a>
+</div>
+
+<div class="confetti-container" id="confetti"></div>
+
+<script>
+// ---- Task data ----
+const TASKS = [
+  {
+    id: 'day1', day: 1, date: '2026-03-07', weekday: 'Fri',
+    title: 'Principles + Quote', section: 'Set the Scene', time: '1 hr',
+    bullets: [
+      'Write one paragraph listing Gothic Revival design principles \u2014 pointed arches, ribbed vaults, flying buttresses, tracery, stained glass, cluster columns, verticality, quatrefoils',
+      'Find a quote from John Ruskin or A.W.N. Pugin about craftsmanship vs industrialisation',
+      'Slot the quote into your Set the Scene section with attribution',
+    ],
+    deliverable: 'A new principles paragraph + a quote with attribution in your doc',
+    url: 'https://docs.google.com/document/d/1qhYTqs4MBMqSuItfAKnL4PDtX6ODZjupmVqqXqTUePE/edit',
+  },
+  {
+    id: 'day2', day: 2, date: '2026-03-08', weekday: 'Sat',
+    title: 'Key Player \u2014 Pugin', section: 'Key Players', time: '1 hr',
+    bullets: [
+      'Research A.W.N. Pugin: Catholic faith driving his Gothic obsession',
+      'His work on the Houses of Parliament interiors',
+      'His book Contrasts (1836) comparing medieval vs industrial architecture',
+      'Write 4\u20135 sentences: who he was, what drove him, his key contribution',
+    ],
+    deliverable: 'Pugin has his own mini-section under Key Players',
+    url: 'https://docs.google.com/document/d/1qhYTqs4MBMqSuItfAKnL4PDtX6ODZjupmVqqXqTUePE/edit',
+  },
+  {
+    id: 'day3', day: 3, date: '2026-03-09', weekday: 'Sun',
+    title: 'Barry + Scott', section: 'Key Players', time: '1 hr',
+    bullets: [
+      'Sir Charles Barry: classical architect, won the Parliament competition, partnered with Pugin \u2014 3\u20134 sentences',
+      'Sir George Gilbert Scott: prolific restorer, designed St Pancras Station hotel, Albert Memorial \u2014 3\u20134 sentences',
+    ],
+    deliverable: 'All four Key Players (Walpole, Pugin, Barry, Scott) have detail',
+    url: 'https://docs.google.com/document/d/1qhYTqs4MBMqSuItfAKnL4PDtX6ODZjupmVqqXqTUePE/edit',
+  },
+  {
+    id: 'day4', day: 4, date: '2026-03-10', weekday: 'Mon',
+    title: 'Key Pieces', section: 'Key Pieces', time: '1 hr',
+    bullets: [
+      'Pick 2\u20133 buildings beyond Strawberry Hill and Parliament',
+      'Good options: St Pancras Station (Scott, 1868), All Saints Margaret Street (Butterfield, 1859), Victoria Tower',
+      'For each: find an image, write 2\u20133 sentences on visible Gothic design elements',
+    ],
+    deliverable: '4\u20135 Key Pieces total, each with image + name/date/designer + analysis',
+    url: 'https://docs.google.com/document/d/1qhYTqs4MBMqSuItfAKnL4PDtX6ODZjupmVqqXqTUePE/edit',
+  },
+  {
+    id: 'day5', day: 5, date: '2026-03-11', weekday: 'Tue',
+    title: 'Captions + Compare', section: 'Key Pieces / Summary', time: '1 hr',
+    bullets: [
+      'Add proper captions to ALL images: building name, architect, date, source',
+      'Expand Arts & Crafts comparison: shared values (anti-industrial, handmade) vs differences (grand architecture vs domestic crafts)',
+    ],
+    deliverable: 'Every image captioned, comparison section is 5\u20136 sentences',
+    url: 'https://docs.google.com/document/d/1qhYTqs4MBMqSuItfAKnL4PDtX6ODZjupmVqqXqTUePE/edit',
+  },
+  {
+    id: 'day6', day: 6, date: '2026-03-12', weekday: 'Wed',
+    title: 'Bibliography + Structure', section: 'All sections', time: '1 hr',
+    bullets: [
+      'Compile sources list (websites, books, image credits)',
+      'Re-read whole doc against task sheet: Intro \u2192 Set the Scene \u2192 Key Players \u2192 Key Pieces \u2192 Summary',
+      'Move any paragraphs into the correct section',
+    ],
+    deliverable: 'Bibliography exists and doc follows the required structure',
+    url: 'https://docs.google.com/document/d/165hVND8iHDwSE7idWdEvO1Mlh8BxPugOklV3zWaVKMQ/edit',
+  },
+  {
+    id: 'day7', day: 7, date: '2026-03-13', weekday: 'Thu',
+    title: 'Proofread + Polish', section: 'All sections', time: '1 hr',
+    bullets: [
+      'Fix spelling: "granger" \u2192 "grandeur", "Meany" \u2192 "Many", "themes" \u2192 "Thames", "Shean" \u2192 "Shein", "peak" \u2192 "pique"',
+      'Read aloud for flow \u2014 tighten rambling sentences',
+      'Check against Excellence criteria: are you interpreting the movement\u2019s characteristics, not just describing them?',
+    ],
+    deliverable: 'Clean, error-free draft ready to show BKJ',
+    url: 'https://docs.google.com/document/d/1qhYTqs4MBMqSuItfAKnL4PDtX6ODZjupmVqqXqTUePE/edit',
+  },
+  {
+    id: 'day8', day: 8, date: '2026-03-14', weekday: 'Fri',
+    title: 'Buffer / Final Review', section: '\u2014', time: '1 hr',
+    bullets: [
+      'Catch-up day if anything ran over',
+      'Or: add one more image, strengthen a weak section, get teacher feedback',
+    ],
+    deliverable: 'Polished written draft complete',
+    url: 'https://docs.google.com/document/d/1qhYTqs4MBMqSuItfAKnL4PDtX6ODZjupmVqqXqTUePE/edit',
+  },
+];
+
+// ---- State ----
+const STORAGE_KEY = 'design-era-tracker';
+
+function loadState() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+  } catch { return {}; }
+}
+
+function saveState(s) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+}
+
+function isDone(id) {
+  return !!loadState()[id];
+}
+
+function toggleDone(id) {
+  const s = loadState();
+  if (s[id]) delete s[id];
+  else s[id] = new Date().toISOString();
+  saveState(s);
+  return s;
+}
+
+// ---- Render ----
+const today = new Date().toISOString().slice(0, 10);
+
+function getStatus(t) {
+  if (isDone(t.id)) return 'done';
+  if (t.date === today) return 'today';
+  if (t.date < today) return 'overdue';
+  return 'pending';
+}
+
+function renderCards() {
+  const container = document.getElementById('cards');
+  container.innerHTML = '';
+
+  TASKS.forEach(t => {
+    const status = getStatus(t);
+    const card = document.createElement('div');
+    card.className = `card ${status}`;
+    card.dataset.id = t.id;
+
+    const bulletsHtml = t.bullets.map(b => `<li>${esc(b)}</li>`).join('');
+
+    card.innerHTML = `
+      <div class="card-head">
+        <div class="check" data-id="${t.id}">${status === 'done' ? '&#10003;' : ''}</div>
+        <div class="card-info">
+          <div class="card-day">Day ${t.day}</div>
+          <div class="card-name">${esc(t.title)}</div>
+        </div>
+        <div class="card-right-col">
+          <span class="card-date">${t.weekday} ${t.date.slice(5)}</span>
+          <span class="card-tag">${esc(t.section)}</span>
+        </div>
+        <div class="chevron-wrap">&#9660;</div>
+      </div>
+      <div class="card-body">
+        <div class="card-body-inner">
+          <div class="card-body-content">
+            <ul>${bulletsHtml}</ul>
+            <div class="deliverable">
+              <span class="deliverable-icon">&#10004;&#65039;</span>
+              <span>${esc(t.deliverable)}</span>
+            </div>
+            <a class="doc-btn" href="${t.url}" target="_blank">&#128221; Open Document</a>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Toggle expand
+    card.querySelector('.card-head').addEventListener('click', (e) => {
+      if (e.target.closest('.check')) return;
+      card.classList.toggle('open');
+    });
+
+    // Toggle done
+    card.querySelector('.check').addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleDone(t.id);
+      renderCards();
+      updateRing();
+      checkCelebration();
+    });
+
+    container.appendChild(card);
+  });
+
+  // Auto-expand today's task
+  const todayCard = container.querySelector('.card.today');
+  if (todayCard) todayCard.classList.add('open');
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// ---- Progress ring ----
+const CIRCUMFERENCE = 2 * Math.PI * 54; // r=54
+
+function updateRing(animate) {
+  const done = TASKS.filter(t => isDone(t.id)).length;
+  const pct = Math.round(done / TASKS.length * 100);
+  const offset = CIRCUMFERENCE - (pct / 100) * CIRCUMFERENCE;
+
+  const circle = document.getElementById('ringCircle');
+  circle.style.strokeDashoffset = offset;
+
+  document.getElementById('ringPct').textContent = pct + '%';
+}
+
+// ---- Confetti ----
+function fireConfetti() {
+  const container = document.getElementById('confetti');
+  const colors = ['#c9a84c', '#3ba55d', '#5b9cf6', '#e8e8e8', '#d44', '#f0c040'];
+
+  for (let i = 0; i < 60; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + '%';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.width = (4 + Math.random() * 6) + 'px';
+    piece.style.height = (4 + Math.random() * 6) + 'px';
+    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    piece.style.animation = `confettiFall ${1.5 + Math.random() * 2}s ease-out ${Math.random() * 0.5}s forwards`;
+    container.appendChild(piece);
+  }
+
+  setTimeout(() => { container.innerHTML = ''; }, 4000);
+}
+
+let hasShownCelebration = false;
+
+function checkCelebration() {
+  const done = TASKS.filter(t => isDone(t.id)).length;
+  const celeb = document.getElementById('celebration');
+
+  if (done === TASKS.length) {
+    celeb.classList.add('show');
+    if (!hasShownCelebration) {
+      hasShownCelebration = true;
+      fireConfetti();
+    }
+  } else {
+    celeb.classList.remove('show');
+    hasShownCelebration = false;
+  }
+}
+
+// ---- Telegram Web App integration ----
+function initTelegram() {
+  if (window.Telegram && window.Telegram.WebApp) {
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
+    // Match Telegram theme if available
+    if (tg.themeParams) {
+      // Keep our dark theme but respect safe areas
+      document.body.style.paddingBottom = '6rem';
+    }
+  }
+}
+
+// ---- Init ----
+renderCards();
+updateRing();
+checkCelebration();
+initTelegram();
+</script>
+</body>
+</html>
