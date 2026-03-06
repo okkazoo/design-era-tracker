@@ -899,7 +899,7 @@ function draw() {
       const pb = Math.round(111 + (255-111)*solidFrac);
       ctx.font = solidFrac > 0.5 ? 'italic 300 14px Literata, Georgia, serif' : '300 14px Literata, Georgia, serif';
       ctx.fillStyle = `rgba(${pr},${pg},${pb},${(0.55 + 0.4*solidFrac).toFixed(3)})`;
-      ctx.fillText(solidFrac > 0.5 ? t.done : t.label, 16, y + 30);
+      ctx.fillText(solidFrac > 0.5 ? t.done : t.label + ' \u00b7 Passed', 16, y + 30);
 
       ctx.font = '10px JetBrains Mono, monospace';
       ctx.fillStyle = `rgba(${pr},${pg},${pb},${(0.5 + 0.35*solidFrac).toFixed(3)})`;
