@@ -294,7 +294,7 @@
     <div class="detail-deliverable" id="detailDeliverable"></div>
     <div class="detail-actions">
       <button class="action-btn btn-complete" id="btnComplete"></button>
-      <button class="action-btn btn-pass" id="btnPass">pass</button>
+      <button class="action-btn btn-pass" id="btnPass">skip</button>
       <button class="action-btn btn-close" id="btnClose">&times;</button>
     </div>
     <div class="detail-links">
@@ -311,7 +311,7 @@
 <script>
 // ── Tasks with detail bullets ──────────────────────────────────────────────
 const TASKS = [
-  { id:'d1', label:'Principles + Quote', done:'Principles set', sub:'1 paragraph + 1 quote with attribution', sec:'Set the Scene',
+  { id:'d1', label:'Principles + Quote', done:'Principles set', sub:'Write a paragraph and find a good quote', sec:'Set the Scene',
     requires: [],
     bullets: [
       'Write one paragraph listing Gothic Revival design principles\u2009—\u2009pointed arches, ribbed vaults, flying buttresses, tracery, stained glass, cluster columns, verticality, quatrefoils',
@@ -321,7 +321,7 @@ const TASKS = [
     deliverable: 'A new principles paragraph + a quote with attribution in your doc',
     url: 'https://docs.google.com/document/d/1qhYTqs4MBMqSuItfAKnL4PDtX6ODZjupmVqqXqTUePE/edit',
   },
-  { id:'d2', label:'Key Player \u2014 Pugin', done:'Pugin researched', sub:'4\u20135 sentences on who he was + key contribution', sec:'Key Players',
+  { id:'d2', label:'Key Player \u2014 Pugin', done:'Pugin researched', sub:'A few sentences on who he was and why he matters', sec:'Key Players',
     requires: [],
     bullets: [
       'Research A.W.N. Pugin: Catholic faith driving his Gothic obsession',
@@ -332,7 +332,7 @@ const TASKS = [
     deliverable: 'Pugin has his own mini-section under Key Players',
     url: 'https://docs.google.com/document/d/1qhYTqs4MBMqSuItfAKnL4PDtX6ODZjupmVqqXqTUePE/edit',
   },
-  { id:'d3', label:'Barry + Scott', done:'Players detailed', sub:'3\u20134 sentences each, two mini write-ups', sec:'Key Players',
+  { id:'d3', label:'Barry + Scott', done:'Players detailed', sub:'Short write-up on each, same as Pugin', sec:'Key Players',
     requires: [],
     bullets: [
       'Sir Charles Barry: classical architect, won the Parliament competition, partnered with Pugin\u2009—\u20093\u20134 sentences',
@@ -341,7 +341,7 @@ const TASKS = [
     deliverable: 'All four Key Players (Walpole, Pugin, Barry, Scott) have detail',
     url: 'https://docs.google.com/document/d/1qhYTqs4MBMqSuItfAKnL4PDtX6ODZjupmVqqXqTUePE/edit',
   },
-  { id:'d4', label:'Key Pieces', done:'Pieces curated', sub:'2\u20133 buildings, each needs image + 2\u20133 sentences', sec:'Key Pieces',
+  { id:'d4', label:'Key Pieces', done:'Pieces curated', sub:'Pick a few buildings, add images and describe them', sec:'Key Pieces',
     requires: [],
     bullets: [
       'Pick 2\u20133 buildings beyond Strawberry Hill and Parliament',
@@ -351,7 +351,7 @@ const TASKS = [
     deliverable: '4\u20135 Key Pieces total, each with image + name/date/designer + analysis',
     url: 'https://docs.google.com/document/d/1qhYTqs4MBMqSuItfAKnL4PDtX6ODZjupmVqqXqTUePE/edit',
   },
-  { id:'d5', label:'Captions + Compare', done:'Captioned', sub:'Captions on every image + 5\u20136 sentence comparison', sec:'Summary',
+  { id:'d5', label:'Captions + Compare', done:'Captioned', sub:'Label all images and write the comparison section', sec:'Summary',
     requires: [3],
     bullets: [
       'Add proper captions to ALL images: building name, architect, date, source',
@@ -360,7 +360,7 @@ const TASKS = [
     deliverable: 'Every image captioned, comparison section is 5\u20136 sentences',
     url: 'https://docs.google.com/document/d/1qhYTqs4MBMqSuItfAKnL4PDtX6ODZjupmVqqXqTUePE/edit',
   },
-  { id:'d6', label:'Bibliography + Structure', done:'Structured', sub:'Sources list + reorder doc to match task sheet', sec:'All Sections',
+  { id:'d6', label:'Bibliography + Structure', done:'Structured', sub:'Add your sources and put sections in the right order', sec:'All Sections',
     requires: [0,1,2,3,4],
     bullets: [
       'Compile sources list (websites, books, image credits)',
@@ -370,7 +370,7 @@ const TASKS = [
     deliverable: 'Bibliography exists and doc follows the required structure',
     url: 'https://docs.google.com/document/d/165hVND8iHDwSE7idWdEvO1Mlh8BxPugOklV3zWaVKMQ/edit',
   },
-  { id:'d7', label:'Proofread + Polish', done:'Polished', sub:'Fix 5+ spelling errors, read aloud, check criteria', sec:'All Sections',
+  { id:'d7', label:'Proofread + Polish', done:'Polished', sub:'Fix spelling, read it through, tidy up', sec:'All Sections',
     requires: [0,1,2,3,4,5],
     bullets: [
       'Fix spelling: "granger" \u2192 "grandeur", "Meany" \u2192 "Many", "themes" \u2192 "Thames", "Shean" \u2192 "Shein", "peak" \u2192 "pique"',
@@ -380,7 +380,7 @@ const TASKS = [
     deliverable: 'Clean, error-free draft ready to show BKJ',
     url: 'https://docs.google.com/document/d/1qhYTqs4MBMqSuItfAKnL4PDtX6ODZjupmVqqXqTUePE/edit',
   },
-  { id:'d8', label:'Buffer / Final Review', done:'Draft complete', sub:'Catch-up time or polish one more section', sec:'\u2014',
+  { id:'d8', label:'Buffer / Final Review', done:'Draft complete', sub:'Catch up on anything left or get feedback', sec:'\u2014',
     requires: [6],
     bullets: [
       'Catch-up day if anything ran over',
@@ -534,14 +534,14 @@ function refreshDetailButtons(idx) {
     btnComp.textContent = 'mark complete';
     btnComp.classList.remove('is-done');
     btnComp.disabled = false;
-    btnPass.textContent = 'unpass';
+    btnPass.textContent = 'unskip';
     btnPass.classList.add('is-passed');
     btnPass.style.display = '';
   } else {
     btnComp.textContent = 'mark complete';
     btnComp.classList.remove('is-done');
     btnComp.disabled = false;
-    btnPass.textContent = 'pass';
+    btnPass.textContent = 'skip';
     btnPass.classList.remove('is-passed');
     btnPass.style.display = '';
   }
@@ -899,7 +899,7 @@ function draw() {
       const pb = Math.round(111 + (255-111)*solidFrac);
       ctx.font = solidFrac > 0.5 ? 'italic 300 14px Literata, Georgia, serif' : '300 14px Literata, Georgia, serif';
       ctx.fillStyle = `rgba(${pr},${pg},${pb},${(0.55 + 0.4*solidFrac).toFixed(3)})`;
-      ctx.fillText(solidFrac > 0.5 ? t.done : t.label + ' \u00b7 Passed', 16, y + 30);
+      ctx.fillText((solidFrac > 0.5 ? t.done : t.label) + ' \u00b7 Skipped', 16, y + 30);
 
       ctx.font = '10px JetBrains Mono, monospace';
       ctx.fillStyle = `rgba(${pr},${pg},${pb},${(0.5 + 0.35*solidFrac).toFixed(3)})`;
