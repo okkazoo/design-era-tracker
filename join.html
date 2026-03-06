@@ -497,7 +497,7 @@ function loadLS() {
     cells.forEach((c, i) => {
       if (i < N-1 && c.done && cells[i+1].done) c.divotFrac = 1;
     });
-    if (cells.every(c => c.done)) solidFrac = 1;
+    if (cells.every(c => c.done || c.passed)) solidFrac = 1;
   } catch {}
 }
 
@@ -585,10 +585,6 @@ function toggleDone(idx) {
   } else {
     cells[idx].done = true;
     cells[idx].passed = false;
-    // Final task: completing it marks all passed tasks as done too
-    if (idx === N - 1) {
-      cells.forEach(c => { if (c.passed) { c.passed = false; c.done = true; } });
-    }
   }
   saveLS(); updateCounter(); recalcTargets(); kick();
   if (selectedIdx === idx) refreshDetailButtons(idx);
@@ -667,7 +663,11 @@ function strokeColour(op) {
 }
 
 function finalTextColour(alpha) {
-  return `rgba(156,122,30,${alpha.toFixed(3)})`;
+  // Transition from gold to light cream in solid fill
+  const r = Math.round(156 + (255-156)*solidFrac);
+  const g = Math.round(122 + (235-122)*solidFrac);
+  const b = Math.round(30  + (180-30)*solidFrac);
+  return `rgba(${r},${g},${b},${alpha.toFixed(3)})`;
 }
 
 // ── Paths ──────────────────────────────────────────────────────────────────
@@ -808,12 +808,20 @@ function draw() {
     const st = isFinal ? FINAL_STROKE : STROKE;
 
     if (cell.passed) {
-      // Passed: warm tint to show contribution
-      ctx.fillStyle = 'rgba(201,122,58,0.10)';
+      // Passed: transitions from warm tint to solid fill
+      const [rs,gs,bs] = FILL_SOLID_RGB;
+      const pr = Math.round(201 + (rs-201)*solidFrac);
+      const pg = Math.round(122 + (gs-122)*solidFrac);
+      const pb = Math.round(58  + (bs-58)*solidFrac);
+      const pa = 0.10 + (0.92 - 0.10)*solidFrac;
+      ctx.fillStyle = `rgba(${pr},${pg},${pb},${pa.toFixed(3)})`;
       ctx.fill(p);
-      ctx.strokeStyle = PASS_STROKE;
+      const sr = Math.round(123 + (rs-123)*solidFrac);
+      const sg = Math.round(139 + (gs-139)*solidFrac);
+      const sb = Math.round(111 + (bs-111)*solidFrac);
+      ctx.strokeStyle = `rgb(${sr},${sg},${sb})`;
       ctx.lineWidth = SW;
-      ctx.globalAlpha = 0.55;
+      ctx.globalAlpha = 0.55 + 0.45*solidFrac;
       ctx.stroke(p);
       ctx.globalAlpha = 1;
     } else if (isLocked(idx)) {
@@ -888,12 +896,16 @@ function draw() {
     const locked = isLocked(idx);
 
     if (cell.passed) {
-      ctx.font = '300 14px Literata, Georgia, serif';
-      ctx.fillStyle = 'rgba(123,139,111,0.55)';
-      ctx.fillText(t.label, 16, y + 30);
+      // Transition text from sage green to white in solid fill
+      const pr = Math.round(123 + (255-123)*solidFrac);
+      const pg = Math.round(139 + (255-139)*solidFrac);
+      const pb = Math.round(111 + (255-111)*solidFrac);
+      ctx.font = solidFrac > 0.5 ? 'italic 300 14px Literata, Georgia, serif' : '300 14px Literata, Georgia, serif';
+      ctx.fillStyle = `rgba(${pr},${pg},${pb},${(0.55 + 0.4*solidFrac).toFixed(3)})`;
+      ctx.fillText(solidFrac > 0.5 ? t.done : t.label, 16, y + 30);
 
       ctx.font = '10px JetBrains Mono, monospace';
-      ctx.fillStyle = 'rgba(123,139,111,0.5)';
+      ctx.fillStyle = `rgba(${pr},${pg},${pb},${(0.5 + 0.35*solidFrac).toFixed(3)})`;
       ctx.fillText(t.sub, 16, y + 49);
     } else if (locked) {
       // Locked — very muted
