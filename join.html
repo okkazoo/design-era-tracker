@@ -306,7 +306,7 @@
 <script>
 // ── Tasks with detail bullets ──────────────────────────────────────────────
 const TASKS = [
-  { id:'d1', label:'Principles + Quote', done:'Principles set', sub:'Day 1 · Fri', sec:'Set the Scene',
+  { id:'d1', label:'Principles + Quote', done:'Principles set', sub:'List design principles, find a Ruskin or Pugin quote', sec:'Set the Scene',
     bullets: [
       'Write one paragraph listing Gothic Revival design principles\u2009—\u2009pointed arches, ribbed vaults, flying buttresses, tracery, stained glass, cluster columns, verticality, quatrefoils',
       'Find a quote from John Ruskin or A.W.N. Pugin about craftsmanship vs industrialisation',
@@ -315,7 +315,7 @@ const TASKS = [
     deliverable: 'A new principles paragraph + a quote with attribution in your doc',
     url: 'https://docs.google.com/document/d/1qhYTqs4MBMqSuItfAKnL4PDtX6ODZjupmVqqXqTUePE/edit',
   },
-  { id:'d2', label:'Key Player \u2014 Pugin', done:'Pugin researched', sub:'Day 2 · Sat', sec:'Key Players',
+  { id:'d2', label:'Key Player \u2014 Pugin', done:'Pugin researched', sub:'Research Pugin\u2019s faith, Parliament, Contrasts', sec:'Key Players',
     bullets: [
       'Research A.W.N. Pugin: Catholic faith driving his Gothic obsession',
       'His work on the Houses of Parliament interiors',
@@ -325,7 +325,7 @@ const TASKS = [
     deliverable: 'Pugin has his own mini-section under Key Players',
     url: 'https://docs.google.com/document/d/1qhYTqs4MBMqSuItfAKnL4PDtX6ODZjupmVqqXqTUePE/edit',
   },
-  { id:'d3', label:'Barry + Scott', done:'Players detailed', sub:'Day 3 · Sun', sec:'Key Players',
+  { id:'d3', label:'Barry + Scott', done:'Players detailed', sub:'Write up Barry and Scott, 3\u20134 sentences each', sec:'Key Players',
     bullets: [
       'Sir Charles Barry: classical architect, won the Parliament competition, partnered with Pugin\u2009—\u20093\u20134 sentences',
       'Sir George Gilbert Scott: prolific restorer, designed St Pancras Station hotel, Albert Memorial\u2009—\u20093\u20134 sentences',
@@ -333,7 +333,7 @@ const TASKS = [
     deliverable: 'All four Key Players (Walpole, Pugin, Barry, Scott) have detail',
     url: 'https://docs.google.com/document/d/1qhYTqs4MBMqSuItfAKnL4PDtX6ODZjupmVqqXqTUePE/edit',
   },
-  { id:'d4', label:'Key Pieces', done:'Pieces curated', sub:'Day 4 · Mon', sec:'Key Pieces',
+  { id:'d4', label:'Key Pieces', done:'Pieces curated', sub:'Pick 2\u20133 buildings, image + analysis for each', sec:'Key Pieces',
     bullets: [
       'Pick 2\u20133 buildings beyond Strawberry Hill and Parliament',
       'Good options: St Pancras Station (Scott, 1868), All Saints Margaret Street (Butterfield, 1859), Victoria Tower',
@@ -342,7 +342,7 @@ const TASKS = [
     deliverable: '4\u20135 Key Pieces total, each with image + name/date/designer + analysis',
     url: 'https://docs.google.com/document/d/1qhYTqs4MBMqSuItfAKnL4PDtX6ODZjupmVqqXqTUePE/edit',
   },
-  { id:'d5', label:'Captions + Compare', done:'Captioned', sub:'Day 5 · Tue', sec:'Summary',
+  { id:'d5', label:'Captions + Compare', done:'Captioned', sub:'Caption all images, expand Arts & Crafts comparison', sec:'Summary',
     bullets: [
       'Add proper captions to ALL images: building name, architect, date, source',
       'Expand Arts & Crafts comparison: shared values (anti-industrial, handmade) vs differences (grand architecture vs domestic crafts)',
@@ -350,7 +350,7 @@ const TASKS = [
     deliverable: 'Every image captioned, comparison section is 5\u20136 sentences',
     url: 'https://docs.google.com/document/d/1qhYTqs4MBMqSuItfAKnL4PDtX6ODZjupmVqqXqTUePE/edit',
   },
-  { id:'d6', label:'Bibliography + Structure', done:'Structured', sub:'Day 6 · Wed', sec:'All Sections',
+  { id:'d6', label:'Bibliography + Structure', done:'Structured', sub:'Compile sources, check doc matches task sheet order', sec:'All Sections',
     bullets: [
       'Compile sources list (websites, books, image credits)',
       'Re-read whole doc against task sheet: Intro \u2192 Set the Scene \u2192 Key Players \u2192 Key Pieces \u2192 Summary',
@@ -359,7 +359,7 @@ const TASKS = [
     deliverable: 'Bibliography exists and doc follows the required structure',
     url: 'https://docs.google.com/document/d/165hVND8iHDwSE7idWdEvO1Mlh8BxPugOklV3zWaVKMQ/edit',
   },
-  { id:'d7', label:'Proofread + Polish', done:'Polished', sub:'Day 7 · Thu', sec:'All Sections',
+  { id:'d7', label:'Proofread + Polish', done:'Polished', sub:'Fix spelling, read aloud, check Excellence criteria', sec:'All Sections',
     bullets: [
       'Fix spelling: "granger" \u2192 "grandeur", "Meany" \u2192 "Many", "themes" \u2192 "Thames", "Shean" \u2192 "Shein", "peak" \u2192 "pique"',
       'Read aloud for flow\u2009—\u2009tighten rambling sentences',
@@ -368,7 +368,7 @@ const TASKS = [
     deliverable: 'Clean, error-free draft ready to show BKJ',
     url: 'https://docs.google.com/document/d/1qhYTqs4MBMqSuItfAKnL4PDtX6ODZjupmVqqXqTUePE/edit',
   },
-  { id:'d8', label:'Buffer / Final Review', done:'Draft complete', sub:'Day 8 · Fri', sec:'\u2014',
+  { id:'d8', label:'Buffer / Final Review', done:'Draft complete', sub:'Catch up or strengthen weak sections', sec:'\u2014',
     bullets: [
       'Catch-up day if anything ran over',
       'Or: add one more image, strengthen a weak section, get teacher feedback',
@@ -513,7 +513,7 @@ function showDetail(idx) {
   const t = TASKS[idx];
 
   elTitle.textContent   = t.label;
-  elDay.textContent     = t.sub;
+  elDay.textContent     = 'Task ' + (idx + 1);
   elSection.textContent = t.sec;
   elBullets.innerHTML   = t.bullets.map(b => '<li>' + b + '</li>').join('');
   elDeliv.textContent   = '\u2714 ' + t.deliverable;
@@ -816,6 +816,8 @@ function draw() {
 
     ctx.save();
 
+    const num = String(idx + 1);
+
     if (cell.passed) {
       ctx.font = '300 12.5px Literata, Georgia, serif';
       ctx.fillStyle = 'rgba(123,139,111,0.45)';
@@ -827,8 +829,8 @@ function draw() {
 
       ctx.font = '7.5px JetBrains Mono, monospace';
       ctx.fillStyle = 'rgba(123,139,111,0.35)';
-      const w = ctx.measureText('passed').width;
-      ctx.fillText('passed', CW - 16 - w, y + 30);
+      const nw = ctx.measureText(num).width;
+      ctx.fillText(num, CW - 16 - nw, y + 30);
     } else {
       const tf = cell.textFade;
       const undoneA = (1 - tf) * 0.5;
@@ -845,8 +847,8 @@ function draw() {
 
         ctx.fillStyle = textColour(undoneA * 0.35 * selBoost);
         ctx.font = '7.5px JetBrains Mono, monospace';
-        const secW = ctx.measureText(t.sec).width;
-        ctx.fillText(t.sec, CW - 16 - secW, y + 30);
+        const nw = ctx.measureText(num).width;
+        ctx.fillText(num, CW - 16 - nw, y + 30);
       }
 
       if (doneA > 0.005) {
@@ -860,8 +862,8 @@ function draw() {
 
         ctx.fillStyle = textColour(doneA * 0.4);
         ctx.font = '7.5px JetBrains Mono, monospace';
-        const secW = ctx.measureText(t.sec).width;
-        ctx.fillText(t.sec, CW - 16 - secW, y + 30);
+        const nw = ctx.measureText(num).width;
+        ctx.fillText(num, CW - 16 - nw, y + 30);
       }
     }
 
