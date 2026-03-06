@@ -659,10 +659,6 @@ function drawBorderAnim(homeY, progress, isDone) {
   const arm   = halfW + arcL + halfH;
   const dist  = progress * arm;
 
-  // Show the TARGET state border: completing → full stroke, uncompleting → faint stroke
-  ctx.strokeStyle = STROKE;
-  ctx.globalAlpha = isDone ? 0.25 : 1;
-  ctx.lineWidth = SW;
   ctx.lineCap = 'round';
 
   function traceArm(segs) {
@@ -691,30 +687,43 @@ function drawBorderAnim(homeY, progress, isDone) {
     ctx.stroke();
   }
 
-  // TR: top-center → right along top → corner → down to mid-right
-  traceArm([
-    { type: 'line', sx: cx, sy: y0, ex: x1 - r, ey: y0 },
-    { type: 'arc', cx: x1 - r, cy: y0 + r, sa: -Math.PI/2, ea: 0, ccw: false },
-    { type: 'line', sx: x1, sy: y0 + r, ex: x1, ey: cy },
-  ]);
-  // TL: top-center → left along top → corner → down to mid-left
-  traceArm([
-    { type: 'line', sx: cx, sy: y0, ex: x0 + r, ey: y0 },
-    { type: 'arc', cx: x0 + r, cy: y0 + r, sa: -Math.PI/2, ea: -Math.PI, ccw: true },
-    { type: 'line', sx: x0, sy: y0 + r, ex: x0, ey: cy },
-  ]);
-  // BR: bottom-center → right along bottom → corner → up to mid-right
-  traceArm([
-    { type: 'line', sx: cx, sy: y1, ex: x1 - r, ey: y1 },
-    { type: 'arc', cx: x1 - r, cy: y1 - r, sa: Math.PI/2, ea: 0, ccw: true },
-    { type: 'line', sx: x1, sy: y1 - r, ex: x1, ey: cy },
-  ]);
-  // BL: bottom-center → left along bottom → corner → up to mid-left
-  traceArm([
-    { type: 'line', sx: cx, sy: y1, ex: x0 + r, ey: y1 },
-    { type: 'arc', cx: x0 + r, cy: y1 - r, sa: Math.PI/2, ea: Math.PI, ccw: false },
-    { type: 'line', sx: x0, sy: y1 - r, ex: x0, ey: cy },
-  ]);
+  const arms = [
+    // TR
+    [{ type: 'line', sx: cx, sy: y0, ex: x1 - r, ey: y0 },
+     { type: 'arc', cx: x1 - r, cy: y0 + r, sa: -Math.PI/2, ea: 0, ccw: false },
+     { type: 'line', sx: x1, sy: y0 + r, ex: x1, ey: cy }],
+    // TL
+    [{ type: 'line', sx: cx, sy: y0, ex: x0 + r, ey: y0 },
+     { type: 'arc', cx: x0 + r, cy: y0 + r, sa: -Math.PI/2, ea: -Math.PI, ccw: true },
+     { type: 'line', sx: x0, sy: y0 + r, ex: x0, ey: cy }],
+    // BR
+    [{ type: 'line', sx: cx, sy: y1, ex: x1 - r, ey: y1 },
+     { type: 'arc', cx: x1 - r, cy: y1 - r, sa: Math.PI/2, ea: 0, ccw: true },
+     { type: 'line', sx: x1, sy: y1 - r, ex: x1, ey: cy }],
+    // BL
+    [{ type: 'line', sx: cx, sy: y1, ex: x0 + r, ey: y1 },
+     { type: 'arc', cx: x0 + r, cy: y1 - r, sa: Math.PI/2, ea: Math.PI, ccw: false },
+     { type: 'line', sx: x0, sy: y1 - r, ex: x0, ey: cy }],
+  ];
+
+  if (isDone) {
+    // Uncompleting: erase the done border first, then draw faint border on top
+    ctx.strokeStyle = '#ECEAE3';
+    ctx.globalAlpha = 1;
+    ctx.lineWidth = SW + 2;
+    arms.forEach(a => traceArm(a));
+
+    ctx.strokeStyle = STROKE;
+    ctx.globalAlpha = 0.25;
+    ctx.lineWidth = SW;
+    arms.forEach(a => traceArm(a));
+  } else {
+    // Completing: draw full-opacity border
+    ctx.strokeStyle = STROKE;
+    ctx.globalAlpha = 1;
+    ctx.lineWidth = SW;
+    arms.forEach(a => traceArm(a));
+  }
   ctx.globalAlpha = 1;
 }
 
