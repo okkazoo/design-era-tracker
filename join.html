@@ -477,19 +477,19 @@ function refreshDetailButtons(idx) {
   const isDone = cells[idx].done;
   const isPassed = cells[idx].passed;
   if (isDone) {
-    btnComp.textContent = 'mark undone';
+    btnComp.textContent = 'mark incomplete';
     btnComp.classList.add('is-done');
     btnPass.style.display = 'none';
   } else if (isPassed) {
-    btnComp.textContent = 'mark done';
+    btnComp.textContent = 'mark complete';
     btnComp.classList.remove('is-done');
-    btnPass.textContent = 'unskip';
+    btnPass.textContent = 'unpass';
     btnPass.classList.add('is-passed');
     btnPass.style.display = '';
   } else {
-    btnComp.textContent = 'mark done';
+    btnComp.textContent = 'mark complete';
     btnComp.classList.remove('is-done');
-    btnPass.textContent = 'skip';
+    btnPass.textContent = 'pass';
     btnPass.classList.remove('is-passed');
     btnPass.style.display = '';
   }
