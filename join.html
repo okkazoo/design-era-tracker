@@ -41,7 +41,7 @@
   }
   .progress-count.all-done { color: #B8501E; }
 
-  canvas { display: block; cursor: pointer; }
+  canvas { display: block; cursor: pointer; touch-action: none; }
 
   /* ── Canvas wrapper ───────────────────────────────────── */
   .canvas-wrap {
@@ -168,6 +168,7 @@
   .detail-actions {
     display: flex;
     gap: 8px;
+    flex-wrap: wrap;
   }
 
   .action-btn {
@@ -202,6 +203,16 @@
     color: #A09888;
   }
 
+  .btn-pass {
+    background: none;
+    border: 1px solid rgba(123,139,111,0.4);
+    color: #7B8B6F;
+  }
+  .btn-pass.is-passed {
+    background: rgba(123,139,111,0.12);
+    color: #7B8B6F;
+  }
+
   .btn-doc {
     background: none;
     border: 1px solid rgba(160,150,140,0.35);
@@ -234,7 +245,7 @@
 <body>
 
 <div class="header">
-  <p class="page-title">Design Era · Gothic Revival · tap details · swipe complete</p>
+  <p class="page-title">Design Era · Gothic Revival · tap details · hold complete</p>
   <p class="page-sub">Written Draft</p>
   <p class="progress-count" id="counter">0 of 8</p>
 </div>
@@ -254,6 +265,7 @@
     <div class="detail-deliverable" id="detailDeliverable"></div>
     <div class="detail-actions">
       <button class="action-btn btn-complete" id="btnComplete"></button>
+      <button class="action-btn btn-pass" id="btnPass">pass</button>
       <a class="btn-doc" id="btnDoc" target="_blank">open doc</a>
       <button class="action-btn btn-close" id="btnClose">close</button>
     </div>
@@ -353,6 +365,7 @@ const TH  = N * CH + (N - 1) * GAP;
 
 // ── Colours ────────────────────────────────────────────────────────────────
 const STROKE = '#B8501E';
+const PASS_STROKE = '#7B8B6F';
 const FILL_UNDONE_RGBA = [245, 224, 202, 0.55];
 const FILL_DONE_RGBA   = [201, 122, 58,  0.22];
 const FILL_SOLID_RGB   = [184, 82, 32];
@@ -370,11 +383,12 @@ ctx.scale(DPR, DPR);
 
 // ── State ──────────────────────────────────────────────────────────────────
 const STORAGE_KEY = 'design-era-join';
-let selectedIdx = -1;  // which cell's details are showing
+let selectedIdx = -1;
 
 function makeState() {
   return Array.from({ length: N }, (_, i) => ({
     done:      false,
+    passed:    false,
     homeY:     i * (CH + GAP),
     fillOp:    0,
     strokeOp:  0.25,
@@ -389,22 +403,29 @@ let raf       = null;
 let tgt       = cells.map(() => ({ fillOp: 0, strokeOp: 0.25, divotFrac: 0, textFade: 0 }));
 let tgtSolid  = 0;
 
-function allDone() { return cells.every(c => c.done); }
 function doneCount() { return cells.filter(c => c.done).length; }
+function passCount() { return cells.filter(c => c.passed).length; }
 
 function updateCounter() {
   const el = document.getElementById('counter');
-  const n = doneCount();
-  el.textContent = n === N ? 'all done' : n + ' of ' + N;
-  el.classList.toggle('all-done', n === N);
+  const d = doneCount(), p = passCount();
+  if (d === N) {
+    el.textContent = 'all done';
+    el.classList.add('all-done');
+  } else {
+    let txt = d + ' of ' + N;
+    if (p > 0) txt += ' \u00b7 ' + p + ' passed';
+    el.textContent = txt;
+    el.classList.remove('all-done');
+  }
 }
 
 function recalcTargets() {
-  tgtSolid = allDone() ? 1 : 0;
+  tgtSolid = cells.every(c => c.done) ? 1 : 0;
   cells.forEach((cell, i) => {
-    tgt[i].fillOp   = cell.done ? 1.0 : 0;
-    tgt[i].strokeOp = cell.done ? 1.0 : 0.25;
-    tgt[i].textFade = cell.done ? 1.0 : 0;
+    tgt[i].fillOp    = cell.done ? 1.0 : 0;
+    tgt[i].strokeOp  = cell.done ? 1.0 : 0.25;
+    tgt[i].textFade  = cell.done ? 1.0 : 0;
     tgt[i].divotFrac = (i < N-1 && cell.done && cells[i+1].done) ? 1 : 0;
   });
 }
@@ -412,7 +433,10 @@ function recalcTargets() {
 // ── Persistence ────────────────────────────────────────────────────────────
 function saveLS() {
   const s = {};
-  cells.forEach((c, i) => { if (c.done) s[TASKS[i].id] = true; });
+  cells.forEach((c, i) => {
+    if (c.done) s[TASKS[i].id] = 'done';
+    else if (c.passed) s[TASKS[i].id] = 'passed';
+  });
   localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
 }
 
@@ -420,15 +444,18 @@ function loadLS() {
   try {
     const s = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
     cells.forEach((c, i) => {
-      if (s[TASKS[i].id]) {
+      const v = s[TASKS[i].id];
+      if (v === true || v === 'done') {
         c.done = true;
         c.fillOp = 1; c.strokeOp = 1; c.textFade = 1;
+      } else if (v === 'passed') {
+        c.passed = true;
       }
     });
     cells.forEach((c, i) => {
       if (i < N-1 && c.done && cells[i+1].done) c.divotFrac = 1;
     });
-    if (allDone()) solidFrac = 1;
+    if (cells.every(c => c.done)) solidFrac = 1;
   } catch {}
 }
 
@@ -440,14 +467,36 @@ const elSection = document.getElementById('detailSection');
 const elBullets = document.getElementById('detailBullets');
 const elDeliv   = document.getElementById('detailDeliverable');
 const btnComp   = document.getElementById('btnComplete');
+const btnPass   = document.getElementById('btnPass');
 const btnDoc    = document.getElementById('btnDoc');
 const btnClose  = document.getElementById('btnClose');
+
+function refreshDetailButtons(idx) {
+  const isDone = cells[idx].done;
+  const isPassed = cells[idx].passed;
+  if (isDone) {
+    btnComp.textContent = 'uncomplete';
+    btnComp.classList.add('is-done');
+    btnPass.style.display = 'none';
+  } else if (isPassed) {
+    btnComp.textContent = 'complete';
+    btnComp.classList.remove('is-done');
+    btnPass.textContent = 'undo pass';
+    btnPass.classList.add('is-passed');
+    btnPass.style.display = '';
+  } else {
+    btnComp.textContent = 'complete';
+    btnComp.classList.remove('is-done');
+    btnPass.textContent = 'pass';
+    btnPass.classList.remove('is-passed');
+    btnPass.style.display = '';
+  }
+}
 
 function showDetail(idx) {
   if (idx === selectedIdx) { hideDetail(); return; }
   selectedIdx = idx;
   const t = TASKS[idx];
-  const isDone = cells[idx].done;
 
   elTitle.textContent   = t.label;
   elDay.textContent     = t.sub;
@@ -456,16 +505,12 @@ function showDetail(idx) {
   elDeliv.textContent   = '\u2714 ' + t.deliverable;
   btnDoc.href           = t.url;
 
-  btnComp.textContent = isDone ? 'undo' : 'complete';
-  btnComp.classList.toggle('is-done', isDone);
+  refreshDetailButtons(idx);
 
-  // Position panel right below the tapped cell
   const cellBottom = cells[idx].homeY + CH + 4;
   panel.style.top = cellBottom + 'px';
-
   panel.classList.add('open');
 
-  // Scroll so both cell and panel are visible
   setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
 }
 
@@ -475,20 +520,33 @@ function hideDetail() {
 }
 
 function toggleDone(idx) {
-  cells[idx].done = !cells[idx].done;
-  saveLS();
-  updateCounter();
-  recalcTargets();
-  kick();
+  if (cells[idx].done) {
+    cells[idx].done = false;
+  } else {
+    cells[idx].done = true;
+    cells[idx].passed = false;
+  }
+  saveLS(); updateCounter(); recalcTargets(); kick();
+  if (selectedIdx === idx) refreshDetailButtons(idx);
+}
 
-  // Update button state
-  const isDone = cells[idx].done;
-  btnComp.textContent = isDone ? 'undo' : 'complete';
-  btnComp.classList.toggle('is-done', isDone);
+function togglePass(idx) {
+  if (cells[idx].passed) {
+    cells[idx].passed = false;
+  } else {
+    cells[idx].passed = true;
+    cells[idx].done = false;
+  }
+  saveLS(); updateCounter(); recalcTargets(); kick();
+  if (selectedIdx === idx) refreshDetailButtons(idx);
 }
 
 btnComp.addEventListener('click', () => {
   if (selectedIdx >= 0) toggleDone(selectedIdx);
+});
+
+btnPass.addEventListener('click', () => {
+  if (selectedIdx >= 0) togglePass(selectedIdx);
 });
 
 btnClose.addEventListener('click', hideDetail);
@@ -585,30 +643,113 @@ function mergedPathV(ytop, ybot, joins) {
   return p;
 }
 
+// ── Border animation (center-top/bottom → corners → side midpoints) ─────
+function drawBorderAnim(homeY, progress) {
+  const x0 = II, y0 = homeY + II;
+  const x1 = CW - II, y1 = homeY + CH - II;
+  const r = R - II;
+  const cx = (x0 + x1) / 2;
+  const cy = (y0 + y1) / 2;
+
+  const halfW = cx - x0 - r;
+  const arcL  = (Math.PI / 2) * r;
+  const halfH = cy - y0 - r;
+  const arm   = halfW + arcL + halfH;
+  const dist  = progress * arm;
+
+  ctx.strokeStyle = STROKE;
+  ctx.lineWidth = SW;
+  ctx.lineCap = 'round';
+
+  function traceArm(segs) {
+    let rem = dist;
+    ctx.beginPath();
+    let on = false;
+    for (const s of segs) {
+      if (rem <= 0) break;
+      if (s.type === 'line') {
+        const len = Math.hypot(s.ex - s.sx, s.ey - s.sy);
+        const t = Math.min(rem / len, 1);
+        if (!on) { ctx.moveTo(s.sx, s.sy); on = true; }
+        ctx.lineTo(s.sx + (s.ex - s.sx) * t, s.sy + (s.ey - s.sy) * t);
+        rem -= len;
+      } else {
+        const aLen = Math.abs(s.ea - s.sa) * r;
+        const t = Math.min(rem / aLen, 1);
+        if (!on) {
+          ctx.moveTo(s.cx + r * Math.cos(s.sa), s.cy + r * Math.sin(s.sa));
+          on = true;
+        }
+        ctx.arc(s.cx, s.cy, r, s.sa, s.sa + (s.ea - s.sa) * t, s.ccw);
+        rem -= aLen;
+      }
+    }
+    ctx.stroke();
+  }
+
+  // TR: top-center → right along top → corner → down to mid-right
+  traceArm([
+    { type: 'line', sx: cx, sy: y0, ex: x1 - r, ey: y0 },
+    { type: 'arc', cx: x1 - r, cy: y0 + r, sa: -Math.PI/2, ea: 0, ccw: false },
+    { type: 'line', sx: x1, sy: y0 + r, ex: x1, ey: cy },
+  ]);
+  // TL: top-center → left along top → corner → down to mid-left
+  traceArm([
+    { type: 'line', sx: cx, sy: y0, ex: x0 + r, ey: y0 },
+    { type: 'arc', cx: x0 + r, cy: y0 + r, sa: -Math.PI/2, ea: -Math.PI, ccw: true },
+    { type: 'line', sx: x0, sy: y0 + r, ex: x0, ey: cy },
+  ]);
+  // BR: bottom-center → right along bottom → corner → up to mid-right
+  traceArm([
+    { type: 'line', sx: cx, sy: y1, ex: x1 - r, ey: y1 },
+    { type: 'arc', cx: x1 - r, cy: y1 - r, sa: Math.PI/2, ea: 0, ccw: true },
+    { type: 'line', sx: x1, sy: y1 - r, ex: x1, ey: cy },
+  ]);
+  // BL: bottom-center → left along bottom → corner → up to mid-left
+  traceArm([
+    { type: 'line', sx: cx, sy: y1, ex: x0 + r, ey: y1 },
+    { type: 'arc', cx: x0 + r, cy: y1 - r, sa: Math.PI/2, ea: Math.PI, ccw: false },
+    { type: 'line', sx: x0, sy: y1 - r, ex: x0, ey: cy },
+  ]);
+}
+
 // ── Draw ───────────────────────────────────────────────────────────────────
 function draw() {
   ctx.clearRect(0, 0, CW, TH);
 
-  // ① Undone cells
+  // ① Undone and passed cells
   cells.forEach((cell, idx) => {
     if (cell.done) return;
     const p = rrPath(cell.homeY);
 
-    // Highlight selected cell
-    if (idx === selectedIdx) {
+    if (cell.passed) {
+      ctx.fillStyle = 'rgba(123,139,111,0.10)';
+      ctx.fill(p);
+      ctx.strokeStyle = PASS_STROKE;
+      ctx.lineWidth = SW;
+      ctx.globalAlpha = 0.55;
+      ctx.stroke(p);
+      ctx.globalAlpha = 1;
+    } else if (idx === selectedIdx) {
       ctx.fillStyle = 'rgba(245,224,202,0.85)';
+      ctx.fill(p);
+      ctx.strokeStyle = STROKE;
+      ctx.lineWidth = SW;
+      ctx.globalAlpha = 0.6;
+      ctx.stroke(p);
+      ctx.globalAlpha = 1;
     } else {
       ctx.fillStyle = `rgba(${FILL_UNDONE_RGBA.join(',')})`;
+      ctx.fill(p);
+      ctx.strokeStyle = STROKE;
+      ctx.lineWidth = SW;
+      ctx.globalAlpha = cell.strokeOp;
+      ctx.stroke(p);
+      ctx.globalAlpha = 1;
     }
-    ctx.fill(p);
-    ctx.strokeStyle = STROKE;
-    ctx.lineWidth = SW;
-    ctx.globalAlpha = idx === selectedIdx ? 0.6 : cell.strokeOp;
-    ctx.stroke(p);
-    ctx.globalAlpha = 1;
   });
 
-  // ② Done runs
+  // ② Done runs (merged cells)
   let i = 0;
   while (i < N) {
     if (!cells[i].done) { i++; continue; }
@@ -642,104 +783,78 @@ function draw() {
   }
 
   // ③ Text
-  cells.forEach((cell, i) => {
-    const t  = TASKS[i];
+  cells.forEach((cell, idx) => {
+    const t  = TASKS[idx];
     const y  = cell.homeY;
-    const tf = cell.textFade;
-    const undoneA = (1 - tf) * 0.5;
-    const doneA   = tf * 0.92;
-
-    // Brighten selected cell text
-    const selBoost = (i === selectedIdx) ? 1.6 : 1.0;
+    const selBoost = (idx === selectedIdx) ? 1.6 : 1.0;
 
     ctx.save();
 
-    if (undoneA > 0.005) {
+    if (cell.passed) {
       ctx.font = '300 12.5px Literata, Georgia, serif';
-      ctx.fillStyle = textColour(Math.min(undoneA * selBoost, 1));
+      ctx.fillStyle = 'rgba(123,139,111,0.45)';
       ctx.fillText(t.label, 16, y + 30);
 
       ctx.font = '8.5px JetBrains Mono, monospace';
-      ctx.fillStyle = textColour(Math.min(undoneA * 0.6 * selBoost, 1));
+      ctx.fillStyle = 'rgba(123,139,111,0.3)';
       ctx.fillText(t.sub, 16, y + 48);
 
-      ctx.fillStyle = textColour(undoneA * 0.35 * selBoost);
       ctx.font = '7.5px JetBrains Mono, monospace';
-      const secW = ctx.measureText(t.sec).width;
-      ctx.fillText(t.sec, CW - 16 - secW, y + 30);
-    }
+      ctx.fillStyle = 'rgba(123,139,111,0.35)';
+      const w = ctx.measureText('passed').width;
+      ctx.fillText('passed', CW - 16 - w, y + 30);
+    } else {
+      const tf = cell.textFade;
+      const undoneA = (1 - tf) * 0.5;
+      const doneA   = tf * 0.92;
 
-    if (doneA > 0.005) {
-      ctx.font = 'italic 300 12.5px Literata, Georgia, serif';
-      ctx.fillStyle = textColour(doneA);
-      ctx.fillText(t.done, 16, y + 30);
+      if (undoneA > 0.005) {
+        ctx.font = '300 12.5px Literata, Georgia, serif';
+        ctx.fillStyle = textColour(Math.min(undoneA * selBoost, 1));
+        ctx.fillText(t.label, 16, y + 30);
 
-      ctx.font = '8.5px JetBrains Mono, monospace';
-      ctx.fillStyle = textColour(doneA * 0.65);
-      ctx.fillText(t.sub, 16, y + 48);
+        ctx.font = '8.5px JetBrains Mono, monospace';
+        ctx.fillStyle = textColour(Math.min(undoneA * 0.6 * selBoost, 1));
+        ctx.fillText(t.sub, 16, y + 48);
 
-      ctx.fillStyle = textColour(doneA * 0.4);
-      ctx.font = '7.5px JetBrains Mono, monospace';
-      const secW = ctx.measureText(t.sec).width;
-      ctx.fillText(t.sec, CW - 16 - secW, y + 30);
+        ctx.fillStyle = textColour(undoneA * 0.35 * selBoost);
+        ctx.font = '7.5px JetBrains Mono, monospace';
+        const secW = ctx.measureText(t.sec).width;
+        ctx.fillText(t.sec, CW - 16 - secW, y + 30);
+      }
+
+      if (doneA > 0.005) {
+        ctx.font = 'italic 300 12.5px Literata, Georgia, serif';
+        ctx.fillStyle = textColour(doneA);
+        ctx.fillText(t.done, 16, y + 30);
+
+        ctx.font = '8.5px JetBrains Mono, monospace';
+        ctx.fillStyle = textColour(doneA * 0.65);
+        ctx.fillText(t.sub, 16, y + 48);
+
+        ctx.fillStyle = textColour(doneA * 0.4);
+        ctx.font = '7.5px JetBrains Mono, monospace';
+        const secW = ctx.measureText(t.sec).width;
+        ctx.fillText(t.sec, CW - 16 - secW, y + 30);
+      }
     }
 
     ctx.restore();
   });
 
-  // ④ Swipe progress fill
-  if (swipeIdx >= 0 && Math.abs(swipeFrac) > 0.005) {
-    const cell = cells[swipeIdx];
-    const p = rrPath(cell.homeY);
-    ctx.save();
-    ctx.clip(p);
-    const frac = Math.abs(swipeFrac);
-    const completing = swipeFrac > 0;  // right = complete, left = undo
-    const alpha = 0.18 + frac * 0.35;
-    ctx.fillStyle = completing
-      ? `rgba(184, 82, 32, ${alpha})`
-      : `rgba(160, 150, 140, ${alpha})`;
-    ctx.fillRect(II, cell.homeY + II, (CW - II * 2) * frac, CH - II * 2);
-
-    // threshold indicator — subtle tick mark at 40%
-    const threshX = II + (CW - II * 2) * SWIPE_THRESH;
-    ctx.strokeStyle = completing
-      ? `rgba(184, 82, 32, ${0.15 + frac * 0.2})`
-      : `rgba(160, 150, 140, ${0.15 + frac * 0.2})`;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(threshX, cell.homeY + II + 8);
-    ctx.lineTo(threshX, cell.homeY + CH - II - 8);
-    ctx.stroke();
-
-    // check / arrow icon past threshold
-    if (frac > SWIPE_THRESH * 0.8) {
-      const iconAlpha = Math.min((frac - SWIPE_THRESH * 0.8) / 0.15, 1);
-      ctx.font = '16px Literata, Georgia, serif';
-      ctx.fillStyle = completing
-        ? `rgba(184, 82, 32, ${iconAlpha * 0.7})`
-        : `rgba(160, 150, 140, ${iconAlpha * 0.7})`;
-      ctx.fillText(completing ? '✓' : '↩', CW / 2 - 6, cell.homeY + CH / 2 + 6);
-    }
-
-    ctx.restore();
+  // ④ Hold border animation
+  if (pressIdx >= 0 && holdProg > 0 && !holdDone) {
+    drawBorderAnim(cells[pressIdx].homeY, holdProg);
   }
 }
 
-// ── Swipe to complete / undo ────────────────────────────────────────────────
-const SWIPE_THRESH = 0.40;  // 40% of cell width to commit
-let swipeIdx   = -1;
-let swipeStartX = 0;
-let swipeStartY = 0;
-let swipeFrac   = 0;        // -1→1, positive = right (complete), negative = left (undo)
-let swipeLocked = false;    // locked into horizontal swipe
-let swipeFired  = false;    // already toggled on this gesture
-let pressStart  = 0;
-
-// Spring-back animation state
-let springFrac  = 0;
-let springIdx   = -1;
-let springRaf   = null;
+// ── Long press to complete ──────────────────────────────────────────────────
+const HOLD_MS = 500;
+let pressIdx   = -1;
+let pressStart = 0;
+let holdProg   = 0;
+let holdDone   = false;
+let holdRaf    = null;
 
 function hitCell(clientY) {
   const rect = canvas.getBoundingClientRect();
@@ -751,120 +866,65 @@ function hitCell(clientY) {
   return -1;
 }
 
-function springBack() {
-  springFrac *= 0.82;
-  if (Math.abs(springFrac) < 0.005) {
-    springFrac = 0; swipeFrac = 0; swipeIdx = -1; springIdx = -1;
-    draw();
-    springRaf = null;
+function holdTick() {
+  if (pressIdx < 0) return;
+  const elapsed = Date.now() - pressStart;
+  holdProg = Math.min(elapsed / HOLD_MS, 1);
+  draw();
+
+  if (holdProg >= 1 && !holdDone) {
+    holdDone = true;
+    if (navigator.vibrate) navigator.vibrate(18);
+    toggleDone(pressIdx);
+    setTimeout(() => { holdProg = 0; pressIdx = -1; draw(); }, 150);
     return;
   }
-  swipeFrac = springFrac;
+  if (!holdDone) holdRaf = requestAnimationFrame(holdTick);
+}
+
+function cancelHold() {
+  if (holdRaf) { cancelAnimationFrame(holdRaf); holdRaf = null; }
+  pressIdx = -1; holdProg = 0; holdDone = false;
   draw();
-  springRaf = requestAnimationFrame(springBack);
 }
 
 canvas.addEventListener('pointerdown', e => {
   e.preventDefault();
   canvas.setPointerCapture(e.pointerId);
 
-  // Cancel any spring animation
-  if (springRaf) { cancelAnimationFrame(springRaf); springRaf = null; springIdx = -1; }
-
   const idx = hitCell(e.clientY);
-  if (idx < 0) { swipeIdx = -1; return; }
+  if (idx < 0) { pressIdx = -1; return; }
 
-  swipeIdx    = idx;
-  swipeStartX = e.clientX;
-  swipeStartY = e.clientY;
-  swipeFrac   = 0;
-  swipeLocked = false;
-  swipeFired  = false;
-  pressStart  = Date.now();
+  pressIdx   = idx;
+  pressStart = Date.now();
+  holdProg   = 0;
+  holdDone   = false;
+  holdRaf    = requestAnimationFrame(holdTick);
 });
 
 canvas.addEventListener('pointermove', e => {
-  if (swipeIdx < 0 || swipeFired) return;
-
-  const dx = e.clientX - swipeStartX;
-  const dy = e.clientY - swipeStartY;
-
-  // Determine swipe direction lock
-  if (!swipeLocked && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
-    if (Math.abs(dy) > Math.abs(dx)) {
-      // Vertical — cancel swipe, allow scroll
-      swipeIdx = -1; swipeFrac = 0; draw();
-      return;
-    }
-    swipeLocked = true;
-  }
-
-  if (!swipeLocked) return;
-
-  const cellInner = CW - II * 2;
-  const isDone = cells[swipeIdx].done;
-
-  // Right swipe = complete (only if not done), Left swipe = undo (only if done)
-  if (!isDone) {
-    swipeFrac = Math.max(0, Math.min(dx / cellInner, 1));
-  } else {
-    // For done cells, map right-to-left swipe as positive frac but styled as undo
-    swipeFrac = Math.max(0, Math.min(-dx / cellInner, 1));
-    if (swipeFrac > 0) swipeFrac = -swipeFrac;  // negative = undo direction
-  }
-
-  draw();
+  if (pressIdx < 0) return;
+  const idx = hitCell(e.clientY);
+  if (idx !== pressIdx) cancelHold();
 });
 
 canvas.addEventListener('pointerup', e => {
-  const idx   = swipeIdx;
+  if (holdRaf) { cancelAnimationFrame(holdRaf); holdRaf = null; }
   const elapsed = Date.now() - pressStart;
-  const frac  = Math.abs(swipeFrac);
+  const idx = pressIdx;
+  pressIdx = -1; holdProg = 0;
 
-  if (idx < 0) return;
+  if (holdDone) { holdDone = false; draw(); return; }
+  holdDone = false;
+  draw();
 
-  // Past threshold → toggle done
-  if (frac >= SWIPE_THRESH && !swipeFired) {
-    swipeFired = true;
-    if (navigator.vibrate) navigator.vibrate(18);
-    toggleDone(idx);
-    // Quick fill to 100% then fade out
-    swipeFrac = swipeFrac > 0 ? 1 : -1;
-    draw();
-    springFrac = swipeFrac;
-    springIdx  = idx;
-    setTimeout(() => { springRaf = requestAnimationFrame(springBack); }, 80);
-    return;
-  }
-
-  // Short tap with no real swipe → show detail panel
-  if (!swipeLocked && elapsed < 300) {
-    swipeIdx = -1; swipeFrac = 0;
+  if (idx >= 0 && elapsed < 250) {
     showDetail(idx);
     draw();
-    return;
-  }
-
-  // Below threshold → spring back
-  if (frac > 0.005) {
-    springFrac = swipeFrac;
-    springIdx  = idx;
-    springRaf  = requestAnimationFrame(springBack);
-  } else {
-    swipeIdx = -1; swipeFrac = 0; draw();
   }
 });
 
-canvas.addEventListener('pointercancel', () => {
-  if (swipeIdx >= 0 && Math.abs(swipeFrac) > 0.005) {
-    springFrac = swipeFrac;
-    springIdx  = swipeIdx;
-    springRaf  = requestAnimationFrame(springBack);
-  } else {
-    swipeIdx = -1; swipeFrac = 0; draw();
-  }
-});
-
+canvas.addEventListener('pointercancel', cancelHold);
 canvas.addEventListener('contextmenu', e => e.preventDefault());
 
 // ── Reset ──────────────────────────────────────────────────────────────────
