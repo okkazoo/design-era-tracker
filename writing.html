@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ENW223 — Portfolio Piece #2</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Literata:ital,wght@0,300;0,400;1,300&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #ECEAE3;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 24px 90px;
+    font-family: 'JetBrains Mono', monospace;
+    gap: 16px;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .header { text-align: center; }
+
+  .page-title {
+    font-size: 9px; font-weight: 600; letter-spacing: 0.2em;
+    text-transform: uppercase; color: #A09888;
+    margin-bottom: 6px;
+  }
+
+  .page-sub {
+    font-family: 'Literata', Georgia, serif;
+    font-size: 20px; font-weight: 300; color: #3A3028;
+    letter-spacing: 0.01em; margin-bottom: 4px;
+  }
+
+  .progress-count {
+    font-size: 9px; font-weight: 600; letter-spacing: 0.15em;
+    text-transform: uppercase; color: #A09888;
+    transition: color 0.3s;
+  }
+  .progress-count.all-done { color: #2B5F8A; }
+
+  canvas { display: block; cursor: pointer; touch-action: none; -webkit-user-select: none; user-select: none; }
+
+  .canvas-wrap { position: relative; }
+
+  .detail-panel {
+    position: absolute; left: 0; right: 0; z-index: 10;
+    opacity: 0; transform: translateY(-6px); pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .detail-panel.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+  .detail-pointer {
+    width: 12px; height: 12px;
+    background: rgba(255,252,245,0.88);
+    border: 1px solid rgba(160,150,140,0.25);
+    border-right: none; border-bottom: none;
+    transform: rotate(45deg);
+    margin-left: 32px; margin-bottom: -7px;
+    position: relative; z-index: 1;
+  }
+
+  .detail-inner {
+    background: rgba(255,252,245,0.88);
+    -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+    border: 1px solid rgba(160,150,140,0.25);
+    border-radius: 16px; padding: 20px;
+    position: relative; z-index: 2;
+  }
+
+  .detail-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+
+  .detail-title {
+    font-family: 'Literata', Georgia, serif;
+    font-size: 15px; font-weight: 400; color: #3A3028; line-height: 1.3;
+  }
+
+  .detail-day {
+    font-size: 8px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #A09888;
+    white-space: nowrap; margin-left: 12px; margin-top: 3px;
+  }
+
+  .detail-section {
+    font-size: 8px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: #2B5F8A;
+    margin-bottom: 12px; opacity: 0.7;
+  }
+
+  .detail-bullets { list-style: none; margin: 0 0 16px 0; padding: 0; }
+
+  .detail-bullets li {
+    font-family: 'Literata', Georgia, serif;
+    font-size: 12.5px; font-weight: 300; color: #5A5045;
+    line-height: 1.55; padding: 5px 0 5px 14px; position: relative;
+  }
+  .detail-bullets li::before {
+    content: ""; position: absolute; left: 0; top: 12px;
+    width: 4px; height: 4px; border-radius: 50%; background: #82A4C4;
+  }
+
+  .detail-deliverable {
+    font-family: 'Literata', Georgia, serif;
+    font-size: 11.5px; font-weight: 300; font-style: italic;
+    color: #2B5F8A; padding: 10px 0;
+    border-top: 1px solid rgba(160,150,140,0.2); margin-bottom: 16px;
+  }
+
+  .detail-actions { display: flex; gap: 8px; align-items: center; }
+
+  .action-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; border-radius: 20px;
+    padding: 8px 18px; cursor: pointer;
+    transition: all 0.2s ease; border: none;
+    -webkit-tap-highlight-color: transparent; white-space: nowrap;
+  }
+  .action-btn:active { transform: scale(0.96); }
+
+  .btn-complete { background: #2B5F8A; color: #CADAE8; }
+  .btn-complete.is-done { background: rgba(160,150,140,0.2); color: #A09888; }
+  .btn-complete:disabled { opacity: 0.5; cursor: default; }
+
+  .btn-close {
+    background: rgba(160,150,140,0.15); color: #A09888;
+    width: 32px; height: 32px; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 400; letter-spacing: 0;
+    text-transform: none; margin-left: auto; border-radius: 50%;
+  }
+
+  .btn-pass {
+    background: none; border: 1px solid rgba(123,139,111,0.4); color: #7B8B6F;
+  }
+  .btn-pass.is-passed { background: rgba(123,139,111,0.12); color: #7B8B6F; }
+
+  .detail-links { display: flex; gap: 8px; margin-top: 10px; }
+
+  .btn-doc {
+    background: none; border: 1px dashed rgba(160,150,140,0.4); color: #A09888;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px; font-weight: 500; letter-spacing: 0.08em;
+    text-transform: uppercase; border-radius: 8px; padding: 6px 14px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-doc:active { color: #3A3028; border-color: rgba(100,90,80,0.5); }
+
+  .bottom-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
+
+  .pill-btn {
+    font-family: 'JetBrains Mono', monospace; font-size: 8px; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase; color: #A09888;
+    background: none; border: 1px solid rgba(160,150,140,0.35);
+    border-radius: 20px; padding: 7px 16px; cursor: pointer;
+    text-decoration: none; display: inline-block;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .pill-btn:hover { color: #3A3028; border-color: rgba(100,90,80,0.5); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <p class="page-title">English for Writers · ENW223</p>
+  <p class="page-sub">Portfolio Piece #2</p>
+  <p class="progress-count" id="counter">Due Monday 23 March</p>
+</div>
+
+<div class="canvas-wrap" id="canvasWrap">
+  <canvas id="c"></canvas>
+
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-pointer" id="detailPointer"></div>
+    <div class="detail-inner">
+    <div class="detail-head">
+      <span class="detail-title" id="detailTitle"></span>
+      <span class="detail-day" id="detailDay"></span>
+    </div>
+    <div class="detail-section" id="detailSection"></div>
+    <ul class="detail-bullets" id="detailBullets"></ul>
+    <div class="detail-deliverable" id="detailDeliverable"></div>
+    <div class="detail-actions">
+      <button class="action-btn btn-complete" id="btnComplete"></button>
+      <button class="action-btn btn-pass" id="btnPass">skip</button>
+      <button class="action-btn btn-close" id="btnClose">&times;</button>
+    </div>
+    <div class="detail-links">
+      <a class="btn-doc" id="btnDoc" target="_blank">&#8599; open doc</a>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="bottom-row">
+  <button class="pill-btn" id="resetBtn">&#8634; reset</button>
+</div>
+
+<script>
+const TASKS = [
+  { id:'w1', label:'Choose a prompt', done:'Prompt chosen', sub:'Pick something that interests you', sec:'Getting Started',
+    requires: [],
+    bullets: [
+      'Browse the "Writing prompts galore" list on Classroom',
+      'Think about what style you want to try \u2014 narrative, descriptive, persuasive',
+      'Pick a topic you actually feel something about',
+    ],
+    deliverable: 'A clear idea of what you\u2019re going to write about',
+    url: 'https://docs.google.com/presentation/d/1pxKOayqtygdfK6Yx48SUYtbWe1-VLOYsHt5xDMq7Sws/edit',
+  },
+  { id:'w2', label:'Plan your piece', done:'Planned', sub:'Outline, voice, and tense decisions', sec:'Getting Started',
+    requires: [],
+    bullets: [
+      'Decide on first, second, or third person',
+      'Choose past or present tense',
+      'Sketch a rough structure \u2014 opening, middle, end',
+    ],
+    deliverable: 'A short plan with voice, tense, and structure outlined',
+    url: 'https://docs.google.com/presentation/d/1pxKOayqtygdfK6Yx48SUYtbWe1-VLOYsHt5xDMq7Sws/edit',
+  },
+  { id:'w3', label:'Handwrite 200 words', done:'Handwritten', sub:'First half-page by hand in your notebook', sec:'Drafting',
+    requires: [0],
+    bullets: [
+      'Around half a page handwritten in your notebook',
+      'Focus on getting started rather than perfection',
+      'This is about developing your ideas on paper first',
+    ],
+    deliverable: 'Half a page of handwritten work in your notebook',
+    url: 'https://docs.google.com/presentation/d/1pxKOayqtygdfK6Yx48SUYtbWe1-VLOYsHt5xDMq7Sws/edit',
+  },
+  { id:'w4', label:'Show Ms Robilliard', done:'Approved', sub:'Get the handwritten check before typing', sec:'Checkpoint',
+    requires: [2],
+    bullets: [
+      'Show your handwritten half-page to Ms Robilliard',
+      'Ask for any quick feedback before you start typing',
+      'Once approved, you can move to the Google Doc',
+    ],
+    deliverable: 'Teacher has seen your handwritten opening',
+    url: 'https://docs.google.com/presentation/d/1pxKOayqtygdfK6Yx48SUYtbWe1-VLOYsHt5xDMq7Sws/edit',
+  },
+  { id:'w5', label:'Type into Doc', done:'Typed up', sub:'Transfer and keep writing in the Google Doc', sec:'Drafting',
+    requires: [3],
+    bullets: [
+      'Type directly into the Google Doc \u2014 no copy-pasting from elsewhere',
+      'Continue writing beyond your 200 handwritten words',
+      'Ms Robilliard needs to see you adding and refining over time',
+    ],
+    deliverable: 'Your piece is growing in the Google Doc',
+    url: 'https://docs.google.com/presentation/d/1pxKOayqtygdfK6Yx48SUYtbWe1-VLOYsHt5xDMq7Sws/edit',
+  },
+  { id:'w6', label:'Develop + polish', done:'Developed', sub:'Add detail, imagery, and voice', sec:'Refining',
+    requires: [4],
+    bullets: [
+      'Add imagery, sensory detail, or dialogue where it fits',
+      'Make sure your chosen voice and tense are consistent',
+      'Aim for a clear shape \u2014 the reader should feel it going somewhere',
+    ],
+    deliverable: 'A full, developed piece with clear voice and structure',
+    url: 'https://docs.google.com/presentation/d/1pxKOayqtygdfK6Yx48SUYtbWe1-VLOYsHt5xDMq7Sws/edit',
+  },
+  { id:'w7', label:'Revise + submit', done:'Submitted', sub:'Proofread, tidy up, turn in', sec:'Finishing',
+    requires: [5],
+    bullets: [
+      'Read the whole thing out loud \u2014 cut anything that drags',
+      'Fix spelling, punctuation, and grammar',
+      'Turn in on Classroom when you\u2019re happy with it',
+    ],
+    deliverable: 'Portfolio piece #2 turned in on Classroom',
+    url: 'https://docs.google.com/presentation/d/1pxKOayqtygdfK6Yx48SUYtbWe1-VLOYsHt5xDMq7Sws/edit',
+  },
+];
+
+function isLocked(idx) {
+  const reqs = TASKS[idx].requires;
+  if (!reqs || reqs.length === 0) return false;
+  return reqs.some(r => !cells[r].done && !cells[r].passed);
+}
+
+function pendingDeps(idx) {
+  const reqs = TASKS[idx].requires;
+  if (!reqs) return [];
+  return reqs.filter(r => !cells[r].done && !cells[r].passed);
+}
+
+const N = TASKS.length;
+
+const CH  = 68;
+const GAP = 6;
+const R   = 18;
+const SW  = 1.8;
+const II  = SW / 2;
+const CW  = Math.min(380, window.innerWidth - 48);
+const TH  = N * CH + (N - 1) * GAP;
+
+// Ink blue palette
+const STROKE = '#2B5F8A';
+const PASS_STROKE = '#7B8B6F';
+const FINAL_STROKE = '#C49A3C';
+const FINAL_FILL   = [196, 154, 60];
+const FILL_UNDONE_RGBA = [202, 224, 245, 0.55];
+const FILL_DONE_RGBA   = [58, 122, 201, 0.22];
+const FILL_SOLID_RGB   = [43, 95, 138];
+const PASS_FILL_RGBA   = [123, 139, 111, 0.12];
+
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+const DPR    = window.devicePixelRatio || 1;
+
+canvas.width        = CW * DPR;
+canvas.height       = TH * DPR;
+canvas.style.width  = CW + 'px';
+canvas.style.height = TH + 'px';
+ctx.scale(DPR, DPR);
+
+const STORAGE_KEY = 'enw223-portfolio-2';
+let selectedIdx = -1;
+
+function makeState() {
+  return Array.from({ length: N }, (_, i) => ({
+    done: false, passed: false,
+    homeY: i * (CH + GAP),
+    fillOp: 0, strokeOp: 0.25, divotFrac: 0, textFade: 0,
+  }));
+}
+
+let cells     = makeState();
+let solidFrac = 0;
+let raf       = null;
+let tgt       = cells.map(() => ({ fillOp: 0, strokeOp: 0.25, divotFrac: 0, textFade: 0 }));
+let tgtSolid  = 0;
+
+function doneCount() { return cells.filter(c => c.done).length; }
+function passCount() { return cells.filter(c => c.passed).length; }
+function updateCounter() { /* static due date */ }
+
+function recalcTargets() {
+  tgtSolid = cells.every(c => c.done || c.passed) ? 1 : 0;
+  cells.forEach((cell, i) => {
+    tgt[i].fillOp    = cell.done ? 1.0 : 0;
+    tgt[i].strokeOp  = cell.done ? 1.0 : 0.25;
+    tgt[i].textFade  = cell.done ? 1.0 : 0;
+    tgt[i].divotFrac = (i < N-1 && cell.done && cells[i+1].done) ? 1 : 0;
+  });
+}
+
+function saveLS() {
+  const s = {};
+  cells.forEach((c, i) => {
+    if (c.done) s[TASKS[i].id] = 'done';
+    else if (c.passed) s[TASKS[i].id] = 'passed';
+  });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+}
+
+function loadLS() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+    cells.forEach((c, i) => {
+      const v = s[TASKS[i].id];
+      if (v === true || v === 'done') {
+        c.done = true; c.fillOp = 1; c.strokeOp = 1; c.textFade = 1;
+      } else if (v === 'passed') {
+        c.passed = true;
+      }
+    });
+    cells.forEach((c, i) => {
+      if (i < N-1 && c.done && cells[i+1].done) c.divotFrac = 1;
+    });
+    if (cells.every(c => c.done || c.passed)) solidFrac = 1;
+  } catch {}
+}
+
+// Detail panel
+const panel     = document.getElementById('detailPanel');
+const elTitle   = document.getElementById('detailTitle');
+const elDay     = document.getElementById('detailDay');
+const elSection = document.getElementById('detailSection');
+const elBullets = document.getElementById('detailBullets');
+const elDeliv   = document.getElementById('detailDeliverable');
+const btnComp   = document.getElementById('btnComplete');
+const btnPass   = document.getElementById('btnPass');
+const btnDoc    = document.getElementById('btnDoc');
+const btnClose  = document.getElementById('btnClose');
+
+function refreshDetailButtons(idx) {
+  const isDone = cells[idx].done;
+  const isPassed = cells[idx].passed;
+  const locked = isLocked(idx);
+
+  if (locked && !isDone && !isPassed) {
+    btnComp.textContent = 'locked';
+    btnComp.classList.add('is-done');
+    btnComp.disabled = true;
+    btnPass.style.display = 'none';
+  } else if (isDone) {
+    btnComp.textContent = 'mark incomplete';
+    btnComp.classList.add('is-done');
+    btnComp.disabled = false;
+    btnPass.style.display = 'none';
+  } else if (isPassed) {
+    btnComp.textContent = 'mark complete';
+    btnComp.classList.remove('is-done');
+    btnComp.disabled = false;
+    btnPass.textContent = 'unskip';
+    btnPass.classList.add('is-passed');
+    btnPass.style.display = '';
+  } else {
+    btnComp.textContent = 'mark complete';
+    btnComp.classList.remove('is-done');
+    btnComp.disabled = false;
+    btnPass.textContent = 'skip';
+    btnPass.classList.remove('is-passed');
+    btnPass.style.display = '';
+  }
+}
+
+function showDetail(idx) {
+  if (idx === selectedIdx) { hideDetail(); return; }
+  selectedIdx = idx;
+  const t = TASKS[idx];
+
+  elTitle.textContent = t.label;
+  const locked = isLocked(idx);
+  elDay.textContent = locked ? pendingDeps(idx).length + ' to unlock' : '';
+  elSection.textContent = t.sec;
+  elBullets.innerHTML = t.bullets.map(b => '<li>' + b + '</li>').join('');
+  elDeliv.textContent = '\u2714 ' + t.deliverable;
+  btnDoc.href = t.url;
+
+  refreshDetailButtons(idx);
+
+  const cellBottom = cells[idx].homeY + CH + 4;
+  panel.style.top = cellBottom + 'px';
+  panel.classList.add('open');
+
+  setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+}
+
+function hideDetail() {
+  selectedIdx = -1;
+  panel.classList.remove('open');
+}
+
+function toggleDone(idx) {
+  if (cells[idx].done) { cells[idx].done = false; }
+  else { cells[idx].done = true; cells[idx].passed = false; }
+  saveLS(); updateCounter(); recalcTargets(); kick();
+  if (selectedIdx === idx) refreshDetailButtons(idx);
+}
+
+function togglePass(idx) {
+  if (cells[idx].passed) { cells[idx].passed = false; }
+  else { cells[idx].passed = true; cells[idx].done = false; }
+  saveLS(); updateCounter(); recalcTargets(); kick();
+  if (selectedIdx === idx) refreshDetailButtons(idx);
+}
+
+btnComp.addEventListener('click', () => {
+  if (selectedIdx >= 0) { toggleDone(selectedIdx); hideDetail(); draw(); }
+});
+btnPass.addEventListener('click', () => {
+  if (selectedIdx >= 0) { togglePass(selectedIdx); hideDetail(); draw(); }
+});
+btnClose.addEventListener('click', () => { hideDetail(); draw(); });
+
+// Animation
+const S_FILL = 0.055, S_STROKE = 0.07, S_DIVOT = 0.06, S_TEXT = 0.045, S_SOLID = 0.04;
+
+function tick() {
+  let dirty = false;
+  cells.forEach((cell, i) => {
+    function step(key, speed) {
+      const d = tgt[i][key] - cell[key];
+      if (Math.abs(d) > 0.001) { cell[key] += d * speed; dirty = true; }
+      else cell[key] = tgt[i][key];
+    }
+    step('fillOp', S_FILL); step('strokeOp', S_STROKE);
+    step('divotFrac', S_DIVOT); step('textFade', S_TEXT);
+  });
+  const ds = tgtSolid - solidFrac;
+  if (Math.abs(ds) > 0.001) { solidFrac += ds * S_SOLID; dirty = true; }
+  else solidFrac = tgtSolid;
+  draw();
+  raf = dirty ? requestAnimationFrame(tick) : null;
+}
+
+function kick() { if (!raf) raf = requestAnimationFrame(tick); }
+
+// Ink blue colour helpers
+function fillColour(fillOp) {
+  const [r0,g0,b0,a0] = FILL_DONE_RGBA;
+  const [rs,gs,bs]     = FILL_SOLID_RGB;
+  const r = Math.round(r0 + (rs-r0)*solidFrac);
+  const g = Math.round(g0 + (gs-g0)*solidFrac);
+  const b = Math.round(b0 + (bs-b0)*solidFrac);
+  const a = (a0 + (1-a0)*solidFrac) * fillOp;
+  return `rgba(${r},${g},${b},${a.toFixed(3)})`;
+}
+
+function textColour(alpha) {
+  const r = Math.round(43  + (255-43)*solidFrac);
+  const g = Math.round(65  + (255-65)*solidFrac);
+  const b = Math.round(95  + (255-95)*solidFrac);
+  return `rgba(${r},${g},${b},${alpha.toFixed(3)})`;
+}
+
+function strokeColour(op) {
+  const r = Math.round(43  + (30-43)*solidFrac);
+  const g = Math.round(95  + (65-95)*solidFrac);
+  const b = Math.round(138 + (100-138)*solidFrac);
+  return `rgba(${r},${g},${b},${op.toFixed(3)})`;
+}
+
+function finalTextColour(alpha) {
+  const r = Math.round(156 + (255-156)*solidFrac);
+  const g = Math.round(122 + (235-122)*solidFrac);
+  const b = Math.round(30  + (180-30)*solidFrac);
+  return `rgba(${r},${g},${b},${alpha.toFixed(3)})`;
+}
+
+// Paths
+function rrPath(y) {
+  const x0=II, y0=y+II, x1=CW-II, y1=y+CH-II, r=R-II;
+  const p = new Path2D();
+  p.moveTo(x0+r, y0);
+  p.lineTo(x1-r, y0); p.quadraticCurveTo(x1, y0, x1, y0+r);
+  p.lineTo(x1, y1-r); p.quadraticCurveTo(x1, y1, x1-r, y1);
+  p.lineTo(x0+r, y1); p.quadraticCurveTo(x0, y1, x0, y1-r);
+  p.lineTo(x0, y0+r); p.quadraticCurveTo(x0, y0, x0+r, y0);
+  p.closePath();
+  return p;
+}
+
+function mergedPathV(ytop, ybot, joins) {
+  const DF = 18, DC = 8;
+  const lx=II, rx=CW-II, ty=ytop+II, by=ybot-II, r=R-II;
+  const p = new Path2D();
+  p.moveTo(lx+r, ty);
+  p.lineTo(rx-r, ty); p.quadraticCurveTo(rx, ty, rx, ty+r);
+  joins.forEach(({ jy, frac }) => {
+    const f = DF*frac, c = DC*frac;
+    p.lineTo(rx, jy-c); p.quadraticCurveTo(rx-f, jy, rx, jy+c);
+  });
+  p.lineTo(rx, by-r); p.quadraticCurveTo(rx, by, rx-r, by);
+  p.lineTo(lx+r, by); p.quadraticCurveTo(lx, by, lx, by-r);
+  [...joins].reverse().forEach(({ jy, frac }) => {
+    const f = DF*frac, c = DC*frac;
+    p.lineTo(lx, jy+c); p.quadraticCurveTo(lx+f, jy, lx, jy-c);
+  });
+  p.lineTo(lx, ty+r); p.quadraticCurveTo(lx, ty, lx+r, ty);
+  p.closePath();
+  return p;
+}
+
+function drawBorderAnim(homeY, progress, isDone, cellIdx) {
+  const x0 = II, y0 = homeY + II, x1 = CW - II, y1 = homeY + CH - II;
+  const r = R - II;
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  const halfW = cx - x0 - r, arcL = (Math.PI / 2) * r, halfH = cy - y0 - r;
+  const arm = halfW + arcL + halfH;
+  const dist = progress * arm;
+
+  ctx.lineCap = 'round';
+
+  function traceArm(segs) {
+    let rem = dist; ctx.beginPath(); let on = false;
+    for (const s of segs) {
+      if (rem <= 0) break;
+      if (s.type === 'line') {
+        const len = Math.hypot(s.ex - s.sx, s.ey - s.sy);
+        const t = Math.min(rem / len, 1);
+        if (!on) { ctx.moveTo(s.sx, s.sy); on = true; }
+        ctx.lineTo(s.sx + (s.ex - s.sx) * t, s.sy + (s.ey - s.sy) * t);
+        rem -= len;
+      } else {
+        const aLen = Math.abs(s.ea - s.sa) * r;
+        const t = Math.min(rem / aLen, 1);
+        if (!on) { ctx.moveTo(s.cx + r * Math.cos(s.sa), s.cy + r * Math.sin(s.sa)); on = true; }
+        ctx.arc(s.cx, s.cy, r, s.sa, s.sa + (s.ea - s.sa) * t, s.ccw);
+        rem -= aLen;
+      }
+    }
+    ctx.stroke();
+  }
+
+  const arms = [
+    [{ type:'line', sx:cx, sy:y0, ex:x1-r, ey:y0 },
+     { type:'arc', cx:x1-r, cy:y0+r, sa:-Math.PI/2, ea:0, ccw:false },
+     { type:'line', sx:x1, sy:y0+r, ex:x1, ey:cy }],
+    [{ type:'line', sx:cx, sy:y0, ex:x0+r, ey:y0 },
+     { type:'arc', cx:x0+r, cy:y0+r, sa:-Math.PI/2, ea:-Math.PI, ccw:true },
+     { type:'line', sx:x0, sy:y0+r, ex:x0, ey:cy }],
+    [{ type:'line', sx:cx, sy:y1, ex:x1-r, ey:y1 },
+     { type:'arc', cx:x1-r, cy:y1-r, sa:Math.PI/2, ea:0, ccw:true },
+     { type:'line', sx:x1, sy:y1-r, ex:x1, ey:cy }],
+    [{ type:'line', sx:cx, sy:y1, ex:x0+r, ey:y1 },
+     { type:'arc', cx:x0+r, cy:y1-r, sa:Math.PI/2, ea:Math.PI, ccw:false },
+     { type:'line', sx:x0, sy:y1-r, ex:x0, ey:cy }],
+  ];
+
+  const borderStroke = (cellIdx === N - 1) ? FINAL_STROKE : STROKE;
+
+  if (isDone) {
+    ctx.strokeStyle = '#ECEAE3'; ctx.globalAlpha = 1; ctx.lineWidth = SW + 2;
+    arms.forEach(a => traceArm(a));
+    ctx.strokeStyle = borderStroke; ctx.globalAlpha = 0.25; ctx.lineWidth = SW;
+    arms.forEach(a => traceArm(a));
+  } else {
+    ctx.strokeStyle = borderStroke; ctx.globalAlpha = 1; ctx.lineWidth = SW;
+    arms.forEach(a => traceArm(a));
+  }
+  ctx.globalAlpha = 1;
+}
+
+// Draw
+function draw() {
+  ctx.clearRect(0, 0, CW, TH);
+
+  // Undone and passed cells
+  cells.forEach((cell, idx) => {
+    if (cell.done) return;
+    const p = rrPath(cell.homeY);
+    const isFinal = idx === N - 1;
+    const st = isFinal ? FINAL_STROKE : STROKE;
+
+    if (cell.passed) {
+      const pr = Math.round(123 + (88-123)*solidFrac);
+      const pg = Math.round(139 + (115-139)*solidFrac);
+      const pb = Math.round(111 + (72-111)*solidFrac);
+      const pa = 0.12 + (0.88 - 0.12)*solidFrac;
+      ctx.fillStyle = `rgba(${pr},${pg},${pb},${pa.toFixed(3)})`;
+      ctx.fill(p);
+      ctx.strokeStyle = PASS_STROKE; ctx.lineWidth = SW;
+      ctx.globalAlpha = 0.55 + 0.45*solidFrac; ctx.stroke(p); ctx.globalAlpha = 1;
+    } else if (isLocked(idx)) {
+      ctx.fillStyle = isFinal ? 'rgba(196,154,60,0.12)' : 'rgba(202,224,245,0.25)';
+      ctx.fill(p);
+      ctx.strokeStyle = st; ctx.lineWidth = SW;
+      ctx.globalAlpha = 0.1; ctx.stroke(p); ctx.globalAlpha = 1;
+    } else if (idx === selectedIdx) {
+      ctx.fillStyle = isFinal ? 'rgba(196,154,60,0.25)' : 'rgba(202,224,245,0.85)';
+      ctx.fill(p);
+      ctx.strokeStyle = st; ctx.lineWidth = SW;
+      ctx.globalAlpha = 0.6; ctx.stroke(p); ctx.globalAlpha = 1;
+    } else {
+      ctx.fillStyle = isFinal ? 'rgba(196,154,60,0.18)' : `rgba(${FILL_UNDONE_RGBA.join(',')})`;
+      ctx.fill(p);
+      ctx.strokeStyle = st; ctx.lineWidth = SW;
+      ctx.globalAlpha = cell.strokeOp; ctx.stroke(p); ctx.globalAlpha = 1;
+    }
+  });
+
+  // Done runs
+  let i = 0;
+  while (i < N) {
+    if (!cells[i].done) { i++; continue; }
+    let j = i;
+    while (j < N && cells[j].done) j++;
+    const ytop = cells[i].homeY, ybot = cells[j-1].homeY + CH;
+    const joins = [];
+    for (let k = i+1; k < j; k++) {
+      joins.push({ jy: (cells[k-1].homeY + CH + cells[k].homeY) / 2, frac: cells[k-1].divotFrac });
+    }
+    const path = (j-i === 1) ? rrPath(cells[i].homeY) : mergedPathV(ytop, ybot, joins);
+    let avgFill = 0, avgStroke = 0;
+    for (let k = i; k < j; k++) { avgFill += cells[k].fillOp; avgStroke += cells[k].strokeOp; }
+    avgFill /= (j-i); avgStroke /= (j-i);
+    ctx.fillStyle = fillColour(avgFill); ctx.fill(path);
+    ctx.strokeStyle = strokeColour(avgStroke); ctx.lineWidth = SW; ctx.stroke(path);
+    i = j;
+  }
+
+  // Text
+  cells.forEach((cell, idx) => {
+    const t = TASKS[idx], y = cell.homeY;
+    const selBoost = (idx === selectedIdx) ? 1.6 : 1.0;
+    const isFinal = idx === N - 1;
+    ctx.save();
+    const locked = isLocked(idx);
+
+    if (cell.passed) {
+      const pr = Math.round(123 + (255-123)*solidFrac);
+      const pg = Math.round(139 + (255-139)*solidFrac);
+      const pb = Math.round(111 + (255-111)*solidFrac);
+      ctx.font = solidFrac > 0.5 ? 'italic 300 14px Literata, Georgia, serif' : '300 14px Literata, Georgia, serif';
+      ctx.fillStyle = `rgba(${pr},${pg},${pb},${(0.55 + 0.4*solidFrac).toFixed(3)})`;
+      ctx.fillText((solidFrac > 0.5 ? t.done : t.label) + ' \u00b7 Skipped', 16, y + 30);
+      ctx.font = '10px JetBrains Mono, monospace';
+      ctx.fillStyle = `rgba(${pr},${pg},${pb},${(0.5 + 0.35*solidFrac).toFixed(3)})`;
+      ctx.fillText(t.sub, 16, y + 49);
+    } else if (locked) {
+      const tc = isFinal ? finalTextColour : textColour;
+      ctx.font = '300 14px Literata, Georgia, serif';
+      ctx.fillStyle = tc(0.22); ctx.fillText(t.label, 16, y + 30);
+      ctx.font = '10px JetBrains Mono, monospace';
+      ctx.fillStyle = tc(0.16); ctx.fillText(t.sub, 16, y + 49);
+      const pd = pendingDeps(idx);
+      ctx.font = '7px JetBrains Mono, monospace';
+      ctx.fillStyle = tc(0.2);
+      const lockTxt = pd.length + ' remaining';
+      ctx.fillText(lockTxt, CW - 16 - ctx.measureText(lockTxt).width, y + 40);
+    } else {
+      const tc = isFinal ? finalTextColour : textColour;
+      const tf = cell.textFade;
+      const undoneA = (1 - tf) * 0.6, doneA = tf * 0.95;
+
+      if (undoneA > 0.005) {
+        ctx.font = '300 14px Literata, Georgia, serif';
+        ctx.fillStyle = tc(Math.min(undoneA * selBoost, 1));
+        ctx.fillText(t.label, 16, y + 30);
+        ctx.font = '10px JetBrains Mono, monospace';
+        ctx.fillStyle = tc(Math.min(undoneA * 0.85 * selBoost, 1));
+        ctx.fillText(t.sub, 16, y + 49);
+      }
+      if (doneA > 0.005) {
+        ctx.font = 'italic 300 14px Literata, Georgia, serif';
+        ctx.fillStyle = tc(doneA); ctx.fillText(t.done, 16, y + 30);
+        ctx.font = '10px JetBrains Mono, monospace';
+        ctx.fillStyle = tc(doneA * 0.8); ctx.fillText(t.sub, 16, y + 49);
+      }
+    }
+    ctx.restore();
+  });
+
+  // Hold border
+  if (pressIdx >= 0 && holdProg > 0 && !holdDone) {
+    drawBorderAnim(cells[pressIdx].homeY, holdProg, cells[pressIdx].done, pressIdx);
+  }
+}
+
+// Long press
+const HOLD_MS = 500;
+let pressIdx = -1, pressStart = 0, holdProg = 0, holdDone = false, holdRaf = null;
+let pressStartX = 0, pressStartY = 0;
+const MOVE_THRESH = 10;
+
+function hitCell(clientY) {
+  const rect = canvas.getBoundingClientRect();
+  const my = clientY - rect.top;
+  for (let i = 0; i < N; i++) {
+    if (my >= cells[i].homeY && my <= cells[i].homeY + CH) return i;
+  }
+  return -1;
+}
+
+function holdTick() {
+  if (pressIdx < 0) return;
+  holdProg = Math.min((Date.now() - pressStart) / HOLD_MS, 1);
+  draw();
+  if (holdProg >= 1 && !holdDone) {
+    holdDone = true;
+    if (navigator.vibrate) navigator.vibrate(18);
+    toggleDone(pressIdx);
+    setTimeout(() => { holdProg = 0; pressIdx = -1; draw(); }, 150);
+    return;
+  }
+  if (!holdDone) holdRaf = requestAnimationFrame(holdTick);
+}
+
+function cancelHold() {
+  if (holdRaf) { cancelAnimationFrame(holdRaf); holdRaf = null; }
+  pressIdx = -1; holdProg = 0; holdDone = false; draw();
+}
+
+canvas.addEventListener('pointerdown', e => {
+  e.preventDefault(); canvas.setPointerCapture(e.pointerId);
+  const idx = hitCell(e.clientY);
+  if (idx < 0) { pressIdx = -1; return; }
+  pressIdx = idx; pressStart = Date.now();
+  pressStartX = e.clientX; pressStartY = e.clientY;
+  holdProg = 0; holdDone = false;
+  if (!isLocked(idx)) holdRaf = requestAnimationFrame(holdTick);
+});
+
+canvas.addEventListener('pointermove', e => {
+  if (pressIdx < 0) return;
+  const dx = e.clientX - pressStartX, dy = e.clientY - pressStartY;
+  if (dx*dx + dy*dy > MOVE_THRESH*MOVE_THRESH) cancelHold();
+});
+
+canvas.addEventListener('pointerup', e => {
+  if (holdRaf) { cancelAnimationFrame(holdRaf); holdRaf = null; }
+  const elapsed = Date.now() - pressStart;
+  const idx = pressIdx;
+  pressIdx = -1; holdProg = 0;
+  if (holdDone) { holdDone = false; draw(); return; }
+  holdDone = false; draw();
+  if (idx >= 0 && elapsed < 250) { showDetail(idx); draw(); }
+});
+
+canvas.addEventListener('pointercancel', cancelHold);
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+// Reset
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if (raf) { cancelAnimationFrame(raf); raf = null; }
+  cells = makeState(); solidFrac = 0; tgtSolid = 0;
+  tgt = cells.map(() => ({ fillOp: 0, strokeOp: 0.25, divotFrac: 0, textFade: 0 }));
+  localStorage.removeItem(STORAGE_KEY);
+  hideDetail(); updateCounter(); draw();
+});
+
+// Telegram
+if (window.Telegram && window.Telegram.WebApp) {
+  const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
+}
+
+// Resize wrapper
+function updateWrapHeight() {
+  const wrap = document.getElementById('canvasWrap');
+  if (selectedIdx >= 0) {
+    const panelH = panel.querySelector('.detail-inner').offsetHeight + 20;
+    const needed = cells[selectedIdx].homeY + CH + 4 + panelH;
+    wrap.style.minHeight = Math.max(TH, needed) + 'px';
+  } else {
+    wrap.style.minHeight = TH + 'px';
+  }
+}
+const resizeObs = new MutationObserver(updateWrapHeight);
+resizeObs.observe(panel, { attributes: true, attributeFilter: ['class'] });
+
+// Init
+loadLS(); recalcTargets(); updateCounter(); draw();
+document.getElementById('canvasWrap').style.minHeight = TH + 'px';
+</script>
+</body>
+</html>
