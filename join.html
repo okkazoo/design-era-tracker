@@ -234,7 +234,7 @@
 <body>
 
 <div class="header">
-  <p class="page-title">Design Era · Gothic Revival · tap for details</p>
+  <p class="page-title">Design Era · Gothic Revival · tap details · hold complete</p>
   <p class="page-sub">Written Draft</p>
   <p class="progress-count" id="counter">0 of 8</p>
 </div>
@@ -686,21 +686,103 @@ function draw() {
 
     ctx.restore();
   });
+
+  // ④ Hold progress fill
+  if (pressIdx >= 0 && holdProg > 0 && !holdDone) {
+    const cell = cells[pressIdx];
+    const p = rrPath(cell.homeY);
+    ctx.save();
+    ctx.clip(p);
+    ctx.fillStyle = `rgba(184, 82, 32, ${0.25 + holdProg * 0.25})`;
+    ctx.fillRect(II, cell.homeY + II, (CW - II * 2) * holdProg, CH - II * 2);
+    ctx.restore();
+  }
 }
 
-// ── Click — show detail panel ──────────────────────────────────────────────
-canvas.addEventListener('click', e => {
+// ── Long press to complete, tap for details ─────────────────────────────────
+const HOLD_MS = 500;
+let pressIdx    = -1;
+let pressStart  = 0;
+let holdProg    = 0;   // 0→1 fill progress for held cell
+let holdDone    = false;
+let holdRaf     = null;
+
+function hitCell(clientY) {
   const rect = canvas.getBoundingClientRect();
-  const my = e.clientY - rect.top;
+  const my = clientY - rect.top;
   for (let i = 0; i < N; i++) {
     const y = cells[i].homeY;
-    if (my >= y && my <= y + CH) {
-      showDetail(i);
-      draw(); // redraw to show highlight
-      break;
-    }
+    if (my >= y && my <= y + CH) return i;
   }
+  return -1;
+}
+
+function holdTick() {
+  if (pressIdx < 0) return;
+  const elapsed = Date.now() - pressStart;
+  holdProg = Math.min(elapsed / HOLD_MS, 1);
+  draw();
+
+  if (holdProg >= 1 && !holdDone) {
+    holdDone = true;
+    // haptic feedback
+    if (navigator.vibrate) navigator.vibrate(18);
+    toggleDone(pressIdx);
+    // flash then clear hold state
+    setTimeout(() => { holdProg = 0; draw(); }, 120);
+    return;
+  }
+  if (!holdDone) holdRaf = requestAnimationFrame(holdTick);
+}
+
+function cancelHold() {
+  if (holdRaf) { cancelAnimationFrame(holdRaf); holdRaf = null; }
+  pressIdx = -1; holdProg = 0; holdDone = false;
+  draw();
+}
+
+function onPressStart(clientY) {
+  const idx = hitCell(clientY);
+  if (idx < 0) return;
+  pressIdx   = idx;
+  pressStart = Date.now();
+  holdProg   = 0;
+  holdDone   = false;
+  holdRaf    = requestAnimationFrame(holdTick);
+}
+
+function onPressEnd(clientY) {
+  if (holdRaf) { cancelAnimationFrame(holdRaf); holdRaf = null; }
+  const elapsed = Date.now() - pressStart;
+  const idx = pressIdx;
+  pressIdx = -1; holdProg = 0;
+
+  if (holdDone) { holdDone = false; draw(); return; }  // already completed via hold
+  holdDone = false;
+  draw();
+
+  // Short tap → show detail panel
+  if (idx >= 0 && elapsed < 250) {
+    showDetail(idx);
+    draw();
+  }
+}
+
+// Pointer events (handles both touch and mouse)
+canvas.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  canvas.setPointerCapture(e.pointerId);
+  onPressStart(e.clientY);
 });
+
+canvas.addEventListener('pointerup', e => {
+  onPressEnd(e.clientY);
+});
+
+canvas.addEventListener('pointercancel', cancelHold);
+
+// Prevent context menu on long press (mobile)
+canvas.addEventListener('contextmenu', e => e.preventDefault());
 
 // ── Reset ──────────────────────────────────────────────────────────────────
 document.getElementById('resetBtn').addEventListener('click', () => {
