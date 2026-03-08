@@ -37,20 +37,20 @@
   }
 
   .page-sub {
-    font-family: 'Literata', Georgia, serif;
-    font-size: 24px; font-weight: 300; color: #3A3028;
+    font-family: 'Nunito', sans-serif;
+    font-size: 24px; font-weight: 700; color: #3A3028;
     letter-spacing: 0.01em; line-height: 1.2;
-    margin-bottom: 6px;
+    margin-bottom: 2px;
   }
 
   .header-sep {
     border: none; border-top: 1.5px solid #C8C0B4;
-    margin: 0 0 4px 0;
+    margin: 0 0 2px 0;
   }
 
   .class-line {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.28em;
     text-transform: uppercase; color: #A09888;
     margin-bottom: 8px;
   }
@@ -102,48 +102,50 @@
   .detail-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
 
   .detail-title {
-    font-family: 'Literata', Georgia, serif;
-    font-size: 15px; font-weight: 400; color: #3A3028; line-height: 1.3;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px; font-weight: 700; color: #3A3028; line-height: 1.3;
   }
 
   .detail-day {
-    font-size: 8px; font-weight: 600; letter-spacing: 0.12em;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.12em;
     text-transform: uppercase; color: #A09888;
-    white-space: nowrap; margin-left: 12px; margin-top: 3px;
+    white-space: nowrap; margin-left: 12px; margin-top: 5px;
   }
 
   .detail-section {
-    font-size: 8px; font-weight: 600; letter-spacing: 0.1em;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.12em;
     text-transform: uppercase; color: #8A3A96;
-    margin-bottom: 12px; opacity: 0.7;
+    margin-bottom: 14px; opacity: 0.7;
   }
 
-  .detail-bullets { list-style: none; margin: 0 0 16px 0; padding: 0; }
+  .detail-bullets { list-style: none; margin: 0 0 18px 0; padding: 0; }
 
   .detail-bullets li {
-    font-family: 'Literata', Georgia, serif;
-    font-size: 12.5px; font-weight: 300; color: #5A5045;
-    line-height: 1.55; padding: 5px 0 5px 14px; position: relative;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px; font-weight: 400; color: #5A5045;
+    line-height: 1.6; padding: 6px 0 6px 16px; position: relative;
   }
   .detail-bullets li::before {
-    content: ""; position: absolute; left: 0; top: 12px;
-    width: 4px; height: 4px; border-radius: 50%; background: #C49CCA;
+    content: ""; position: absolute; left: 0; top: 14px;
+    width: 5px; height: 5px; border-radius: 50%; background: #C49CCA;
   }
 
   .detail-deliverable {
-    font-family: 'Literata', Georgia, serif;
-    font-size: 11.5px; font-weight: 300; font-style: italic;
-    color: #8A3A96; padding: 10px 0;
-    border-top: 1px solid rgba(160,150,140,0.2); margin-bottom: 16px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px; font-weight: 400; font-style: italic;
+    color: #8A3A96; padding: 12px 0;
+    border-top: 1.5px dashed rgba(160,150,140,0.25); margin-bottom: 16px;
   }
 
-  .detail-actions { display: flex; gap: 8px; align-items: center; }
+  .detail-actions { display: flex; gap: 10px; align-items: center; }
 
   .action-btn {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px; font-weight: 600; letter-spacing: 0.1em;
-    text-transform: uppercase; border-radius: 20px;
-    padding: 8px 18px; cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+    text-transform: uppercase; border-radius: 22px;
+    padding: 10px 20px; cursor: pointer;
     transition: all 0.2s ease; border: none;
     -webkit-tap-highlight-color: transparent; white-space: nowrap;
   }
@@ -155,21 +157,21 @@
 
   .btn-close {
     background: rgba(160,150,140,0.15); color: #A09888;
-    width: 32px; height: 32px; padding: 0;
+    width: 36px; height: 36px; padding: 0;
     display: flex; align-items: center; justify-content: center;
-    font-size: 15px; font-weight: 400; letter-spacing: 0;
+    font-size: 16px; font-weight: 400; letter-spacing: 0;
     text-transform: none; margin-left: auto; border-radius: 50%;
   }
 
   .btn-pass {
-    background: none; border: 1px solid rgba(123,139,111,0.4); color: #7B8B6F;
+    background: none; border: 1.5px solid rgba(123,139,111,0.4); color: #7B8B6F;
   }
   .btn-pass.is-passed { background: rgba(123,139,111,0.12); color: #7B8B6F; }
 
-  .detail-links { display: flex; gap: 8px; margin-top: 10px; }
+  .detail-links { display: flex; gap: 10px; margin-top: 12px; }
 
   .btn-doc {
-    background: none; border: 1px dashed rgba(160,150,140,0.4); color: #A09888;
+    background: none; border: 1.5px dashed rgba(160,150,140,0.35); color: #A09888;
     text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 8px; font-weight: 500; letter-spacing: 0.08em;
@@ -199,8 +201,8 @@
   <hr class="header-sep">
   <p class="class-line">FILM STUDIES · FLM223</p>
   <div class="status-pills">
-    <span class="pill pill-todo" id="pillTodo"></span>
     <span class="pill pill-done" id="pillDone"></span>
+    <span class="pill pill-todo" id="pillTodo"></span>
     <span class="pill pill-skip" id="pillSkip"></span>
   </div>
 </div>
@@ -393,7 +395,7 @@ function pendingDeps(idx) {
 
 const N = TASKS.length;
 
-const CH  = 68;
+const CH  = 78;
 const GAP = 6;
 const R   = 18;
 const SW  = 1.8;
@@ -450,8 +452,9 @@ function updateCounter() {
   document.getElementById('pillTodo').textContent = todo + ' to do';
   document.getElementById('pillDone').textContent = done + ' complete';
   document.getElementById('pillSkip').textContent = skip + ' skipped';
-  // Hide pills with 0 count (except todo)
+  // Hide pills with 0 count
   document.getElementById('pillDone').style.display = done > 0 ? '' : 'none';
+  document.getElementById('pillTodo').style.display = todo > 0 ? '' : 'none';
   document.getElementById('pillSkip').style.display = skip > 0 ? '' : 'none';
 }
 
@@ -765,18 +768,18 @@ function draw() {
     } else if (isLocked(idx)) {
       ctx.fillStyle = isFinal ? 'rgba(196,154,60,0.12)' : 'rgba(202,224,245,0.25)';
       ctx.fill(p);
-      ctx.strokeStyle = st; ctx.lineWidth = SW;
-      ctx.globalAlpha = 0.1; ctx.stroke(p); ctx.globalAlpha = 1;
+      ctx.setLineDash([6, 4]); ctx.strokeStyle = st; ctx.lineWidth = SW;
+      ctx.globalAlpha = 0.1; ctx.stroke(p); ctx.globalAlpha = 1; ctx.setLineDash([]);
     } else if (idx === selectedIdx) {
       ctx.fillStyle = isFinal ? 'rgba(196,154,60,0.25)' : 'rgba(202,224,245,0.85)';
       ctx.fill(p);
-      ctx.strokeStyle = st; ctx.lineWidth = SW;
-      ctx.globalAlpha = 0.6; ctx.stroke(p); ctx.globalAlpha = 1;
+      ctx.setLineDash([6, 4]); ctx.strokeStyle = st; ctx.lineWidth = SW;
+      ctx.globalAlpha = 0.6; ctx.stroke(p); ctx.globalAlpha = 1; ctx.setLineDash([]);
     } else {
       ctx.fillStyle = isFinal ? 'rgba(196,154,60,0.18)' : `rgba(${FILL_UNDONE_RGBA.join(',')})`;
       ctx.fill(p);
-      ctx.strokeStyle = st; ctx.lineWidth = SW;
-      ctx.globalAlpha = cell.strokeOp; ctx.stroke(p); ctx.globalAlpha = 1;
+      ctx.setLineDash([6, 4]); ctx.strokeStyle = st; ctx.lineWidth = SW;
+      ctx.globalAlpha = cell.strokeOp; ctx.stroke(p); ctx.globalAlpha = 1; ctx.setLineDash([]);
     }
   });
 
@@ -812,36 +815,36 @@ function draw() {
       const pr = Math.round(123 + (255-123)*solidFrac);
       const pg = Math.round(139 + (255-139)*solidFrac);
       const pb = Math.round(111 + (255-111)*solidFrac);
-      ctx.font = solidFrac > 0.5 ? 'italic 700 18px Nunito, sans-serif' : '700 18px Nunito, sans-serif';
+      ctx.font = solidFrac > 0.5 ? 'italic 400 19px Nunito, sans-serif' : '400 19px Nunito, sans-serif';
       ctx.fillStyle = `rgba(${pr},${pg},${pb},${(0.55 + 0.4*solidFrac).toFixed(3)})`;
-      ctx.fillText((solidFrac > 0.5 ? t.done : t.label) + ' \u00b7 Skipped', 16, y + 30);
-      ctx.font = '12px JetBrains Mono, monospace';
+      ctx.fillText((solidFrac > 0.5 ? t.done : t.label) + ' \u00b7 Skipped', 16, y + 34);
+      ctx.font = '14px JetBrains Mono, monospace';
       ctx.fillStyle = `rgba(${pr},${pg},${pb},${(0.5 + 0.35*solidFrac).toFixed(3)})`;
-      ctx.fillText(fitText(t.sub, CW - 32), 16, y + 49);
+      ctx.fillText(fitText(t.sub, CW - 32), 16, y + 56);
     } else if (locked) {
       const tc = isFinal ? finalTextColour : textColour;
-      ctx.font = '700 18px Nunito, sans-serif';
-      ctx.fillStyle = tc(0.22); ctx.fillText(t.label, 16, y + 30);
-      ctx.font = '12px JetBrains Mono, monospace';
-      ctx.fillStyle = tc(0.16); ctx.fillText(fitText(t.sub, CW - 32), 16, y + 49);
+      ctx.font = '400 19px Nunito, sans-serif';
+      ctx.fillStyle = tc(0.22); ctx.fillText(t.label, 16, y + 34);
+      ctx.font = '14px JetBrains Mono, monospace';
+      ctx.fillStyle = tc(0.16); ctx.fillText(fitText(t.sub, CW - 32), 16, y + 56);
     } else {
       const tc = isFinal ? finalTextColour : textColour;
       const tf = cell.textFade;
       const undoneA = (1 - tf) * 0.6, doneA = tf * 0.95;
 
       if (undoneA > 0.005) {
-        ctx.font = '700 18px Nunito, sans-serif';
+        ctx.font = '400 19px Nunito, sans-serif';
         ctx.fillStyle = tc(Math.min(undoneA * selBoost, 1));
-        ctx.fillText(t.label, 16, y + 30);
-        ctx.font = '12px JetBrains Mono, monospace';
+        ctx.fillText(t.label, 16, y + 34);
+        ctx.font = '14px JetBrains Mono, monospace';
         ctx.fillStyle = tc(Math.min(undoneA * 0.85 * selBoost, 1));
-        ctx.fillText(fitText(t.sub, CW - 32), 16, y + 49);
+        ctx.fillText(fitText(t.sub, CW - 32), 16, y + 56);
       }
       if (doneA > 0.005) {
-        ctx.font = 'italic 700 18px Nunito, sans-serif';
-        ctx.fillStyle = tc(doneA); ctx.fillText(t.done, 16, y + 30);
-        ctx.font = '12px JetBrains Mono, monospace';
-        ctx.fillStyle = tc(doneA * 0.8); ctx.fillText(fitText(t.sub, CW - 32), 16, y + 49);
+        ctx.font = 'italic 400 19px Nunito, sans-serif';
+        ctx.fillStyle = tc(doneA); ctx.fillText(t.done, 16, y + 34);
+        ctx.font = '14px JetBrains Mono, monospace';
+        ctx.fillStyle = tc(doneA * 0.8); ctx.fillText(fitText(t.sub, CW - 32), 16, y + 56);
       }
     }
     ctx.restore();
