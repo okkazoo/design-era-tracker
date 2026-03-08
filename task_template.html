@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>FLM223 — 5/3 Period 4 and 5 Final girl and good for her articles and worksheets when PBT is away</title>
+<title>__PAGE_TITLE__</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Literata:ital,wght@0,300;0,400;1,300&display=swap');
@@ -32,7 +32,7 @@
   .due-line {
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px; font-weight: 600; letter-spacing: 0.15em;
-    text-transform: uppercase; color: #8C2C23;
+    text-transform: uppercase; color: __DUE_COLOR__;
     margin-bottom: 14px;
   }
 
@@ -114,7 +114,7 @@
 
   .detail-section {
     font-size: 8px; font-weight: 600; letter-spacing: 0.1em;
-    text-transform: uppercase; color: #8A3A96;
+    text-transform: uppercase; color: __ACCENT_HEX__;
     margin-bottom: 12px; opacity: 0.7;
   }
 
@@ -127,13 +127,13 @@
   }
   .detail-bullets li::before {
     content: ""; position: absolute; left: 0; top: 12px;
-    width: 4px; height: 4px; border-radius: 50%; background: #C49CCA;
+    width: 4px; height: 4px; border-radius: 50%; background: __MID_ACCENT_HEX__;
   }
 
   .detail-deliverable {
     font-family: 'Literata', Georgia, serif;
     font-size: 11.5px; font-weight: 300; font-style: italic;
-    color: #8A3A96; padding: 10px 0;
+    color: __ACCENT_HEX__; padding: 10px 0;
     border-top: 1px solid rgba(160,150,140,0.2); margin-bottom: 16px;
   }
 
@@ -149,7 +149,7 @@
   }
   .action-btn:active { transform: scale(0.96); }
 
-  .btn-complete { background: #8A3A96; color: #DBC3DF; }
+  .btn-complete { background: __ACCENT_HEX__; color: __LIGHT_ACCENT_HEX__; }
   .btn-complete.is-done { background: rgba(160,150,140,0.2); color: #A09888; }
   .btn-complete:disabled { opacity: 0.5; cursor: default; }
 
@@ -194,10 +194,10 @@
 <body>
 
 <div class="header">
-  <p class="due-line">DUE THURSDAY 05 MARCH</p>
-  <p class="page-sub">Final Girl And Good For Her Articles...</p>
+  <p class="due-line">__HEADER_DUE__</p>
+  <p class="page-sub">__HEADER_MAIN__</p>
   <hr class="header-sep">
-  <p class="class-line">FILM STUDIES · FLM223</p>
+  <p class="class-line">__HEADER_TOP__</p>
   <div class="status-pills">
     <span class="pill pill-todo" id="pillTodo"></span>
     <span class="pill pill-done" id="pillDone"></span>
@@ -235,149 +235,7 @@
 </div>
 
 <script>
-const TASKS = [
-  {
-    "id": "t1",
-    "label": "Read Final Girl Article",
-    "done": "Read",
-    "sub": "Understand the origins of the final girl trope.",
-    "sec": "Reading",
-    "requires": [],
-    "bullets": [
-      "Open and read 'The Rise of The Final Girl.pdf'.",
-      "Note key dates and early examples mentioned.",
-      "Identify the definition of the final girl.",
-      "Skim the slide captions for structure."
-    ],
-    "deliverable": "Familiarity with the 'final girl' concept and its history.",
-    "url": null
-  },
-  {
-    "id": "t2",
-    "label": "Answer Final Girl Questions",
-    "done": "Answered",
-    "sub": "Apply article info to specific questions.",
-    "sec": "Worksheets",
-    "requires": [
-      0
-    ],
-    "bullets": [
-      "Open 'Coco-Inez-Penn-Rise-of-the-final-girl-work-sheet'.",
-      "Find quotes from the article for each answer.",
-      "Include specific film examples for each question.",
-      "Ensure all 8 questions are addressed."
-    ],
-    "deliverable": "Completed answers for the final girl worksheet with evidence.",
-    "url": null
-  },
-  {
-    "id": "t3",
-    "label": "Read Good For Her Article",
-    "done": "Read",
-    "sub": "Explore the 'good for her' horror trope.",
-    "sec": "Reading",
-    "requires": [],
-    "bullets": [
-      "Open and read the 'good for her' horror film trope text.",
-      "Pay attention to critiques and author's reflections.",
-      "Identify points about intersectionality and violence.",
-      "Note suggestions for genre improvement."
-    ],
-    "deliverable": "Understanding of the 'good for her' trope and its nuances.",
-    "url": null
-  },
-  {
-    "id": "t4",
-    "label": "Answer Good For Her Questions",
-    "done": "Answered",
-    "sub": "Analyze the 'good for her' trope.",
-    "sec": "Worksheets",
-    "requires": [
-      2
-    ],
-    "bullets": [
-      "Open 'Analysis of 'Coco-Inez-Penn-Good-for-her-horror-worksheet'.'",
-      "Consider if it's an improvement on the final girl.",
-      "Answer all 8 questions thoughtfully.",
-      "Base answers on the provided text."
-    ],
-    "deliverable": "Completed answers for the 'good for her' worksheet.",
-    "url": null
-  },
-  {
-    "id": "t5",
-    "label": "Review Character Notes",
-    "done": "Reviewed",
-    "sub": "Analyze character details from notes.",
-    "sec": "Analysis",
-    "requires": [],
-    "bullets": [
-      "Read 'Halloween-final-girl-notes'.",
-      "Focus on Lynda's appearance and personality.",
-      "Note how actions and relationships are described.",
-      "Consider how characters adapt."
-    ],
-    "deliverable": "Insights into character analysis from the notes.",
-    "url": null
-  },
-  {
-    "id": "t6",
-    "label": "Compare Scream and Halloween",
-    "done": "Compared",
-    "sub": "Contrast final girls in different films.",
-    "sec": "Analysis",
-    "requires": [
-      0,
-      4
-    ],
-    "bullets": [
-      "Read 'Scream-notes-on-Final-girl'.",
-      "Identify similarities and differences.",
-      "Use the provided 'Similar' and 'different' sections.",
-      "Think about their reactions to danger."
-    ],
-    "deliverable": "Notes on the comparison between the Halloween and Scream final girls.",
-    "url": null
-  },
-  {
-    "id": "t7",
-    "label": "Consolidate and Review",
-    "done": "Consolidated",
-    "sub": "Organize and check all completed work.",
-    "sec": "Reviewing",
-    "requires": [
-      1,
-      3,
-      5
-    ],
-    "bullets": [
-      "Gather all completed worksheets and notes.",
-      "Check if all questions have been answered.",
-      "Ensure evidence and quotes are present where needed.",
-      "Review for clarity and completeness."
-    ],
-    "deliverable": "All assignment components organized and ready for final check.",
-    "url": null
-  },
-  {
-    "id": "t8",
-    "label": "Final Polish and Submit",
-    "done": "Submitted",
-    "sub": "Make final edits and submit the assignment.",
-    "sec": "Finishing",
-    "requires": [
-      6
-    ],
-    "bullets": [
-      "Proofread all written answers for errors.",
-      "Check for any missing requirements.",
-      "Format submission according to instructions.",
-      "Submit before the due date."
-    ],
-    "deliverable": "Completed assignment submitted.",
-    "url": null
-  }
-];
+const TASKS = __TASKS_JSON__;
 
 function isLocked(idx) {
   const reqs = TASKS[idx].requires;
@@ -402,19 +260,19 @@ const CW  = Math.min(380, window.innerWidth - 48);
 const TH  = N * CH + (N - 1) * GAP;
 
 // Color palette — injected by generator
-const STROKE = '#8A3A96';
+const STROKE = '__STROKE_HEX__';
 const PASS_STROKE = '#7B8B6F';
 const FINAL_STROKE = '#C49A3C';
 const FINAL_FILL   = [196, 154, 60];
-const FILL_UNDONE_RGBA = [233, 219, 236, 0.55];
-const FILL_DONE_RGBA   = [149, 97, 197, 0.22];
-const FILL_SOLID_RGB   = [138, 58, 150];
+const FILL_UNDONE_RGBA = __FILL_UNDONE__;
+const FILL_DONE_RGBA   = __FILL_DONE__;
+const FILL_SOLID_RGB   = __FILL_SOLID__;
 const PASS_FILL_RGBA   = [123, 139, 111, 0.12];
 
 // Text/stroke color bases for animation
-const _TR = 138, _TG = 39, _TB = 103;
-const _SR = 138, _SG = 58, _SB = 150;
-const _STR = 96, _STG = 39, _STB = 108;
+const _TR = __TEXT_R__, _TG = __TEXT_G__, _TB = __TEXT_B__;
+const _SR = __ACCENT_R__, _SG = __ACCENT_G__, _SB = __ACCENT_B__;
+const _STR = __STROKE_T_R__, _STG = __STROKE_T_G__, _STB = __STROKE_T_B__;
 
 const canvas = document.getElementById('c');
 const ctx    = canvas.getContext('2d');
@@ -426,7 +284,7 @@ canvas.style.width  = CW + 'px';
 canvas.style.height = TH + 'px';
 ctx.scale(DPR, DPR);
 
-const STORAGE_KEY = 'flm223-5-3-period-4-and-5-final-girl-and-good-for-her-articles-and-worksheets-when-pbt-is-away';
+const STORAGE_KEY = '__STORAGE_KEY__';
 let selectedIdx = -1;
 
 function makeState() {

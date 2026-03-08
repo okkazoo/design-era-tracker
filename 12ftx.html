@@ -22,26 +22,53 @@
     user-select: none;
   }
 
-  .header { text-align: center; }
+  .header {
+    text-align: left;
+    width: 100%;
+    max-width: 380px;
+    padding: 0 4px;
+  }
 
-  .page-title {
-    font-size: 9px; font-weight: 600; letter-spacing: 0.2em;
-    text-transform: uppercase; color: #A09888;
-    margin-bottom: 6px;
+  .due-line {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.15em;
+    text-transform: uppercase; color: #8C2C23;
+    margin-bottom: 14px;
   }
 
   .page-sub {
     font-family: 'Literata', Georgia, serif;
-    font-size: 20px; font-weight: 300; color: #3A3028;
-    letter-spacing: 0.01em; margin-bottom: 4px;
+    font-size: 24px; font-weight: 300; color: #3A3028;
+    letter-spacing: 0.01em; line-height: 1.2;
+    margin-bottom: 6px;
   }
 
-  .progress-count {
-    font-size: 9px; font-weight: 600; letter-spacing: 0.15em;
-    text-transform: uppercase; color: #A09888;
-    transition: color 0.3s;
+  .header-sep {
+    border: none; border-top: 1.5px solid #C8C0B4;
+    margin: 0 0 4px 0;
   }
-  .progress-count.all-done { color: #B8501E; }
+
+  .class-line {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
+    text-transform: uppercase; color: #A09888;
+    margin-bottom: 16px;
+  }
+
+  .status-pills {
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+
+  .pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 5px 12px; border-radius: 10px;
+    transition: all 0.3s ease;
+  }
+  .pill-todo { background: rgba(180,60,50,0.18); color: rgb(126,42,35); }
+  .pill-done { background: rgba(55,130,65,0.18); color: rgb(38,91,45); }
+  .pill-skip { background: rgba(180,150,40,0.18); color: rgb(126,105,28); }
 
   canvas { display: block; cursor: pointer; touch-action: none; -webkit-user-select: none; user-select: none; }
 
@@ -167,9 +194,15 @@
 <body>
 
 <div class="header">
-  <p class="page-title">Fashion + Textiles · 12FTX</p>
-  <p class="page-sub">Presentation written draft due</p>
-  <p class="progress-count" id="counter">Due Monday 09 March</p>
+  <p class="due-line">DUE MONDAY 09 MARCH</p>
+  <p class="page-sub">Presentation Written Draft</p>
+  <hr class="header-sep">
+  <p class="class-line">FASHION + TEXTILES · 12FTX</p>
+  <div class="status-pills">
+    <span class="pill pill-todo" id="pillTodo"></span>
+    <span class="pill pill-done" id="pillDone"></span>
+    <span class="pill pill-skip" id="pillSkip"></span>
+  </div>
 </div>
 
 <div class="canvas-wrap" id="canvasWrap">
@@ -405,7 +438,15 @@ let tgtSolid  = 0;
 
 function doneCount() { return cells.filter(c => c.done).length; }
 function passCount() { return cells.filter(c => c.passed).length; }
-function updateCounter() { /* static due date */ }
+function updateCounter() {
+  const done = doneCount(), skip = passCount(), todo = N - done - skip;
+  document.getElementById('pillTodo').textContent = todo + ' to do';
+  document.getElementById('pillDone').textContent = done + ' complete';
+  document.getElementById('pillSkip').textContent = skip + ' skipped';
+  // Hide pills with 0 count (except todo)
+  document.getElementById('pillDone').style.display = done > 0 ? '' : 'none';
+  document.getElementById('pillSkip').style.display = skip > 0 ? '' : 'none';
+}
 
 function recalcTargets() {
   tgtSolid = cells.every(c => c.done || c.passed) ? 1 : 0;
