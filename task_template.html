@@ -6,7 +6,7 @@
 <title>__PAGE_TITLE__</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Literata:ital,wght@0,300;0,400;1,300&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&family=Literata:ital,wght@0,300;0,400;1,300&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
@@ -593,6 +593,13 @@ function drawBorderAnim(homeY, progress, isDone, cellIdx) {
   ctx.globalAlpha = 1;
 }
 
+// Truncate text to fit within maxW pixels
+function fitText(text, maxW) {
+  if (ctx.measureText(text).width <= maxW) return text;
+  while (text.length > 0 && ctx.measureText(text + '…').width > maxW) text = text.slice(0, -1);
+  return text.trimEnd() + '…';
+}
+
 // Draw
 function draw() {
   ctx.clearRect(0, 0, CW, TH);
@@ -663,41 +670,36 @@ function draw() {
       const pr = Math.round(123 + (255-123)*solidFrac);
       const pg = Math.round(139 + (255-139)*solidFrac);
       const pb = Math.round(111 + (255-111)*solidFrac);
-      ctx.font = solidFrac > 0.5 ? 'italic 300 14px Literata, Georgia, serif' : '300 14px Literata, Georgia, serif';
+      ctx.font = solidFrac > 0.5 ? 'italic 700 18px Nunito, sans-serif' : '700 18px Nunito, sans-serif';
       ctx.fillStyle = `rgba(${pr},${pg},${pb},${(0.55 + 0.4*solidFrac).toFixed(3)})`;
       ctx.fillText((solidFrac > 0.5 ? t.done : t.label) + ' \u00b7 Skipped', 16, y + 30);
-      ctx.font = '10px JetBrains Mono, monospace';
+      ctx.font = '12px JetBrains Mono, monospace';
       ctx.fillStyle = `rgba(${pr},${pg},${pb},${(0.5 + 0.35*solidFrac).toFixed(3)})`;
-      ctx.fillText(t.sub, 16, y + 49);
+      ctx.fillText(fitText(t.sub, CW - 32), 16, y + 49);
     } else if (locked) {
       const tc = isFinal ? finalTextColour : textColour;
-      ctx.font = '300 14px Literata, Georgia, serif';
+      ctx.font = '700 18px Nunito, sans-serif';
       ctx.fillStyle = tc(0.22); ctx.fillText(t.label, 16, y + 30);
-      ctx.font = '10px JetBrains Mono, monospace';
-      ctx.fillStyle = tc(0.16); ctx.fillText(t.sub, 16, y + 49);
-      const pd = pendingDeps(idx);
-      ctx.font = '7px JetBrains Mono, monospace';
-      ctx.fillStyle = tc(0.2);
-      const lockTxt = pd.length + ' remaining';
-      ctx.fillText(lockTxt, CW - 16 - ctx.measureText(lockTxt).width, y + 40);
+      ctx.font = '12px JetBrains Mono, monospace';
+      ctx.fillStyle = tc(0.16); ctx.fillText(fitText(t.sub, CW - 32), 16, y + 49);
     } else {
       const tc = isFinal ? finalTextColour : textColour;
       const tf = cell.textFade;
       const undoneA = (1 - tf) * 0.6, doneA = tf * 0.95;
 
       if (undoneA > 0.005) {
-        ctx.font = '300 14px Literata, Georgia, serif';
+        ctx.font = '700 18px Nunito, sans-serif';
         ctx.fillStyle = tc(Math.min(undoneA * selBoost, 1));
         ctx.fillText(t.label, 16, y + 30);
-        ctx.font = '10px JetBrains Mono, monospace';
+        ctx.font = '12px JetBrains Mono, monospace';
         ctx.fillStyle = tc(Math.min(undoneA * 0.85 * selBoost, 1));
-        ctx.fillText(t.sub, 16, y + 49);
+        ctx.fillText(fitText(t.sub, CW - 32), 16, y + 49);
       }
       if (doneA > 0.005) {
-        ctx.font = 'italic 300 14px Literata, Georgia, serif';
+        ctx.font = 'italic 700 18px Nunito, sans-serif';
         ctx.fillStyle = tc(doneA); ctx.fillText(t.done, 16, y + 30);
-        ctx.font = '10px JetBrains Mono, monospace';
-        ctx.fillStyle = tc(doneA * 0.8); ctx.fillText(t.sub, 16, y + 49);
+        ctx.font = '12px JetBrains Mono, monospace';
+        ctx.fillStyle = tc(doneA * 0.8); ctx.fillText(fitText(t.sub, CW - 32), 16, y + 49);
       }
     }
     ctx.restore();
@@ -800,9 +802,22 @@ function updateWrapHeight() {
 const resizeObs = new MutationObserver(updateWrapHeight);
 resizeObs.observe(panel, { attributes: true, attributeFilter: ['class'] });
 
-// Init
-loadLS(); recalcTargets(); updateCounter(); draw();
-document.getElementById('canvasWrap').style.minHeight = TH + 'px';
+// Init — explicitly load Nunito for canvas, then draw
+function init() {
+  loadLS(); recalcTargets(); updateCounter(); draw();
+  document.getElementById('canvasWrap').style.minHeight = TH + 'px';
+}
+const nunitoFace = new FontFace('Nunito',
+  "url('https://fonts.gstatic.com/s/nunito/v26/XRXI3I6Li01BKofiOc5wtlZ2di8HDIkhdTQ3j6zbXWjgeg.woff2')",
+  { weight: '700', style: 'normal' }
+);
+nunitoFace.load().then(f => {
+  document.fonts.add(f);
+  init();
+}).catch(() => {
+  // Fallback: try fonts.ready
+  document.fonts.ready.then(init);
+});
 </script>
 </body>
 </html>
