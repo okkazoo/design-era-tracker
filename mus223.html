@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>12FTX — Written part of presentation/draft copy due</title>
+<title>MUS223 — Submit research question for teacher approval (Investigate NZ Music)</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,7 +34,7 @@
   .due-line {
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px; font-weight: 600; letter-spacing: 0.15em;
-    text-transform: uppercase; color: #8C7830;
+    text-transform: uppercase; color: #4A7A3C;
     margin-bottom: 7px;
   }
 
@@ -118,7 +118,7 @@
   .detail-section {
     font-family: 'JetBrains Mono', monospace;
     font-size: 9px; font-weight: 600; letter-spacing: 0.12em;
-    text-transform: uppercase; color: #B8501E;
+    text-transform: uppercase; color: #B44646;
     margin-bottom: 14px; opacity: 0.7;
   }
 
@@ -131,13 +131,13 @@
   }
   .detail-bullets li::before {
     content: ""; position: absolute; left: 0; top: 14px;
-    width: 5px; height: 5px; border-radius: 50%; background: #DBA78E;
+    width: 5px; height: 5px; border-radius: 50%; background: #D9A2A2;
   }
 
   .detail-deliverable {
     font-family: 'Nunito', sans-serif;
     font-size: 13px; font-weight: 400; font-style: italic;
-    color: #B8501E; padding: 12px 0;
+    color: #B44646; padding: 12px 0;
     border-top: 1.5px dashed rgba(160,150,140,0.25); margin-bottom: 16px;
   }
 
@@ -153,7 +153,7 @@
   }
   .action-btn:active { transform: scale(0.96); }
 
-  .btn-complete { background: #B8501E; color: #E9CABB; }
+  .btn-complete { background: #B44646; color: #E8C7C7; }
   .btn-complete.is-done { background: rgba(160,150,140,0.2); color: #A09888; }
   .btn-complete:disabled { opacity: 0.5; cursor: default; }
 
@@ -198,10 +198,10 @@
 <body>
 
 <div class="header">
-  <p class="due-line">DUE TUESDAY 17 MARCH</p>
-  <p class="page-sub">Written Part Of Presentation/Draft Copy</p>
+  <p class="due-line">DUE MONDAY 23 MARCH</p>
+  <p class="page-sub">Submit Research Question For Teacher...</p>
   <hr class="header-sep">
-  <p class="class-line">FASHION + TEXTILES · 12FTX</p>
+  <p class="class-line">MUSIC · MUS223</p>
   <div class="status-pills">
     <span class="pill pill-done" id="pillDone"></span>
     <span class="pill pill-todo" id="pillTodo"></span>
@@ -242,119 +242,119 @@
 const TASKS = [
   {
     "id": "t1",
-    "label": "Understand Gothic Revival Origins",
-    "done": "Understood Origins",
-    "sub": "Research timeframe and roots of Gothic Revival",
-    "sec": "Research",
+    "label": "Brainstorm NZ Music",
+    "done": "Brainstormed",
+    "sub": "Think broadly about NZ music history",
+    "sec": "Getting Started",
     "requires": [],
     "bullets": [
-      "Find when Gothic Revival began and ended.",
-      "Identify its core influences and early proponents.",
-      "Note key historical context, like the Industrial Revolution."
+      "List NZ artists you know",
+      "Think about different genres",
+      "Consider time periods"
     ],
-    "deliverable": "Basic understanding of Gothic Revival's historical context",
+    "deliverable": "Initial list of NZ music ideas",
     "url": null
   },
   {
     "id": "t2",
-    "label": "Explore English Gothic Revival",
-    "done": "Explored English Revival",
-    "sub": "Focus on English Gothic Revival components",
+    "label": "Explore NZ Music",
+    "done": "Explored",
+    "sub": "Gather initial NZ music information",
     "sec": "Research",
     "requires": [
       0
     ],
     "bullets": [
-      "Identify key architectural features.",
-      "Research its characteristic styles.",
-      "Look into prominent English examples."
+      "Read about prominent NZ artists",
+      "Note interesting NZ music facts",
+      "Look for key historical moments"
     ],
-    "deliverable": "Notes on specific English Gothic Revival elements",
+    "deliverable": "Collected interesting NZ music facts",
     "url": null
   },
   {
     "id": "t3",
-    "label": "Identify Key Designers and Buildings",
-    "done": "Identified Designers/Buildings",
-    "sub": "Find designers and notable buildings",
+    "label": "Identify Research Areas",
+    "done": "Identified",
+    "sub": "Narrow down your NZ music interests",
     "sec": "Research",
     "requires": [
       1
     ],
     "bullets": [
-      "List influential Gothic Revival architects.",
-      "Name significant buildings from the era.",
-      "Research Horace Walpole's Strawberry Hill."
+      "List 2-3 potential NZ music topics",
+      "Consider what fascinates you most",
+      "Think about researchability"
     ],
-    "deliverable": "List of key figures and buildings with brief descriptions",
+    "deliverable": "List of 2-3 potential research topics",
     "url": null
   },
   {
     "id": "t4",
-    "label": "Analyze Aesthetic and Function",
-    "done": "Analyzed Aesthetics/Function",
-    "sub": "Discuss look and purpose of Gothic Revival",
-    "sec": "Analysis",
+    "label": "Formulate Research Question",
+    "done": "Formulated",
+    "sub": "Draft a clear NZ music research question",
+    "sec": "Drafting",
     "requires": [
       2
     ],
     "bullets": [
-      "Describe the visual style and mood.",
-      "Explain the practical purposes of its design.",
-      "Consider how it impacted society."
+      "Write a question based on your topic",
+      "Ensure it's specific and focused",
+      "Make it engaging for you"
     ],
-    "deliverable": "Notes on the aesthetic and functional aspects of Gothic Revival",
+    "deliverable": "Draft research question",
     "url": null
   },
   {
     "id": "t5",
-    "label": "Connect to Arts and Crafts",
-    "done": "Connected to Arts & Crafts",
-    "sub": "Link Gothic Revival to Arts and Crafts",
-    "sec": "Analysis",
+    "label": "Refine Research Question",
+    "done": "Refined",
+    "sub": "Improve your NZ music research question",
+    "sec": "Refining",
     "requires": [
       3
     ],
     "bullets": [
-      "Explore shared philosophies.",
-      "Identify overlapping design principles.",
-      "Note how one influenced the other."
+      "Check question for clarity",
+      "Ensure it's investigable",
+      "Ask a classmate for input"
     ],
-    "deliverable": "Insights into the relationship between Gothic Revival and Arts and Crafts",
+    "deliverable": "Improved research question",
     "url": null
   },
   {
     "id": "t6",
-    "label": "Draft Page 1: Overview",
-    "done": "Drafted Page 1",
-    "sub": "Write overview of Gothic Revival architecture",
-    "sec": "Drafting",
+    "label": "Teacher Approval Check",
+    "done": "Checked",
+    "sub": "Show teacher your research question",
+    "sec": "Checkpoint",
     "requires": [
       4
     ],
     "bullets": [
-      "Summarize origins, timeframe, and English focus.",
-      "Include key designers and buildings.",
-      "Briefly mention aesthetic and functional aspects."
+      "Prepare your draft question",
+      "Ask for teacher's feedback",
+      "Note any suggestions made"
     ],
-    "deliverable": "First draft of Page 1 for the written assignment",
+    "deliverable": "Teacher's feedback on research question",
     "url": null
   },
   {
     "id": "t7",
-    "label": "Finalize Written Draft",
-    "done": "Finalized Draft",
-    "sub": "Polish and check written draft copy",
-    "sec": "Refining",
+    "label": "Finalize & Submit",
+    "done": "Submitted",
+    "sub": "Submit your approved NZ music question",
+    "sec": "Finishing",
     "requires": [
       5
     ],
     "bullets": [
-      "Review and edit Page 1 for clarity.",
-      "Ensure all key requirements are met.",
-      "Proofread for grammar and spelling errors."
+      "Make final edits if needed",
+      "Confirm submission platform",
+      "Submit by the deadline"
     ],
-    "deliverable": "Completed and polished written draft copy due March 17",
+    "deliverable": "Submitted research question",
     "url": null
   }
 ];
@@ -382,19 +382,19 @@ const CW  = Math.min(380, window.innerWidth - 48);
 const TH  = N * CH + (N - 1) * GAP;
 
 // Color palette — injected by generator
-const STROKE = '#B8501E';
+const STROKE = '#B44646';
 const PASS_STROKE = '#7B8B6F';
 const FINAL_STROKE = '#C49A3C';
 const FINAL_FILL   = [196, 154, 60];
-const FILL_UNDONE_RGBA = [242, 223, 214, 0.55];
-const FILL_DONE_RGBA   = [191, 115, 131, 0.22];
-const FILL_SOLID_RGB   = [184, 80, 30];
+const FILL_UNDONE_RGBA = [241, 221, 221, 0.55];
+const FILL_DONE_RGBA   = [187, 107, 153, 0.22];
+const FILL_SOLID_RGB   = [180, 70, 70];
 const PASS_FILL_RGBA   = [123, 139, 111, 0.12];
 
 // Text/stroke color bases for animation
-const _TR = 184, _TG = 54, _TB = 20;
-const _SR = 184, _SG = 80, _SB = 30;
-const _STR = 128, _STG = 54, _STB = 21;
+const _TR = 180, _TG = 47, _TB = 48;
+const _SR = 180, _SG = 70, _SB = 70;
+const _STR = 125, _STG = 47, _STB = 50;
 
 const canvas = document.getElementById('c');
 const ctx    = canvas.getContext('2d');
@@ -406,7 +406,7 @@ canvas.style.width  = CW + 'px';
 canvas.style.height = TH + 'px';
 ctx.scale(DPR, DPR);
 
-const STORAGE_KEY = '12ftx-written-part-of-presentation-draft-copy-due';
+const STORAGE_KEY = 'mus223-submit-research-question-for-teacher-approval-investigate-nz-music';
 let selectedIdx = -1;
 
 function makeState() {
