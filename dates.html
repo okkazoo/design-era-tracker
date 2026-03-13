@@ -178,38 +178,23 @@
   .item-card {
     position: relative;
     background: rgba(216,226,233,0.55);
-    border: none;
+    border: 1.8px dashed rgba(43,95,138,0.25);
     border-radius: 18px;
     padding: 16px;
     margin-bottom: 10px;
-    transition: transform 0.15s ease, background 0.2s ease;
+    transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
-  .item-card .card-border {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    pointer-events: none; overflow: visible;
-  }
-  .item-card .card-border rect {
-    x: 0.9; y: 0.9;
-    width: calc(100% - 1.8px); height: calc(100% - 1.8px);
-    rx: 18; ry: 18;
-    fill: none; stroke: rgba(43,95,138,0.25);
-    stroke-width: 1.8; stroke-dasharray: 6 4;
-  }
   .item-card:active { transform: scale(0.985); }
-  .item-card.is-expanded { background: rgba(202,224,245,0.85); }
-  .item-card.is-expanded .card-border rect { stroke: rgba(43,95,138,0.6); }
+  .item-card.is-expanded { background: rgba(202,224,245,0.85); border-color: rgba(43,95,138,0.6); }
   .item-card.is-done {
     background: rgba(64,127,190,0.22);
+    border-style: solid; border-color: rgba(43,95,138,1);
   }
-  .item-card.is-done .card-border rect {
-    stroke: rgba(43,95,138,1); stroke-dasharray: none;
-  }
-  .item-card.is-past { background: rgba(216,226,233,0.3); }
-  .item-card.is-past .card-border rect { stroke: rgba(43,95,138,0.1); }
-  .item-card.is-missing .card-border rect { stroke: rgba(180,60,50,0.4); }
-  .item-card.is-today-card .card-border rect { stroke: rgba(184,80,30,0.35); }
+  .item-card.is-past { background: rgba(216,226,233,0.3); border-color: rgba(43,95,138,0.1); }
+  .item-card.is-missing { border-color: rgba(180,60,50,0.4); }
+  .item-card.is-today-card { border-color: rgba(184,80,30,0.35); }
 
   .item-meta-line {
     display: flex; align-items: center; gap: 6px;
@@ -489,7 +474,7 @@
   .alert-card {
     position: relative;
     background: rgba(255,248,240,0.55);
-    border: none;
+    border: 1.8px dashed rgba(180,60,50,0.35);
     border-left: 3px solid rgb(180,60,50);
     border-radius: 18px;
     padding: 16px;
@@ -499,15 +484,13 @@
     transition: transform 0.15s ease, background 0.2s ease;
   }
   .alert-card:active { transform: scale(0.985); }
-  .alert-card .card-border rect {
-    stroke: rgba(180,60,50,0.35); stroke-dasharray: 6 4;
-  }
   .alert-card.is-expanded { background: rgba(255,248,240,0.88); }
   .alert-card.alert-warn {
     border-left-color: #8C7830;
+    border-color: rgba(140,120,48,0.35);
+    border-left-color: #8C7830;
     background: rgba(255,252,240,0.55);
   }
-  .alert-card.alert-warn .card-border rect { stroke: rgba(140,120,48,0.35); }
   .alert-card.alert-warn.is-expanded { background: rgba(255,252,240,0.88); }
 
   .alert-badge {
@@ -664,8 +647,8 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Year plan & assessments",
-    "desc": "This is the overall plan for your Year 12 Fashion and Textiles class, showing all the work and due dates."
+    "short": "FTX Year Plan",
+    "desc": "Get a clear overview of your Fashion and Textiles coursework for 2026, including all your assessment details."
   },
   {
     "cls": "12FTX",
@@ -674,8 +657,8 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Design eras explained",
-    "desc": "Get to know different historical fashion and textile design periods and their styles."
+    "short": "Design Eras Guide",
+    "desc": "Learn about different historical periods and styles in design to inspire your fashion projects."
   },
   {
     "cls": "12FTX",
@@ -684,8 +667,8 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Design basics intro",
-    "desc": "Learn the fundamental elements and principles that make up good design."
+    "short": "Design Basics",
+    "desc": "Understand the fundamental elements and principles that make good designs."
   },
   {
     "cls": "12FTX",
@@ -694,8 +677,8 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Drawing page examples",
-    "desc": "See examples of how to set up and present your initial design sketches."
+    "short": "Drawing Examples",
+    "desc": "See examples of good first drawing pages to help you start your design sketches."
   },
   {
     "cls": "12FTX",
@@ -704,8 +687,8 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Shapes on forms",
-    "desc": "Understand how different shapes interact with and appear on three-dimensional objects."
+    "short": "Shapes on Forms",
+    "desc": "Explore how to represent shapes effectively on three-dimensional objects in your designs."
   },
   {
     "cls": "12FTX",
@@ -714,8 +697,8 @@ const RAW = [
     "type": "assignment",
     "status": "Turned in",
     "source": null,
-    "short": "Design era written work",
-    "desc": "You need to write about a specific design era or movement for your fashion and textiles class."
+    "short": "Design Era Write-up",
+    "desc": "Write about a specific design era and its influence on fashion."
   },
   {
     "cls": "12FTX",
@@ -724,8 +707,8 @@ const RAW = [
     "type": "assignment",
     "status": "Assigned",
     "source": null,
-    "short": "Design era task",
-    "desc": "Complete and hand in the specific task sheet related to your chosen design era."
+    "short": "Design Era Task",
+    "desc": "Complete and hand in the main assignment related to a design era."
   },
   {
     "cls": "12FTX",
@@ -734,8 +717,8 @@ const RAW = [
     "type": "event",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "Design Era assessment intro",
-    "desc": "An introduction to the fashion and textiles assignment focusing on design eras, pattern adaptation, and construction."
+    "short": "Design Era Intro",
+    "desc": "Understand the Fashion and Textiles assessment focusing on design eras and pattern adaptation."
   },
   {
     "cls": "12FTX",
@@ -744,8 +727,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "Presentation draft due",
-    "desc": "Hand in the first written draft of your fashion and textiles presentation."
+    "short": "Presentation Draft",
+    "desc": "Hand in a draft of your written presentation for the fashion and textiles assignment."
   },
   {
     "cls": "12FTX",
@@ -754,8 +737,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "Design Era assignment finish",
-    "desc": "Complete and finalize your fashion and textiles assignment focusing on a design era."
+    "short": "Design Era Finish",
+    "desc": "Finalize and submit your Fashion and Textiles assignment on a design era."
   },
   {
     "cls": "12FTX",
@@ -764,8 +747,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "Design Era presentation due",
-    "desc": "Your completed presentation about a design era for fashion and textiles is due."
+    "short": "Final Presentation",
+    "desc": "Submit your completed presentation about a design era for Fashion and Textiles."
   },
   {
     "cls": "12FTX",
@@ -774,8 +757,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "Written brief and design due",
-    "desc": "Submit your written project brief and design ideas for fashion and textiles."
+    "short": "Brief & Design",
+    "desc": "Hand in your written design brief and initial design concepts for Fashion and Textiles."
   },
   {
     "cls": "12FTX",
@@ -784,8 +767,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "Pattern Adaptation due",
-    "desc": "Your fashion and textiles assessment on adapting patterns is due."
+    "short": "Pattern Task Due",
+    "desc": "Submit your assessment on adapting patterns for Fashion and Textiles."
   },
   {
     "cls": "12FTX",
@@ -794,8 +777,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "Advanced Procedures work due",
-    "desc": "Submit your work related to advanced construction or design procedures in fashion and textiles."
+    "short": "Advanced Skills Work",
+    "desc": "Hand in your work on advanced pattern making and construction techniques."
   },
   {
     "cls": "12FTX",
@@ -804,8 +787,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "External portfolio due",
-    "desc": "Your completed external fashion and textiles portfolio is due."
+    "short": "Final Portfolio",
+    "desc": "Submit your complete external portfolio for your Fashion and Textiles course."
   },
   {
     "cls": "12FTX",
@@ -814,8 +797,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Design-Era-Task-Sheet-2026",
-    "short": "Presentation draft copy due",
-    "desc": "Hand in a draft of the written part of your presentation about a design movement or era."
+    "short": "Presentation Draft",
+    "desc": "Submit a draft of the written part of your presentation about a design era."
   },
   {
     "cls": "12FTX",
@@ -824,8 +807,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Design-Era-Task-Sheet-2026",
-    "short": "Final presentation due",
-    "desc": "Your final presentation and design ideas about a chosen design era are due."
+    "short": "Final Presentation",
+    "desc": "Submit your final presentation and all your design ideas for the fashion and textiles project."
   },
   {
     "cls": "ENW223",
@@ -834,8 +817,8 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Writing intro booklet",
-    "desc": "This is the introductory booklet for your English for Writers class."
+    "short": "Writing Intro Booklet",
+    "desc": "Read the introductory booklet for your English for Writers course."
   },
   {
     "cls": "ENW223",
@@ -844,8 +827,8 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Writing prompts",
-    "desc": "A collection of writing prompts to inspire your work in English for Writers."
+    "short": "Writing Prompts",
+    "desc": "Explore a collection of writing prompts to spark your creativity."
   },
   {
     "cls": "ENW223",
@@ -854,8 +837,8 @@ const RAW = [
     "type": "assignment",
     "status": "Turned in",
     "source": null,
-    "short": "Writing portfolio 1",
-    "desc": "Your first piece of work for your writing portfolio in English for Writers."
+    "short": "Portfolio Piece 1",
+    "desc": "Create and submit your first writing piece for your English for Writers portfolio."
   },
   {
     "cls": "ENW223",
@@ -864,8 +847,8 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "English for Writers intro booklet",
-    "short": "Intro booklet posted",
-    "desc": "The introductory booklet for your English for Writers course is now available."
+    "short": "Course Starts",
+    "desc": "The English for Writers course begins with the introductory booklet."
   },
   {
     "cls": "ENW223",
@@ -874,8 +857,8 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "Writing prompts galore",
-    "short": "Writing prompts posted",
-    "desc": "The writing prompts material for your English for Writers class has been uploaded."
+    "short": "Prompts Ready",
+    "desc": "The writing prompts material for English for Writers is now available."
   },
   {
     "cls": "ENW223",
@@ -884,8 +867,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Writing portfolio piece #1",
-    "short": "Portfolio piece 1 due",
-    "desc": "Your first writing portfolio piece for English for Writers needs to be handed in."
+    "short": "Portfolio 1 Due",
+    "desc": "Your first writing portfolio piece for English for Writers is due."
   },
   {
     "cls": "ENW223",
@@ -894,8 +877,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Develop personal responses 3",
-    "desc": "This is the third task to develop your personal responses in the English for Writers course."
+    "short": "Personal Responses 3",
+    "desc": "Develop your personal writing responses for AS91106, task 3."
   },
   {
     "cls": "ENW223",
@@ -904,8 +887,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Writing portfolio 3 due",
-    "desc": "Your third writing portfolio submission for English for Writers is due."
+    "short": "Portfolio Due 3",
+    "desc": "Submit your writing portfolio for AS91101, task 3."
   },
   {
     "cls": "ENW223",
@@ -914,8 +897,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Develop personal responses 4",
-    "desc": "This is the fourth task to develop your personal responses in the English for Writers course."
+    "short": "Personal Responses 4",
+    "desc": "Develop your personal writing responses for AS91106, task 4."
   },
   {
     "cls": "ENW223",
@@ -924,8 +907,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Writing portfolio 4 due",
-    "desc": "Your fourth writing portfolio submission for English for Writers is due."
+    "short": "Portfolio Due 4",
+    "desc": "Submit your writing portfolio for AS91101, task 4."
   },
   {
     "cls": "ENW223",
@@ -934,8 +917,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Analyse text connections",
-    "desc": "This is the task to analyze connections between different texts in English for Writers."
+    "short": "Text Connections Due",
+    "desc": "Analyze connections across different texts for AS91104."
   },
   {
     "cls": "ENW223",
@@ -944,8 +927,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Develop personal responses 5",
-    "desc": "This is the fifth task to develop your personal responses in the English for Writers course."
+    "short": "Personal Responses 5",
+    "desc": "Develop your personal writing responses for AS91106, task 5."
   },
   {
     "cls": "ENW223",
@@ -954,8 +937,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Develop personal responses 6",
-    "desc": "This is the sixth task to develop your personal responses in the English for Writers course."
+    "short": "Personal Responses 6",
+    "desc": "Develop your personal writing responses for AS91106, task 6."
   },
   {
     "cls": "ENW223",
@@ -964,8 +947,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Develop personal responses 1",
-    "desc": "This is the first task to develop your personal responses in the English for Writers course."
+    "short": "Personal Responses 1",
+    "desc": "Develop your personal writing responses for AS91106, task 1."
   },
   {
     "cls": "ENW223",
@@ -974,8 +957,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Coco-Inez-Penn-2026-AS91106-Independent-reading-responses",
-    "short": "Week 9 Term 3 tasks",
-    "desc": "This is the deadline for all tasks due in Week 9 of Term 3 for English for Writers."
+    "short": "Week 9 Tasks Due",
+    "desc": "Complete and submit all your tasks for Week 9 of Term 3."
   },
   {
     "cls": "ENW223",
@@ -984,8 +967,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Writing portfolio 1 due",
-    "desc": "Your first writing portfolio submission for English for Writers is due."
+    "short": "Portfolio Due 1",
+    "desc": "Submit your writing portfolio for AS91101, task 1."
   },
   {
     "cls": "ENW223",
@@ -994,8 +977,8 @@ const RAW = [
     "type": "info",
     "status": null,
     "source": "Coco-Inez-Penn-ENW223-portfolio-piece-1-student-sheet",
-    "short": "Portfolio 1 feedback",
-    "desc": "Feedback has been provided for your first portfolio piece in English for Writers for Term 3."
+    "short": "Portfolio 1 Feedback",
+    "desc": "You will receive feedback on your first portfolio piece from Term 3."
   },
   {
     "cls": "ENW223",
@@ -1004,8 +987,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Develop personal responses 2",
-    "desc": "This is the second task to develop your personal responses in the English for Writers course."
+    "short": "Personal Responses 2",
+    "desc": "Develop your personal writing responses for AS91106, task 2."
   },
   {
     "cls": "ENW223",
@@ -1014,8 +997,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Writing portfolio 2 due",
-    "desc": "Your second writing portfolio submission for English for Writers is due."
+    "short": "Portfolio Due 2",
+    "desc": "Submit your writing portfolio for AS91101, task 2."
   },
   {
     "cls": "FLM223",
@@ -1024,8 +1007,8 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Femininity in media slides",
-    "desc": "Slides about femininity in media and representation for your film class."
+    "short": "Femininity Slides",
+    "desc": "Review slides about femininity and representation in media for film studies."
   },
   {
     "cls": "FLM223",
@@ -1034,8 +1017,8 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Horror final girl slides",
-    "desc": "Slides focusing on the 'Final Girl' trope in horror films."
+    "short": "Horror Final Girl",
+    "desc": "Explore the 'final girl' trope in horror films using provided slides."
   },
   {
     "cls": "FLM223",
@@ -1044,8 +1027,8 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Course information",
-    "desc": "General information about your film studies course."
+    "short": "Course Info",
+    "desc": "Read the general information booklet for your film studies course."
   },
   {
     "cls": "FLM223",
@@ -1054,8 +1037,8 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Assessment schedule",
-    "desc": "Your film studies assessment schedule and course outline document."
+    "short": "Assessment Schedule",
+    "desc": "Get your assessment schedule and course outline for film studies."
   },
   {
     "cls": "FLM223",
@@ -1064,8 +1047,8 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Horror films to watch",
-    "desc": "A folder containing horror films recommended for your film studies class."
+    "short": "Horror Films List",
+    "desc": "Access a folder containing horror films you need to watch for class."
   },
   {
     "cls": "FLM223",
@@ -1074,8 +1057,8 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Halloween final girl brainstorm",
-    "desc": "Brainstorming ideas related to the 'Final Girl' trope, possibly around Halloween."
+    "short": "Final Girl Brainstorm",
+    "desc": "Participate in a brainstorm session about the 'final girl' concept in horror."
   },
   {
     "cls": "FLM223",
@@ -1084,8 +1067,8 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Scream class brainstorm",
-    "desc": "Brainstorming ideas related to the film 'Scream' for your film class."
+    "short": "Scream Brainstorm",
+    "desc": "Engage in a class brainstorm about the film 'Scream'."
   },
   {
     "cls": "FLM223",
@@ -1094,8 +1077,8 @@ const RAW = [
     "type": "assignment",
     "status": "Missing",
     "source": null,
-    "short": "Final girl articles",
-    "desc": "Articles and worksheets about the 'Final Girl' concept for your film class, to be used when your teacher is away."
+    "short": "Final Girl Articles",
+    "desc": "Complete articles and worksheets related to the 'final girl' concept when your teacher is away."
   },
   {
     "cls": "FLM223",
@@ -1104,8 +1087,8 @@ const RAW = [
     "type": "assignment",
     "status": "Assigned",
     "source": null,
-    "short": "Representation assessment",
-    "desc": "Your second assessment for your film studies class focusing on representation."
+    "short": "Representation Task",
+    "desc": "Begin working on your assessment about representation in horror films."
   },
   {
     "cls": "FLM223",
@@ -1114,8 +1097,8 @@ const RAW = [
     "type": "info",
     "status": null,
     "source": "Coco-Inez-Penn-2026-AS2.3-Representation-Student-Assessment-Instructions-and-cov",
-    "short": "Representation assessment issued",
-    "desc": "The assessment task for exploring group representation in horror films has been given out."
+    "short": "Representation Task Issued",
+    "desc": "Your task is to analyze how a group is stereotyped in horror films."
   },
   {
     "cls": "FLM223",
@@ -1124,8 +1107,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Coco-Inez-Penn-2026-AS2.3-Representation-Student-Assessment-Instructions-and-cov",
-    "short": "Representation assessment withdraw",
-    "desc": "The deadline to withdraw from the representation assessment in your film class."
+    "short": "Representation Withdrawal",
+    "desc": "The deadline to withdraw from the representation assessment is approaching."
   },
   {
     "cls": "FLM223",
@@ -1134,8 +1117,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "5/3 Period 4 and 5 Final girl and good for her articles and worksheets when PBT is away",
-    "short": "Final girl articles due",
-    "desc": "Hand in the articles and worksheets about the 'Final Girl' concept for your film class."
+    "short": "Final Girl Assignment",
+    "desc": "Complete and hand in your articles and worksheets on the 'final girl' concept."
   },
   {
     "cls": "FLM223",
@@ -1144,8 +1127,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Coco-Inez-Penn-2026-AS2.3-Representation-Student-Assessment-Instructions-and-cov",
-    "short": "Representation assessment due",
-    "desc": "Your film studies assessment on representation in horror films is due."
+    "short": "Representation Due",
+    "desc": "Submit your assessment analyzing representation in horror films."
   },
   {
     "cls": "FLM223",
@@ -1154,8 +1137,8 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "Film-223-Genre-study-horror-2026-PBT",
-    "short": "Intro to horror genre",
-    "desc": "This lesson introduces the horror genre, its history, and the 'Final Girl' trope."
+    "short": "Intro to Horror",
+    "desc": "Learn about the history and key elements of the horror genre, including the 'Final Girl'."
   },
   {
     "cls": "FLM223",
@@ -1164,8 +1147,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Film-223-Genre-study-horror-2026-PBT",
-    "short": "Horror analysis due",
-    "desc": "Your assessment analyzing a horror film, focusing on its genre and tropes, is due."
+    "short": "Horror Analysis Due",
+    "desc": "Submit your assessment analyzing a horror film or genre concept."
   },
   {
     "cls": "MUS223",
@@ -1174,8 +1157,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "L1-[2026]-Investigate-an-Aspect-of-New-Zealand-Music",
-    "short": "Research question approval",
-    "desc": "Submit your research question about New Zealand music for teacher approval."
+    "short": "Research Question",
+    "desc": "Get your teacher's approval for your New Zealand music research question."
   },
   {
     "cls": "MUS223",
@@ -1184,8 +1167,8 @@ const RAW = [
     "type": "event",
     "status": null,
     "source": "L1-[2026]-Investigate-an-Aspect-of-New-Zealand-Music",
-    "short": "Research outline feedback",
-    "desc": "Present your research outline about New Zealand music to the class for feedback."
+    "short": "Research Outline Feedback",
+    "desc": "Present your research outline to the class for feedback on your NZ music project."
   },
   {
     "cls": "MUS223",
@@ -1194,8 +1177,8 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "MUS223-2026-Who-are-we",
-    "short": "Create 'Who are you?' slides",
-    "desc": "Make two slides with pictures about yourself and your musical identity for your music class."
+    "short": "Intro Slides",
+    "desc": "Create two introductory slides for your music presentation: 'Who are you?' and 'Who are you musically?'"
   },
   {
     "cls": "MUS223",
@@ -1204,8 +1187,8 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "MUS223-2026-Who-are-we",
-    "short": "Add slides to presentation",
-    "desc": "Add your completed 'Who are you?' slides to your music presentation."
+    "short": "Add Slides",
+    "desc": "Incorporate your completed introductory slides into your music presentation."
   },
   {
     "cls": "MUS223",
@@ -1214,8 +1197,8 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "Solo performance 1",
-    "desc": "Perform your first substantial piece as a featured soloist in your music class."
+    "short": "Solo Performance",
+    "desc": "Perform two substantial pieces as a featured soloist for your music assessment."
   },
   {
     "cls": "MUS223",
@@ -1224,7 +1207,7 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "Group performance",
+    "short": "Group Performance",
     "desc": "Perform a substantial piece as a member of a musical group."
   },
   {
@@ -1234,7 +1217,7 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "Compose two pieces",
+    "short": "Compose Music",
     "desc": "Compose two substantial pieces of music for your music assessment."
   },
   {
@@ -1244,8 +1227,8 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "Investigate NZ music",
-    "desc": "Research and investigate an aspect of New Zealand music for your class."
+    "short": "NZ Music Research",
+    "desc": "Begin investigating an aspect of New Zealand music for your project."
   },
   {
     "cls": "MUS223",
@@ -1254,8 +1237,8 @@ const RAW = [
     "type": "exam",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "NZ music assessment",
-    "desc": "This is the assessment for investigating an aspect of New Zealand music."
+    "short": "NZ Music Exam",
+    "desc": "Complete the assessment for your investigation into New Zealand music."
   },
   {
     "cls": "MUS223",
@@ -1264,8 +1247,8 @@ const RAW = [
     "type": "event",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "Solo 1 assessment",
-    "desc": "Your first solo performance assessment for your music class."
+    "short": "Solo Performance",
+    "desc": "Your assessment for the first solo music performance is scheduled."
   },
   {
     "cls": "MUS223",
@@ -1274,7 +1257,7 @@ const RAW = [
     "type": "event",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "Composition feedback 1",
+    "short": "Composition Feedback 1",
     "desc": "Receive formal feedback on your first composed music piece."
   },
   {
@@ -1284,7 +1267,7 @@ const RAW = [
     "type": "event",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "Composition feedback 2",
+    "short": "Composition Feedback 2",
     "desc": "Receive formal feedback on your second composed music piece."
   },
   {
@@ -1294,8 +1277,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "Composition final hand-in",
-    "desc": "Submit your final composition work for your music class."
+    "short": "Composition Hand-in",
+    "desc": "Submit your completed compositions for your music assessment."
   },
   {
     "cls": "MAT223",
@@ -1304,8 +1287,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Info-about-MAT223-for-2026",
-    "short": "First assessment deadline",
-    "desc": "The latest date to sit your first internal math assessment (AS2.3) is the end of Week 7."
+    "short": "Internal Assessment",
+    "desc": "The latest date to sit your first internal Math assessment (AS2.3) is the end of Week 7."
   },
   {
     "cls": "MAT223",
@@ -1314,7 +1297,7 @@ const RAW = [
     "type": "event",
     "status": null,
     "source": "Info-about-MAT223-for-2026",
-    "short": "More assessment info",
+    "short": "More Assessment Info",
     "desc": "Receive additional information about how to sit your internal math assessments."
   },
   {
@@ -1324,8 +1307,8 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Info-about-MAT223-for-2026",
-    "short": "External topics deadline",
-    "desc": "All external math topics must be completed before you can sit derived grade exams."
+    "short": "External Topics",
+    "desc": "Complete all external Math topics before sitting your derived grade exams."
   },
   {
     "cls": "FCM112",
@@ -1334,8 +1317,8 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Inspiration Slideshow",
-    "desc": "A slideshow containing inspirational images or ideas for your furniture project."
+    "short": "Inspiration Slides",
+    "desc": "View the slideshow for inspiration for your furniture design project."
   },
   {
     "cls": "FCM112",
@@ -1344,8 +1327,8 @@ const RAW = [
     "type": "assignment",
     "status": "Assigned",
     "source": null,
-    "short": "Furniture project docs",
-    "desc": "Document all the steps and details of your furniture project here."
+    "short": "Furniture Project Doc",
+    "desc": "Document all the steps and details of your furniture design project here."
   }
 ];
 
@@ -2799,7 +2782,6 @@ function renderItemCards(items, isPast) {
     const typeCls = (it.type === 'deadline' || it.type === 'assessment') ? ` type-label type-${it.type}` : 'type-label';
 
     html += `<div class="item-card${pastCls}${doneCls}${missCls}${todayCard}" data-id="${id}" style="animation-delay:${idx * 40}ms">
-      <svg class="card-border"><rect/></svg>
       <div class="item-meta-line">
         <span class="class-pill ${CLASSES[it.cls].css}">${it.cls}</span>
         <span class="${typeCls}">${it.type}</span>
@@ -2895,7 +2877,6 @@ function renderAlerts(anomalies) {
     const aid = 'alert-' + i;
 
     html += `<div class="${cardCls}" data-alert="${aid}" style="animation-delay:${i * 60}ms">
-      <svg class="card-border alert-border"><rect/></svg>
       <div class="item-meta-line">
         <span class="class-pill ${CLASSES[a.cls].css}">${a.cls}</span>
         <span class="alert-badge ${badgeCls}">${a.type === 'needs_turn_in' ? 'needs turn in' : a.status}</span>
