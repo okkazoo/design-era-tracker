@@ -130,6 +130,7 @@
   .section-body {
     width: 100%; max-width: 380px;
     overflow: hidden;
+    padding: 2px; margin: -2px;
     transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .section-body.closing {
@@ -189,9 +190,8 @@
     -webkit-tap-highlight-color: transparent;
   }
   .item-card .card-border {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    padding: 1px; box-sizing: border-box;
-    pointer-events: none;
+    position: absolute; inset: -1px; width: calc(100% + 2px); height: calc(100% + 2px);
+    pointer-events: none; overflow: visible;
   }
   .item-card .card-border rect {
     fill: none; stroke: rgba(43,95,138,0.25);
@@ -502,9 +502,8 @@
     overflow: visible;
   }
   .alert-card .card-border {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    padding: 1px; box-sizing: border-box;
-    pointer-events: none;
+    position: absolute; inset: -1px; width: calc(100% + 2px); height: calc(100% + 2px);
+    pointer-events: none; overflow: visible;
   }
   .alert-card:active { transform: scale(0.985); }
   .alert-card .card-border rect {
@@ -671,9 +670,7 @@ const RAW = [
     "date": "2026-01-22",
     "type": "material",
     "status": null,
-    "source": null,
-    "short": "Year plan & tasks",
-    "desc": "Get to know what you'll be doing for the whole year and all your major assignments."
+    "source": null
   },
   {
     "cls": "12FTX",
@@ -681,9 +678,7 @@ const RAW = [
     "date": "2026-02-03",
     "type": "material",
     "status": null,
-    "source": null,
-    "short": "Design history",
-    "desc": "Learn about different art and design periods and their styles."
+    "source": null
   },
   {
     "cls": "12FTX",
@@ -691,9 +686,7 @@ const RAW = [
     "date": "2026-02-03",
     "type": "material",
     "status": null,
-    "source": null,
-    "short": "Design basics",
-    "desc": "Understand the fundamental elements and principles used in design."
+    "source": null
   },
   {
     "cls": "12FTX",
@@ -701,9 +694,7 @@ const RAW = [
     "date": "2026-02-23",
     "type": "material",
     "status": null,
-    "source": null,
-    "short": "Drawing examples",
-    "desc": "See examples of what good first drawing pages look like."
+    "source": null
   },
   {
     "cls": "12FTX",
@@ -711,9 +702,7 @@ const RAW = [
     "date": "2026-03-02",
     "type": "material",
     "status": null,
-    "source": null,
-    "short": "Shapes on objects",
-    "desc": "Study how shapes appear on three-dimensional forms."
+    "source": null
   },
   {
     "cls": "12FTX",
@@ -721,9 +710,7 @@ const RAW = [
     "date": "2026-03-06",
     "type": "assignment",
     "status": "Turned in",
-    "source": null,
-    "short": "Design era writing",
-    "desc": "Write about a specific design era or movement you've studied."
+    "source": null
   },
   {
     "cls": "12FTX",
@@ -731,9 +718,7 @@ const RAW = [
     "date": "2026-04-02",
     "type": "assignment",
     "status": "Assigned",
-    "source": null,
-    "short": "Design era assignment",
-    "desc": "Complete and submit the task sheet for your design era assignment."
+    "source": null
   },
   {
     "cls": "12FTX",
@@ -741,9 +726,7 @@ const RAW = [
     "date": "2026-02-16",
     "type": "event",
     "status": null,
-    "source": "2026-student-Calendar",
-    "short": "Intro to design assessment",
-    "desc": "An introduction to your fashion and textiles assessment focusing on design eras."
+    "source": "2026-student-Calendar"
   },
   {
     "cls": "12FTX",
@@ -751,9 +734,7 @@ const RAW = [
     "date": "2026-03-09",
     "type": "deadline",
     "status": null,
-    "source": "2026-student-Calendar",
-    "short": "Presentation draft due",
-    "desc": "Hand in a rough version of your written presentation for feedback."
+    "source": "2026-student-Calendar"
   },
   {
     "cls": "12FTX",
@@ -761,9 +742,7 @@ const RAW = [
     "date": "2026-04-02",
     "type": "deadline",
     "status": null,
-    "source": "2026-student-Calendar",
-    "short": "Design era work finish",
-    "desc": "Complete the final touches on your design era assignment."
+    "source": "2026-student-Calendar"
   },
   {
     "cls": "12FTX",
@@ -771,9 +750,7 @@ const RAW = [
     "date": "2026-04-02",
     "type": "deadline",
     "status": null,
-    "source": "2026-student-Calendar",
-    "short": "Design era presentation due",
-    "desc": "Submit your finished presentation on a design era."
+    "source": "2026-student-Calendar"
   },
   {
     "cls": "12FTX",
@@ -781,9 +758,7 @@ const RAW = [
     "date": "2026-04-29",
     "type": "deadline",
     "status": null,
-    "source": "2026-student-Calendar",
-    "short": "Brief & design due",
-    "desc": "Hand in your written project brief and initial design ideas."
+    "source": "2026-student-Calendar"
   },
   {
     "cls": "12FTX",
@@ -791,9 +766,7 @@ const RAW = [
     "date": "2026-06-12",
     "type": "deadline",
     "status": null,
-    "source": "2026-student-Calendar",
-    "short": "Pattern adaptation due",
-    "desc": "Submit your work for the pattern adaptation part of the assessment."
+    "source": "2026-student-Calendar"
   },
   {
     "cls": "12FTX",
@@ -801,9 +774,7 @@ const RAW = [
     "date": "2026-09-05",
     "type": "deadline",
     "status": null,
-    "source": "2026-student-Calendar",
-    "short": "Advanced procedures work",
-    "desc": "Hand in your completed work on advanced techniques."
+    "source": "2026-student-Calendar"
   },
   {
     "cls": "12FTX",
@@ -811,9 +782,7 @@ const RAW = [
     "date": "2026-10-23",
     "type": "deadline",
     "status": null,
-    "source": "2026-student-Calendar",
-    "short": "External portfolio due",
-    "desc": "Submit your final portfolio for external assessment."
+    "source": "2026-student-Calendar"
   },
   {
     "cls": "12FTX",
@@ -821,9 +790,7 @@ const RAW = [
     "date": "2026-03-17",
     "type": "deadline",
     "status": null,
-    "source": "Design-Era-Task-Sheet-2026",
-    "short": "Presentation draft copy",
-    "desc": "Submit a draft copy of the written part of your presentation."
+    "source": "Design-Era-Task-Sheet-2026"
   },
   {
     "cls": "12FTX",
@@ -831,9 +798,7 @@ const RAW = [
     "date": "2026-04-14",
     "type": "deadline",
     "status": null,
-    "source": "Design-Era-Task-Sheet-2026",
-    "short": "Final presentation due",
-    "desc": "Submit your completed presentation and final design ideas."
+    "source": "Design-Era-Task-Sheet-2026"
   },
   {
     "cls": "ENW223",
@@ -841,9 +806,7 @@ const RAW = [
     "date": "2026-02-02",
     "type": "material",
     "status": null,
-    "source": null,
-    "short": "Writing intro booklet",
-    "desc": "Get started with the introductory booklet for your writing course."
+    "source": null
   },
   {
     "cls": "ENW223",
@@ -851,9 +814,7 @@ const RAW = [
     "date": "2026-03-02",
     "type": "material",
     "status": null,
-    "source": null,
-    "short": "Writing prompts",
-    "desc": "Access a collection of writing prompts to spark your creativity."
+    "source": null
   },
   {
     "cls": "ENW223",
@@ -861,9 +822,7 @@ const RAW = [
     "date": "2026-03-06",
     "type": "assignment",
     "status": "Turned in",
-    "source": null,
-    "short": "Portfolio piece 1",
-    "desc": "Complete and submit your first piece for your writing portfolio."
+    "source": null
   },
   {
     "cls": "ENW223",
@@ -871,9 +830,7 @@ const RAW = [
     "date": "2026-02-02",
     "type": "task",
     "status": null,
-    "source": "English for Writers intro booklet",
-    "short": "Course starts today",
-    "desc": "The course officially begins with the intro booklet posted."
+    "source": "English for Writers intro booklet"
   },
   {
     "cls": "ENW223",
@@ -881,9 +838,7 @@ const RAW = [
     "date": "2026-03-02",
     "type": "task",
     "status": null,
-    "source": "Writing prompts galore",
-    "short": "Prompts posted",
-    "desc": "You can now access the writing prompts material."
+    "source": "Writing prompts galore"
   },
   {
     "cls": "ENW223",
@@ -891,9 +846,7 @@ const RAW = [
     "date": "2026-03-06",
     "type": "deadline",
     "status": null,
-    "source": "Writing portfolio piece #1",
-    "short": "Portfolio 1 due",
-    "desc": "Your first writing portfolio piece is due today."
+    "source": "Writing portfolio piece #1"
   },
   {
     "cls": "ENW223",
@@ -901,9 +854,7 @@ const RAW = [
     "date": "2026-05-04",
     "type": "deadline",
     "status": null,
-    "source": "ENW223-Intro-booklet-2026",
-    "short": "Develop responses 3",
-    "desc": "Work on developing your personal responses for assessment #3."
+    "source": "ENW223-Intro-booklet-2026"
   },
   {
     "cls": "ENW223",
@@ -911,9 +862,7 @@ const RAW = [
     "date": "2026-05-11",
     "type": "deadline",
     "status": null,
-    "source": "ENW223-Intro-booklet-2026",
-    "short": "Portfolio due 3",
-    "desc": "Submit your writing portfolio for assessment #3."
+    "source": "ENW223-Intro-booklet-2026"
   },
   {
     "cls": "ENW223",
@@ -921,9 +870,7 @@ const RAW = [
     "date": "2026-06-22",
     "type": "deadline",
     "status": null,
-    "source": "ENW223-Intro-booklet-2026",
-    "short": "Develop responses 4",
-    "desc": "Work on developing your personal responses for assessment #4."
+    "source": "ENW223-Intro-booklet-2026"
   },
   {
     "cls": "ENW223",
@@ -931,9 +878,7 @@ const RAW = [
     "date": "2026-07-06",
     "type": "deadline",
     "status": null,
-    "source": "ENW223-Intro-booklet-2026",
-    "short": "Portfolio due 4",
-    "desc": "Submit your writing portfolio for assessment #4."
+    "source": "ENW223-Intro-booklet-2026"
   },
   {
     "cls": "ENW223",
@@ -941,9 +886,7 @@ const RAW = [
     "date": "2026-07-27",
     "type": "deadline",
     "status": null,
-    "source": "ENW223-Intro-booklet-2026",
-    "short": "Analyse text connections",
-    "desc": "Analyze the connections between different texts for assessment."
+    "source": "ENW223-Intro-booklet-2026"
   },
   {
     "cls": "ENW223",
@@ -951,9 +894,7 @@ const RAW = [
     "date": "2026-08-03",
     "type": "deadline",
     "status": null,
-    "source": "ENW223-Intro-booklet-2026",
-    "short": "Develop responses 5",
-    "desc": "Work on developing your personal responses for assessment #5."
+    "source": "ENW223-Intro-booklet-2026"
   },
   {
     "cls": "ENW223",
@@ -961,9 +902,7 @@ const RAW = [
     "date": "2026-08-24",
     "type": "deadline",
     "status": null,
-    "source": "ENW223-Intro-booklet-2026",
-    "short": "Develop responses 6",
-    "desc": "Work on developing your personal responses for assessment #6."
+    "source": "ENW223-Intro-booklet-2026"
   },
   {
     "cls": "ENW223",
@@ -971,9 +910,7 @@ const RAW = [
     "date": "2026-09-12",
     "type": "deadline",
     "status": null,
-    "source": "ENW223-Intro-booklet-2026",
-    "short": "Develop responses 1",
-    "desc": "Work on developing your personal responses for assessment #1."
+    "source": "ENW223-Intro-booklet-2026"
   },
   {
     "cls": "ENW223",
@@ -981,9 +918,7 @@ const RAW = [
     "date": "2026-09-14",
     "type": "deadline",
     "status": null,
-    "source": "Coco-Inez-Penn-2026-AS91106-Independent-reading-responses",
-    "short": "Week 9 tasks deadline",
-    "desc": "Complete and submit all your tasks for Week 9 of Term 3."
+    "source": "Coco-Inez-Penn-2026-AS91106-Independent-reading-responses"
   },
   {
     "cls": "ENW223",
@@ -991,9 +926,7 @@ const RAW = [
     "date": "2026-09-19",
     "type": "deadline",
     "status": null,
-    "source": "ENW223-Intro-booklet-2026",
-    "short": "Portfolio due 1",
-    "desc": "Submit your writing portfolio for assessment #1."
+    "source": "ENW223-Intro-booklet-2026"
   },
   {
     "cls": "ENW223",
@@ -1001,9 +934,7 @@ const RAW = [
     "date": "2026-09-25",
     "type": "info",
     "status": null,
-    "source": "Coco-Inez-Penn-ENW223-portfolio-piece-1-student-sheet",
-    "short": "Feedback given",
-    "desc": "You have received feedback on your first portfolio piece from Term 3."
+    "source": "Coco-Inez-Penn-ENW223-portfolio-piece-1-student-sheet"
   },
   {
     "cls": "ENW223",
@@ -1011,9 +942,7 @@ const RAW = [
     "date": "2026-09-26",
     "type": "deadline",
     "status": null,
-    "source": "ENW223-Intro-booklet-2026",
-    "short": "Develop responses 2",
-    "desc": "Work on developing your personal responses for assessment #2."
+    "source": "ENW223-Intro-booklet-2026"
   },
   {
     "cls": "ENW223",
@@ -1021,9 +950,7 @@ const RAW = [
     "date": "2026-10-03",
     "type": "deadline",
     "status": null,
-    "source": "ENW223-Intro-booklet-2026",
-    "short": "Portfolio due 2",
-    "desc": "Submit your writing portfolio for assessment #2."
+    "source": "ENW223-Intro-booklet-2026"
   },
   {
     "cls": "FLM223",
@@ -1031,9 +958,7 @@ const RAW = [
     "date": "2026-01-28",
     "type": "material",
     "status": null,
-    "source": null,
-    "short": "Femininity in media",
-    "desc": "Slides about how femininity is shown in the media and representation."
+    "source": null
   },
   {
     "cls": "FLM223",
@@ -1041,9 +966,7 @@ const RAW = [
     "date": "2026-01-28",
     "type": "material",
     "status": null,
-    "source": null,
-    "short": "Horror's final girl",
-    "desc": "Slides focusing on the 'final girl' character in horror films."
+    "source": null
   },
   {
     "cls": "FLM223",
@@ -1051,9 +974,7 @@ const RAW = [
     "date": "2026-01-30",
     "type": "material",
     "status": null,
-    "source": null,
-    "short": "Course info",
-    "desc": "General information about the film course."
+    "source": null
   },
   {
     "cls": "FLM223",
@@ -1061,9 +982,7 @@ const RAW = [
     "date": "2026-01-30",
     "type": "material",
     "status": null,
-    "source": null,
-    "short": "Assessment schedule",
-    "desc": "Your assessment schedule and course outline for D1."
+    "source": null
   },
   {
     "cls": "FLM223",
@@ -1071,9 +990,7 @@ const RAW = [
     "date": "2026-02-12",
     "type": "material",
     "status": null,
-    "source": null,
-    "short": "Horror films to watch",
-    "desc": "A folder containing horror movies you should watch for the course."
+    "source": null
   },
   {
     "cls": "FLM223",
@@ -1081,9 +998,7 @@ const RAW = [
     "date": "2026-02-20",
     "type": "material",
     "status": null,
-    "source": null,
-    "short": "Final girl brainstorm",
-    "desc": "Brainstorming session for the 'final girl' concept."
+    "source": null
   },
   {
     "cls": "FLM223",
@@ -1091,9 +1006,7 @@ const RAW = [
     "date": "2026-02-27",
     "type": "material",
     "status": null,
-    "source": null,
-    "short": "Scream brainstorm",
-    "desc": "Brainstorming session related to the film 'Scream'."
+    "source": null
   },
   {
     "cls": "FLM223",
@@ -1101,9 +1014,7 @@ const RAW = [
     "date": "2026-03-05",
     "type": "assignment",
     "status": "Missing",
-    "source": null,
-    "short": "Final girl articles",
-    "desc": "Complete articles and worksheets about the 'final girl' trope."
+    "source": null
   },
   {
     "cls": "FLM223",
@@ -1111,9 +1022,7 @@ const RAW = [
     "date": "2026-04-03",
     "type": "assignment",
     "status": "Assigned",
-    "source": null,
-    "short": "Representation assessment",
-    "desc": "The 2.3 assessment task about representation in films."
+    "source": null
   },
   {
     "cls": "FLM223",
@@ -1121,9 +1030,7 @@ const RAW = [
     "date": "2026-02-03",
     "type": "info",
     "status": null,
-    "source": "Coco-Inez-Penn-2026-AS2.3-Representation-Student-Assessment-Instructions-and-cov",
-    "short": "Representation issued",
-    "desc": "The 2.3 assessment on film representation has been released."
+    "source": "Coco-Inez-Penn-2026-AS2.3-Representation-Student-Assessment-Instructions-and-cov"
   },
   {
     "cls": "FLM223",
@@ -1131,9 +1038,7 @@ const RAW = [
     "date": "2026-02-10",
     "type": "deadline",
     "status": null,
-    "source": "Coco-Inez-Penn-2026-AS2.3-Representation-Student-Assessment-Instructions-and-cov",
-    "short": "Representation withdrawal",
-    "desc": "Deadline to withdraw from the 2.3 Representation assessment."
+    "source": "Coco-Inez-Penn-2026-AS2.3-Representation-Student-Assessment-Instructions-and-cov"
   },
   {
     "cls": "FLM223",
@@ -1141,9 +1046,7 @@ const RAW = [
     "date": "2026-03-05",
     "type": "deadline",
     "status": null,
-    "source": "5/3 Period 4 and 5 Final girl and good for her articles and worksheets when PBT is away",
-    "short": "Final girl articles due",
-    "desc": "Submit the articles and worksheets about the 'final girl' trope."
+    "source": "5/3 Period 4 and 5 Final girl and good for her articles and worksheets when PBT is away"
   },
   {
     "cls": "FLM223",
@@ -1151,9 +1054,7 @@ const RAW = [
     "date": "2026-04-03",
     "type": "deadline",
     "status": null,
-    "source": "Coco-Inez-Penn-2026-AS2.3-Representation-Student-Assessment-Instructions-and-cov",
-    "short": "Representation assessment due",
-    "desc": "Your 2.3 assessment on representation in horror films is due."
+    "source": "Coco-Inez-Penn-2026-AS2.3-Representation-Student-Assessment-Instructions-and-cov"
   },
   {
     "cls": "FLM223",
@@ -1161,9 +1062,7 @@ const RAW = [
     "date": "2026-02-24",
     "type": "task",
     "status": null,
-    "source": "Film-223-Genre-study-horror-2026-PBT",
-    "short": "Intro to horror",
-    "desc": "Learn about the horror genre, its history, and the 'Final Girl'."
+    "source": "Film-223-Genre-study-horror-2026-PBT"
   },
   {
     "cls": "FLM223",
@@ -1171,9 +1070,7 @@ const RAW = [
     "date": "2026-08-17",
     "type": "deadline",
     "status": null,
-    "source": "Film-223-Genre-study-horror-2026-PBT",
-    "short": "Horror analysis due",
-    "desc": "Submit your analysis of a horror film."
+    "source": "Film-223-Genre-study-horror-2026-PBT"
   },
   {
     "cls": "MUS223",
@@ -1181,9 +1078,7 @@ const RAW = [
     "date": "2026-03-09",
     "type": "deadline",
     "status": null,
-    "source": "L1-[2026]-Investigate-an-Aspect-of-New-Zealand-Music",
-    "short": "Research question due",
-    "desc": "Submit your research question about NZ music for approval."
+    "source": "L1-[2026]-Investigate-an-Aspect-of-New-Zealand-Music"
   },
   {
     "cls": "MUS223",
@@ -1191,9 +1086,7 @@ const RAW = [
     "date": "2026-03-16",
     "type": "event",
     "status": null,
-    "source": "L1-[2026]-Investigate-an-Aspect-of-New-Zealand-Music",
-    "short": "Research outline feedback",
-    "desc": "Present your research outline to the class for feedback."
+    "source": "L1-[2026]-Investigate-an-Aspect-of-New-Zealand-Music"
   },
   {
     "cls": "MUS223",
@@ -1201,9 +1094,7 @@ const RAW = [
     "date": "2026-02-09",
     "type": "task",
     "status": null,
-    "source": "MUS223-2026-Who-are-we",
-    "short": "'Who are you?' slides",
-    "desc": "Create two slides about yourself for class discussion."
+    "source": "MUS223-2026-Who-are-we"
   },
   {
     "cls": "MUS223",
@@ -1211,9 +1102,7 @@ const RAW = [
     "date": "2026-02-16",
     "type": "task",
     "status": null,
-    "source": "MUS223-2026-Who-are-we",
-    "short": "Add slides to presentation",
-    "desc": "Add your completed 'Who are you?' slides to your presentation."
+    "source": "MUS223-2026-Who-are-we"
   },
   {
     "cls": "MUS223",
@@ -1221,9 +1110,7 @@ const RAW = [
     "date": "2026-03-09",
     "type": "task",
     "status": null,
-    "source": "Welcome-to-MUS223",
-    "short": "Solo performance",
-    "desc": "Perform two substantial pieces as a featured soloist."
+    "source": "Welcome-to-MUS223"
   },
   {
     "cls": "MUS223",
@@ -1231,9 +1118,7 @@ const RAW = [
     "date": "2026-05-25",
     "type": "task",
     "status": null,
-    "source": "Welcome-to-MUS223",
-    "short": "Group performance",
-    "desc": "Perform a substantial piece as part of a music group."
+    "source": "Welcome-to-MUS223"
   },
   {
     "cls": "MUS223",
@@ -1241,9 +1126,7 @@ const RAW = [
     "date": "2026-03-02",
     "type": "task",
     "status": null,
-    "source": "Welcome-to-MUS223",
-    "short": "Compose two pieces",
-    "desc": "Compose two substantial pieces of music."
+    "source": "Welcome-to-MUS223"
   },
   {
     "cls": "MUS223",
@@ -1251,9 +1134,7 @@ const RAW = [
     "date": "2026-02-02",
     "type": "task",
     "status": null,
-    "source": "Welcome-to-MUS223",
-    "short": "Investigate NZ music",
-    "desc": "Research and investigate an aspect of New Zealand music."
+    "source": "Welcome-to-MUS223"
   },
   {
     "cls": "MUS223",
@@ -1261,9 +1142,7 @@ const RAW = [
     "date": "2026-04-02",
     "type": "exam",
     "status": null,
-    "source": "Welcome-to-MUS223",
-    "short": "NZ music assessment",
-    "desc": "The assessment for your investigation into NZ music."
+    "source": "Welcome-to-MUS223"
   },
   {
     "cls": "MUS223",
@@ -1271,9 +1150,7 @@ const RAW = [
     "date": "2026-06-19",
     "type": "event",
     "status": null,
-    "source": "Welcome-to-MUS223",
-    "short": "Solo 1 performance",
-    "desc": "Your first solo performance assessment."
+    "source": "Welcome-to-MUS223"
   },
   {
     "cls": "MUS223",
@@ -1281,9 +1158,7 @@ const RAW = [
     "date": "2026-02-23",
     "type": "event",
     "status": null,
-    "source": "Welcome-to-MUS223",
-    "short": "Composition 1 feedback",
-    "desc": "Receive formal feedback on your first composed piece."
+    "source": "Welcome-to-MUS223"
   },
   {
     "cls": "MUS223",
@@ -1291,9 +1166,7 @@ const RAW = [
     "date": "2026-03-02",
     "type": "event",
     "status": null,
-    "source": "Welcome-to-MUS223",
-    "short": "Composition 2 feedback",
-    "desc": "Receive formal feedback on your second composed piece."
+    "source": "Welcome-to-MUS223"
   },
   {
     "cls": "MUS223",
@@ -1301,9 +1174,7 @@ const RAW = [
     "date": "2026-03-09",
     "type": "deadline",
     "status": null,
-    "source": "Welcome-to-MUS223",
-    "short": "Composition final hand-in",
-    "desc": "Submit your final composed pieces."
+    "source": "Welcome-to-MUS223"
   },
   {
     "cls": "MAT223",
@@ -1311,9 +1182,7 @@ const RAW = [
     "date": "2026-03-09",
     "type": "deadline",
     "status": null,
-    "source": "Info-about-MAT223-for-2026",
-    "short": "First internal assessment",
-    "desc": "The latest date to sit your first internal assessment is end of Week 7."
+    "source": "Info-about-MAT223-for-2026"
   },
   {
     "cls": "MAT223",
@@ -1321,9 +1190,7 @@ const RAW = [
     "date": "2026-03-30",
     "type": "event",
     "status": null,
-    "source": "Info-about-MAT223-for-2026",
-    "short": "More assessment info",
-    "desc": "Receive further information about sitting your internal assessments."
+    "source": "Info-about-MAT223-for-2026"
   },
   {
     "cls": "MAT223",
@@ -1331,9 +1198,7 @@ const RAW = [
     "date": "2026-09-07",
     "type": "deadline",
     "status": null,
-    "source": "Info-about-MAT223-for-2026",
-    "short": "External topics finished",
-    "desc": "Finish all external topics before the derived grade exams."
+    "source": "Info-about-MAT223-for-2026"
   },
   {
     "cls": "FCM112",
@@ -1341,9 +1206,7 @@ const RAW = [
     "date": "2026-02-17",
     "type": "material",
     "status": null,
-    "source": null,
-    "short": "Inspiration slideshow",
-    "desc": "Review the inspiration slideshow for your furniture project."
+    "source": null
   },
   {
     "cls": "FCM112",
@@ -1351,9 +1214,7 @@ const RAW = [
     "date": "2026-10-16",
     "type": "assignment",
     "status": "Assigned",
-    "source": null,
-    "short": "Furniture project docs",
-    "desc": "Document your entire furniture project here."
+    "source": null
   }
 ];
 
@@ -2844,7 +2705,7 @@ function renderItemCards(items, isPast) {
     const typeCls = (it.type === 'deadline' || it.type === 'assessment') ? ` type-label type-${it.type}` : 'type-label';
 
     html += `<div class="item-card${pastCls}${doneCls}${missCls}${todayCard}" data-id="${id}" style="animation-delay:${idx * 40}ms">
-      <svg class="card-border"><rect x="0" y="0" width="100%" height="100%" rx="17" ry="17"/></svg>
+      <svg class="card-border" overflow="visible"><rect x="0" y="0" width="100%" height="100%" rx="19" ry="19"/></svg>
       <div class="item-meta-line">
         <span class="class-pill ${CLASSES[it.cls].css}">${it.cls}</span>
         <span class="${typeCls}">${it.type}</span>
@@ -2937,7 +2798,7 @@ function renderAlerts(anomalies) {
     const aid = 'alert-' + i;
 
     html += `<div class="${cardCls}" data-alert="${aid}" style="animation-delay:${i * 60}ms">
-      <svg class="card-border"><rect x="0" y="0" width="100%" height="100%" rx="17" ry="17"/></svg>
+      <svg class="card-border" overflow="visible"><rect x="0" y="0" width="100%" height="100%" rx="19" ry="19"/></svg>
       <div class="item-meta-line">
         <span class="class-pill ${CLASSES[a.cls].css}">${a.cls}</span>
         <span class="alert-badge ${badgeCls}">${a.type === 'needs_turn_in' ? 'needs turn in' : a.status}</span>
