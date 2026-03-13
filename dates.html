@@ -1,0 +1,3171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>All Dates — Classroom Dashboard</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&family=Literata:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { overflow-y: scroll; }
+
+  body {
+    background: #ECEAE3;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 24px 90px;
+    font-family: 'JetBrains Mono', monospace;
+    gap: 16px;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .header {
+    text-align: left;
+    width: 100%;
+    max-width: 380px;
+    padding: 0 4px;
+  }
+
+  .date-line {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.18em;
+    text-transform: uppercase; color: #8C7830;
+    margin-bottom: 7px;
+  }
+
+  .page-title {
+    font-family: 'Nunito', sans-serif;
+    font-size: 24px; font-weight: 700; color: #3A3028;
+    letter-spacing: 0.01em; line-height: 1.2;
+    margin-bottom: 2px;
+  }
+
+  .header-sep {
+    border: none; border-top: 1.5px solid #C8C0B4;
+    margin: 0 0 8px 0;
+  }
+
+  .status-pills {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+
+  .pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 5px 12px; border-radius: 10px;
+    cursor: pointer; transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .pill:active { transform: scale(0.95); }
+  .pill-urgent  { background: rgba(180,60,50,0.18); color: rgb(126,42,35); }
+  .pill-upcoming { background: rgba(140,120,48,0.18); color: #8C7830; }
+  .pill-done    { background: rgba(55,130,65,0.18); color: rgb(38,91,45); }
+  .pill.active  { outline: 2px solid currentColor; outline-offset: 1px; }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    width: 100%; max-width: 380px;
+    padding: 0 4px;
+  }
+
+  .filter-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #A09888;
+    background: none; border: 1px solid rgba(160,150,140,0.35);
+    border-radius: 20px; padding: 7px 14px; cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .filter-btn:active { transform: scale(0.95); }
+  .filter-btn.active {
+    background: rgba(58,48,40,0.1); color: #3A3028;
+    border-color: transparent;
+  }
+
+  /* Section headers */
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.22em;
+    text-transform: uppercase; color: #A09888;
+    width: 100%; max-width: 380px;
+    padding: 0 4px; margin: 8px 0 0;
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .section-label::after {
+    content: ''; flex: 1; height: 1px;
+    background: #C8C0B4;
+  }
+  .section-label:active { opacity: 0.7; }
+  .section-label .section-count {
+    font-weight: 400; opacity: 0.65;
+  }
+  .section-label .section-chevron {
+    font-size: 12px; transition: transform 0.3s ease;
+    display: inline-block; margin-left: -4px;
+  }
+  .section-label .section-chevron.open {
+    transform: rotate(90deg);
+  }
+  .section-label.section-past { color: #BDB5A8; }
+  .section-label.section-past::after { background: #D4CFC6; }
+  .section-label.section-current { color: #B8501E; }
+  .section-label.section-current::after { background: rgba(184,80,30,0.25); }
+  .section-label.section-alerts { color: rgb(160,50,40); }
+  .section-label.section-alerts::after { background: rgba(180,60,50,0.2); }
+
+  /* Section body */
+  .section-body {
+    width: 100%; max-width: 380px;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .section-body.closing {
+    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.6, 1);
+  }
+  .section-body.collapsed {
+    max-height: 0 !important;
+  }
+
+  @keyframes cascadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes cascadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(-8px); }
+  }
+  .section-body.opening > .item-card,
+  .section-body.opening > .alert-card,
+  .section-body.opening > .date-marker {
+    animation: cascadeIn 0.3s ease both;
+  }
+  .section-body.closing > .item-card,
+  .section-body.closing > .alert-card,
+  .section-body.closing > .date-marker {
+    animation: cascadeOut 0.2s ease both;
+  }
+
+  /* Date markers */
+  .date-marker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #8C7830;
+    padding: 14px 4px 6px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .date-marker .day-name {
+    color: #B8A060; font-weight: 400;
+  }
+  .date-marker.is-today { color: #B8501E; }
+  .date-marker.is-today .day-name { color: #D4845A; }
+  .date-marker.is-past { color: #BDB5A8; }
+  .date-marker.is-past .day-name { color: #C8C0B4; }
+
+  /* Item cards — enw223 canvas-matched */
+  .item-card {
+    position: relative;
+    background: rgba(216,226,233,0.55);
+    border: none;
+    border-radius: 18px;
+    padding: 16px;
+    margin-bottom: 10px;
+    transition: transform 0.15s ease, background 0.2s ease;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .item-card .card-border {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    pointer-events: none; overflow: visible;
+  }
+  .item-card .card-border rect {
+    x: 0.9; y: 0.9;
+    width: calc(100% - 1.8px); height: calc(100% - 1.8px);
+    rx: 18; ry: 18;
+    fill: none; stroke: rgba(43,95,138,0.25);
+    stroke-width: 1.8; stroke-dasharray: 6 4;
+  }
+  .item-card:active { transform: scale(0.985); }
+  .item-card.is-expanded { background: rgba(202,224,245,0.85); }
+  .item-card.is-expanded .card-border rect { stroke: rgba(43,95,138,0.6); }
+  .item-card.is-done {
+    background: rgba(64,127,190,0.22);
+  }
+  .item-card.is-done .card-border rect {
+    stroke: rgba(43,95,138,1); stroke-dasharray: none;
+  }
+  .item-card.is-past { background: rgba(216,226,233,0.3); }
+  .item-card.is-past .card-border rect { stroke: rgba(43,95,138,0.1); }
+  .item-card.is-missing .card-border rect { stroke: rgba(180,60,50,0.4); }
+  .item-card.is-today-card .card-border rect { stroke: rgba(184,80,30,0.35); }
+
+  .item-meta-line {
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 4px;
+  }
+
+  .class-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 8px; border-radius: 6px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .cp-12ftx  { background: rgba(184,80,30,0.14); color: #9C4A1A; }
+  .cp-enw223 { background: rgba(80,120,160,0.14); color: #3A6890; }
+  .cp-flm223 { background: rgba(140,60,120,0.14); color: #8C3C78; }
+  .cp-mus223 { background: rgba(60,130,100,0.14); color: #2A7A58; }
+  .cp-mat223 { background: rgba(100,90,160,0.14); color: #5A50A0; }
+  .cp-fcm112 { background: rgba(160,120,50,0.14); color: #8A6820; }
+
+  .item-title {
+    font-family: 'Nunito', sans-serif;
+    font-size: 19px; font-weight: 400; color: rgba(43,64,95,0.6);
+    line-height: 1.3;
+  }
+  .is-done .item-title { font-style: italic; color: rgba(43,64,95,0.95); }
+  .is-past .item-title { color: rgba(43,64,95,0.3); }
+
+  .item-meta-line .type-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px; font-weight: 400; letter-spacing: 0.08em;
+    text-transform: uppercase; color: #A09888;
+  }
+  .item-meta-line .type-label.type-deadline { color: #B8501E; }
+  .item-meta-line .type-label.type-assessment { color: #8C7830; }
+
+  .status-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 8px; border-radius: 6px;
+    margin-left: auto;
+  }
+  .st-turned-in { background: rgba(55,130,65,0.12); color: rgb(38,91,45); }
+  .st-assigned  { background: rgba(140,120,48,0.12); color: #8C7830; }
+  .st-missing   { background: rgba(180,60,50,0.18); color: rgb(160,45,35); font-weight: 700; }
+
+  /* Floating detail panel */
+  .detail-panel {
+    position: relative;
+    width: 100%; max-width: 380px;
+    opacity: 0; transform: translateY(-6px);
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.3s ease;
+    max-height: 0; overflow: hidden;
+    margin-top: -4px;
+  }
+  .detail-panel.open {
+    opacity: 1; transform: translateY(0);
+    pointer-events: auto;
+    max-height: 1200px;
+  }
+
+  .detail-pointer {
+    width: 10px; height: 10px;
+    background: rgba(255,252,245,0.92);
+    border: 1.5px solid rgba(160,150,140,0.25);
+    border-right: none; border-bottom: none;
+    transform: rotate(45deg);
+    margin-left: 32px; margin-bottom: -6px;
+    position: relative; z-index: 1;
+  }
+
+  .detail-inner {
+    background: rgba(255,252,245,0.92);
+    border: 1.5px solid rgba(160,150,140,0.25);
+    border-radius: 14px; padding: 16px 18px;
+    position: relative; z-index: 2;
+  }
+
+  .detail-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 14px;
+  }
+
+  .detail-title {
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px; font-weight: 700; color: #3A3028; line-height: 1.3;
+  }
+
+  .detail-desc {
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px; color: #5A5048; line-height: 1.5;
+    margin-top: 6px;
+  }
+
+  .detail-day {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #A09888;
+    white-space: nowrap; margin-left: 12px; margin-top: 5px;
+  }
+
+  .detail-section {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #2B5F8A;
+    margin-bottom: 14px; opacity: 0.7;
+  }
+
+  .detail-class-full {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.28em;
+    text-transform: uppercase; color: #A09888;
+    margin-bottom: 10px;
+  }
+
+  .detail-info {
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px; color: #5A5045;
+    line-height: 1.6; margin-bottom: 6px;
+  }
+  .detail-info strong {
+    color: #3A3028; font-weight: 700;
+  }
+
+  .detail-source {
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px; color: #6A6058;
+    line-height: 1.5; margin-bottom: 10px;
+  }
+  .detail-source strong { color: #3A3028; font-weight: 700; }
+  .detail-source a {
+    color: #6A6058; text-decoration: underline;
+    text-decoration-style: dashed; text-underline-offset: 3px;
+  }
+
+  /* Task canvas */
+  .task-canvas-wrap {
+    position: relative; margin: 10px 0 4px;
+  }
+  .task-canvas-wrap canvas {
+    display: block; cursor: pointer; touch-action: none;
+    -webkit-user-select: none; user-select: none;
+  }
+
+  .task-status-pills {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;
+  }
+  .task-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 5px 12px; border-radius: 10px;
+    transition: all 0.3s ease;
+  }
+  .task-pill-todo { background: rgba(180,60,50,0.18); color: rgb(126,42,35); }
+  .task-pill-done { background: rgba(55,130,65,0.18); color: rgb(38,91,45); }
+  .task-pill-skip { background: rgba(180,150,40,0.18); color: rgb(126,105,28); }
+
+  .task-detail-panel {
+    position: absolute; left: 14px; right: 14px; z-index: 10;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease 0.08s;
+  }
+  .task-detail-panel.open { opacity: 1; pointer-events: auto; }
+
+  .task-detail-inner {
+    padding: 6px 2px 4px;
+  }
+
+  .task-detail-sep {
+    border: none; border-top: 1.5px dashed rgba(160,150,140,0.25);
+    margin: 0 0 10px;
+  }
+  .task-detail-section-row {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+  }
+  .task-detail-section {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; opacity: 0.7;
+  }
+  .task-unlock-hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.06em;
+    margin-left: auto; color: rgba(180,60,50,0.55);
+    white-space: nowrap;
+  }
+  .task-unlock-hint:empty { display: none; }
+  .task-detail-bullets { list-style: none; margin: 0 0 14px 0; padding: 0; }
+  .task-detail-bullets li {
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px; font-weight: 400; color: #5A5045;
+    line-height: 1.6; padding: 4px 0 4px 16px; position: relative;
+  }
+  .task-detail-bullets li::before {
+    content: ""; position: absolute; left: 0; top: 13px;
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--dot-color, #95AFC4);
+  }
+  .task-detail-deliverable {
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px; font-weight: 400; font-style: italic;
+    padding: 10px 0;
+    border-top: 1.5px dashed rgba(160,150,140,0.25); margin-bottom: 12px;
+  }
+  .task-detail-actions { display: flex; gap: 10px; align-items: center; }
+  .task-detail-actions .action-btn { font-size: 11px; padding: 8px 16px; }
+  .task-detail-actions .btn-pass {
+    background: none; border: 1.5px solid rgba(123,139,111,0.4); color: #7B8B6F;
+    cursor: pointer; border-radius: 22px; transition: all 0.2s;
+  }
+  .task-detail-actions .btn-pass.is-passed { background: rgba(123,139,111,0.12); }
+  .task-detail-actions .btn-close-task {
+    background: rgba(160,150,140,0.15); color: #A09888;
+    width: 32px; height: 32px; padding: 0; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; margin-left: auto; border-radius: 50%;
+  }
+  .task-detail-links { display: flex; gap: 10px; margin-top: 10px; }
+
+  .task-hold-hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: #B8B0A4; text-align: center; margin-top: 6px;
+  }
+
+  .task-no-tasks {
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px; color: #A09888; font-style: italic;
+    margin: 6px 0;
+  }
+
+  .detail-actions {
+    display: flex; gap: 10px; align-items: center;
+    margin-top: 14px;
+  }
+
+  .action-btn {
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+    text-transform: uppercase; border-radius: 22px;
+    padding: 10px 20px; cursor: pointer;
+    transition: all 0.2s ease; border: none;
+    -webkit-tap-highlight-color: transparent; white-space: nowrap;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
+  }
+  .action-btn:active { transform: scale(0.96); }
+
+  .btn-classwork { background: #2B5F8A; color: #BFCFDB; }
+  .btn-classwork:hover { background: #346A96; }
+
+  .btn-close {
+    background: rgba(160,150,140,0.15); color: #A09888;
+    width: 36px; height: 36px; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 400; letter-spacing: 0;
+    text-transform: none; margin-left: auto; border-radius: 50%;
+  }
+
+  .btn-doc {
+    background: none; border: 1.5px dashed rgba(160,150,140,0.35); color: #A09888;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px; font-weight: 500; letter-spacing: 0.08em;
+    text-transform: uppercase; border-radius: 8px; padding: 6px 14px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-doc:active { color: #3A3028; border-color: rgba(100,90,80,0.5); }
+
+  .detail-links {
+    display: flex; gap: 10px; margin-top: 12px;
+  }
+
+  /* Alert cards */
+  .alert-card {
+    position: relative;
+    background: rgba(255,248,240,0.55);
+    border: none;
+    border-left: 3px solid rgb(180,60,50);
+    border-radius: 18px;
+    padding: 16px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.15s ease, background 0.2s ease;
+  }
+  .alert-card:active { transform: scale(0.985); }
+  .alert-card .card-border rect {
+    stroke: rgba(180,60,50,0.35); stroke-dasharray: 6 4;
+  }
+  .alert-card.is-expanded { background: rgba(255,248,240,0.88); }
+  .alert-card.alert-warn {
+    border-left-color: #8C7830;
+    background: rgba(255,252,240,0.55);
+  }
+  .alert-card.alert-warn .card-border rect { stroke: rgba(140,120,48,0.35); }
+  .alert-card.alert-warn.is-expanded { background: rgba(255,252,240,0.88); }
+
+  .alert-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 8px; border-radius: 6px;
+    white-space: nowrap;
+  }
+  .badge-overdue { background: rgba(180,60,50,0.18); color: rgb(140,40,30); }
+  .badge-turn-in { background: rgba(140,120,48,0.18); color: #8C7830; }
+
+  .alert-title {
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px; font-weight: 700; color: #3A3028;
+    line-height: 1.3; flex: 1;
+  }
+
+  .alert-sub {
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px; color: #6A6058;
+    line-height: 1.4; font-style: italic;
+  }
+
+  .alert-steps {
+    list-style: none; margin: 10px 0 0; padding: 0;
+  }
+  .alert-steps li {
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px; color: #5A5045;
+    line-height: 1.5; padding: 4px 0 4px 16px; position: relative;
+  }
+  .alert-steps li::before {
+    content: ""; position: absolute; left: 0; top: 12px;
+    width: 5px; height: 5px; border-radius: 50%; background: #DBA78E;
+  }
+
+  .alert-progress {
+    margin: 10px 0 6px;
+    height: 4px; border-radius: 2px;
+    background: rgba(160,150,140,0.15);
+    overflow: hidden;
+  }
+  .alert-progress-bar {
+    height: 100%; border-radius: 2px;
+    background: #8C7830;
+    transition: width 0.3s ease;
+  }
+
+  .alert-detail {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.3s ease, margin-top 0.3s ease, opacity 0.25s ease;
+    opacity: 0; margin-top: 0;
+  }
+  .alert-detail.open {
+    opacity: 1; margin-top: 12px;
+  }
+
+  .alert-sep {
+    border: none; border-top: 1.5px dashed rgba(160,150,140,0.25);
+    margin: 0 0 12px 0;
+  }
+
+  .next-steps-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #B8501E;
+    margin: 12px 0 6px; opacity: 0.7;
+  }
+
+  .progress-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: #A09888;
+    margin-bottom: 8px;
+  }
+  .progress-label span { color: #6A6058; }
+
+  /* Empty state */
+  .empty-note {
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px; color: #A09888;
+    text-align: center; padding: 24px 0;
+    font-style: italic;
+  }
+
+  /* Bottom nav row */
+  .bottom-row {
+    display: flex; gap: 10px; align-items: center;
+    flex-wrap: wrap; justify-content: center;
+  }
+
+  .pill-btn {
+    font-family: 'JetBrains Mono', monospace; font-size: 8px; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase; color: #A09888;
+    background: none; border: 1px solid rgba(160,150,140,0.35);
+    border-radius: 20px; padding: 7px 16px; cursor: pointer;
+    text-decoration: none; display: inline-block;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .pill-btn:hover { color: #3A3028; border-color: rgba(100,90,80,0.5); }
+</style>
+</head>
+<body>
+
+<div class="header" id="headerBlock"></div>
+<div class="filter-bar" id="filterBar"></div>
+<div id="sections"></div>
+
+<script>
+// Auto-generated by build_dates_webapp.py — do not edit manually
+// Generated: 2026-03-13
+
+const BUILD_DATE = '2026-03-13';
+
+const CLASSES = {
+  "12FTX": {
+    "full": "12 Fashion + Textiles",
+    "css": "cp-12ftx",
+    "classwork": "https://classroom.google.com/u/0/w/ODQwNjc0OTY5MjMz/t/all"
+  },
+  "ENW223": {
+    "full": "ENW223 RDH",
+    "css": "cp-enw223",
+    "classwork": "https://classroom.google.com/u/0/w/ODMyNDkzNDQ1OTMx/t/all"
+  },
+  "FLM223": {
+    "full": "2026 Film 223",
+    "css": "cp-flm223",
+    "classwork": "https://classroom.google.com/u/0/w/ODIxMjM0MTIwNzE5/t/all"
+  },
+  "MUS223": {
+    "full": "Year 12 Music",
+    "css": "cp-mus223",
+    "classwork": null
+  },
+  "MAT223": {
+    "full": "MAT223 VEC",
+    "css": "cp-mat223",
+    "classwork": null
+  },
+  "FCM112": {
+    "full": "FCM112 + DTW223",
+    "css": "cp-fcm112",
+    "classwork": "https://classroom.google.com/u/0/w/ODI0OTEzMTU1NjQx/t/all"
+  }
+};
+
+const RAW = [
+  {
+    "cls": "12FTX",
+    "title": "12FTX 2026 Year plan and assessments",
+    "date": "2026-01-22",
+    "type": "material",
+    "status": null,
+    "source": null,
+    "short": "Year plan & assessments",
+    "desc": "This is the overall plan for your Year 12 Fashion and Textiles class, showing all the work and due dates."
+  },
+  {
+    "cls": "12FTX",
+    "title": "Design era and design movements",
+    "date": "2026-02-03",
+    "type": "material",
+    "status": null,
+    "source": null,
+    "short": "Design eras explained",
+    "desc": "Get to know different historical fashion and textile design periods and their styles."
+  },
+  {
+    "cls": "12FTX",
+    "title": "Intro to the Elements and Principles of Design",
+    "date": "2026-02-03",
+    "type": "material",
+    "status": null,
+    "source": null,
+    "short": "Design basics intro",
+    "desc": "Learn the fundamental elements and principles that make up good design."
+  },
+  {
+    "cls": "12FTX",
+    "title": "Examples of first drawing pages",
+    "date": "2026-02-23",
+    "type": "material",
+    "status": null,
+    "source": null,
+    "short": "Drawing page examples",
+    "desc": "See examples of how to set up and present your initial design sketches."
+  },
+  {
+    "cls": "12FTX",
+    "title": "Shapes on forms",
+    "date": "2026-03-02",
+    "type": "material",
+    "status": null,
+    "source": null,
+    "short": "Shapes on forms",
+    "desc": "Understand how different shapes interact with and appear on three-dimensional objects."
+  },
+  {
+    "cls": "12FTX",
+    "title": "Design era/movement written",
+    "date": "2026-03-06",
+    "type": "assignment",
+    "status": "Turned in",
+    "source": null,
+    "short": "Design era written work",
+    "desc": "You need to write about a specific design era or movement for your fashion and textiles class."
+  },
+  {
+    "cls": "12FTX",
+    "title": "Design era task sheet and hand in",
+    "date": "2026-04-02",
+    "type": "assignment",
+    "status": "Assigned",
+    "source": null,
+    "short": "Design era task",
+    "desc": "Complete and hand in the specific task sheet related to your chosen design era."
+  },
+  {
+    "cls": "12FTX",
+    "title": "Introduction to Design Era assessment",
+    "date": "2026-02-16",
+    "type": "event",
+    "status": null,
+    "source": "2026-student-Calendar",
+    "short": "Design Era assessment intro",
+    "desc": "An introduction to the fashion and textiles assignment focusing on design eras, pattern adaptation, and construction."
+  },
+  {
+    "cls": "12FTX",
+    "title": "Presentation written draft handed in",
+    "date": "2026-03-09",
+    "type": "deadline",
+    "status": null,
+    "source": "2026-student-Calendar",
+    "short": "Presentation draft due",
+    "desc": "Hand in the first written draft of your fashion and textiles presentation."
+  },
+  {
+    "cls": "12FTX",
+    "title": "Design Era assignment finishing",
+    "date": "2026-04-02",
+    "type": "deadline",
+    "status": null,
+    "source": "2026-student-Calendar",
+    "short": "Design Era assignment finish",
+    "desc": "Complete and finalize your fashion and textiles assignment focusing on a design era."
+  },
+  {
+    "cls": "12FTX",
+    "title": "Design Era finished presentation due",
+    "date": "2026-04-02",
+    "type": "deadline",
+    "status": null,
+    "source": "2026-student-Calendar",
+    "short": "Design Era presentation due",
+    "desc": "Your completed presentation about a design era for fashion and textiles is due."
+  },
+  {
+    "cls": "12FTX",
+    "title": "Written brief and design due",
+    "date": "2026-04-29",
+    "type": "deadline",
+    "status": null,
+    "source": "2026-student-Calendar",
+    "short": "Written brief and design due",
+    "desc": "Submit your written project brief and design ideas for fashion and textiles."
+  },
+  {
+    "cls": "12FTX",
+    "title": "Pattern Adaptation assessment due",
+    "date": "2026-06-12",
+    "type": "deadline",
+    "status": null,
+    "source": "2026-student-Calendar",
+    "short": "Pattern Adaptation due",
+    "desc": "Your fashion and textiles assessment on adapting patterns is due."
+  },
+  {
+    "cls": "12FTX",
+    "title": "Advanced Procedures work due",
+    "date": "2026-09-05",
+    "type": "deadline",
+    "status": null,
+    "source": "2026-student-Calendar",
+    "short": "Advanced Procedures work due",
+    "desc": "Submit your work related to advanced construction or design procedures in fashion and textiles."
+  },
+  {
+    "cls": "12FTX",
+    "title": "External portfolio due",
+    "date": "2026-10-23",
+    "type": "deadline",
+    "status": null,
+    "source": "2026-student-Calendar",
+    "short": "External portfolio due",
+    "desc": "Your completed external fashion and textiles portfolio is due."
+  },
+  {
+    "cls": "12FTX",
+    "title": "Written part of presentation/draft copy due",
+    "date": "2026-03-17",
+    "type": "deadline",
+    "status": null,
+    "source": "Design-Era-Task-Sheet-2026",
+    "short": "Presentation draft copy due",
+    "desc": "Hand in a draft of the written part of your presentation about a design movement or era."
+  },
+  {
+    "cls": "12FTX",
+    "title": "Final presentation and design ideas due",
+    "date": "2026-04-14",
+    "type": "deadline",
+    "status": null,
+    "source": "Design-Era-Task-Sheet-2026",
+    "short": "Final presentation due",
+    "desc": "Your final presentation and design ideas about a chosen design era are due."
+  },
+  {
+    "cls": "ENW223",
+    "title": "English for Writers intro booklet",
+    "date": "2026-02-02",
+    "type": "material",
+    "status": null,
+    "source": null,
+    "short": "Writing intro booklet",
+    "desc": "This is the introductory booklet for your English for Writers class."
+  },
+  {
+    "cls": "ENW223",
+    "title": "Writing prompts galore",
+    "date": "2026-03-02",
+    "type": "material",
+    "status": null,
+    "source": null,
+    "short": "Writing prompts",
+    "desc": "A collection of writing prompts to inspire your work in English for Writers."
+  },
+  {
+    "cls": "ENW223",
+    "title": "Writing portfolio piece #1",
+    "date": "2026-03-06",
+    "type": "assignment",
+    "status": "Turned in",
+    "source": null,
+    "short": "Writing portfolio 1",
+    "desc": "Your first piece of work for your writing portfolio in English for Writers."
+  },
+  {
+    "cls": "ENW223",
+    "title": "Intro booklet posted, course starts.",
+    "date": "2026-02-02",
+    "type": "task",
+    "status": null,
+    "source": "English for Writers intro booklet",
+    "short": "Intro booklet posted",
+    "desc": "The introductory booklet for your English for Writers course is now available."
+  },
+  {
+    "cls": "ENW223",
+    "title": "Writing prompts material posted.",
+    "date": "2026-03-02",
+    "type": "task",
+    "status": null,
+    "source": "Writing prompts galore",
+    "short": "Writing prompts posted",
+    "desc": "The writing prompts material for your English for Writers class has been uploaded."
+  },
+  {
+    "cls": "ENW223",
+    "title": "Writing portfolio piece #1 due.",
+    "date": "2026-03-06",
+    "type": "deadline",
+    "status": null,
+    "source": "Writing portfolio piece #1",
+    "short": "Portfolio piece 1 due",
+    "desc": "Your first writing portfolio piece for English for Writers needs to be handed in."
+  },
+  {
+    "cls": "ENW223",
+    "title": "AS91106 #3: Develop personal responses.",
+    "date": "2026-05-04",
+    "type": "deadline",
+    "status": null,
+    "source": "ENW223-Intro-booklet-2026",
+    "short": "Develop personal responses 3",
+    "desc": "This is the third task to develop your personal responses in the English for Writers course."
+  },
+  {
+    "cls": "ENW223",
+    "title": "AS91101 #3: Writing portfolio due.",
+    "date": "2026-05-11",
+    "type": "deadline",
+    "status": null,
+    "source": "ENW223-Intro-booklet-2026",
+    "short": "Writing portfolio 3 due",
+    "desc": "Your third writing portfolio submission for English for Writers is due."
+  },
+  {
+    "cls": "ENW223",
+    "title": "AS91106 #4: Develop personal responses.",
+    "date": "2026-06-22",
+    "type": "deadline",
+    "status": null,
+    "source": "ENW223-Intro-booklet-2026",
+    "short": "Develop personal responses 4",
+    "desc": "This is the fourth task to develop your personal responses in the English for Writers course."
+  },
+  {
+    "cls": "ENW223",
+    "title": "AS91101 #4: Writing portfolio due.",
+    "date": "2026-07-06",
+    "type": "deadline",
+    "status": null,
+    "source": "ENW223-Intro-booklet-2026",
+    "short": "Writing portfolio 4 due",
+    "desc": "Your fourth writing portfolio submission for English for Writers is due."
+  },
+  {
+    "cls": "ENW223",
+    "title": "AS91104: Analyse connections across texts.",
+    "date": "2026-07-27",
+    "type": "deadline",
+    "status": null,
+    "source": "ENW223-Intro-booklet-2026",
+    "short": "Analyse text connections",
+    "desc": "This is the task to analyze connections between different texts in English for Writers."
+  },
+  {
+    "cls": "ENW223",
+    "title": "AS91106 #5: Develop personal responses.",
+    "date": "2026-08-03",
+    "type": "deadline",
+    "status": null,
+    "source": "ENW223-Intro-booklet-2026",
+    "short": "Develop personal responses 5",
+    "desc": "This is the fifth task to develop your personal responses in the English for Writers course."
+  },
+  {
+    "cls": "ENW223",
+    "title": "AS91106 #6: Develop personal responses.",
+    "date": "2026-08-24",
+    "type": "deadline",
+    "status": null,
+    "source": "ENW223-Intro-booklet-2026",
+    "short": "Develop personal responses 6",
+    "desc": "This is the sixth task to develop your personal responses in the English for Writers course."
+  },
+  {
+    "cls": "ENW223",
+    "title": "AS91106 #1: Develop personal responses.",
+    "date": "2026-09-12",
+    "type": "deadline",
+    "status": null,
+    "source": "ENW223-Intro-booklet-2026",
+    "short": "Develop personal responses 1",
+    "desc": "This is the first task to develop your personal responses in the English for Writers course."
+  },
+  {
+    "cls": "ENW223",
+    "title": "Deadline for Week 9, Term 3 tasks.",
+    "date": "2026-09-14",
+    "type": "deadline",
+    "status": null,
+    "source": "Coco-Inez-Penn-2026-AS91106-Independent-reading-responses",
+    "short": "Week 9 Term 3 tasks",
+    "desc": "This is the deadline for all tasks due in Week 9 of Term 3 for English for Writers."
+  },
+  {
+    "cls": "ENW223",
+    "title": "AS91101 #1: Writing portfolio due.",
+    "date": "2026-09-19",
+    "type": "deadline",
+    "status": null,
+    "source": "ENW223-Intro-booklet-2026",
+    "short": "Writing portfolio 1 due",
+    "desc": "Your first writing portfolio submission for English for Writers is due."
+  },
+  {
+    "cls": "ENW223",
+    "title": "Feedback provided for portfolio piece 1 in Term 3.",
+    "date": "2026-09-25",
+    "type": "info",
+    "status": null,
+    "source": "Coco-Inez-Penn-ENW223-portfolio-piece-1-student-sheet",
+    "short": "Portfolio 1 feedback",
+    "desc": "Feedback has been provided for your first portfolio piece in English for Writers for Term 3."
+  },
+  {
+    "cls": "ENW223",
+    "title": "AS91106 #2: Develop personal responses.",
+    "date": "2026-09-26",
+    "type": "deadline",
+    "status": null,
+    "source": "ENW223-Intro-booklet-2026",
+    "short": "Develop personal responses 2",
+    "desc": "This is the second task to develop your personal responses in the English for Writers course."
+  },
+  {
+    "cls": "ENW223",
+    "title": "AS91101 #2: Writing portfolio due.",
+    "date": "2026-10-03",
+    "type": "deadline",
+    "status": null,
+    "source": "ENW223-Intro-booklet-2026",
+    "short": "Writing portfolio 2 due",
+    "desc": "Your second writing portfolio submission for English for Writers is due."
+  },
+  {
+    "cls": "FLM223",
+    "title": "Femininity in the media + representation assessment info slides",
+    "date": "2026-01-28",
+    "type": "material",
+    "status": null,
+    "source": null,
+    "short": "Femininity in media slides",
+    "desc": "Slides about femininity in media and representation for your film class."
+  },
+  {
+    "cls": "FLM223",
+    "title": "Horror slides - final girl",
+    "date": "2026-01-28",
+    "type": "material",
+    "status": null,
+    "source": null,
+    "short": "Horror final girl slides",
+    "desc": "Slides focusing on the 'Final Girl' trope in horror films."
+  },
+  {
+    "cls": "FLM223",
+    "title": "Course information",
+    "date": "2026-01-30",
+    "type": "material",
+    "status": null,
+    "source": null,
+    "short": "Course information",
+    "desc": "General information about your film studies course."
+  },
+  {
+    "cls": "FLM223",
+    "title": "D1 materials - assessment schedule and course outline",
+    "date": "2026-01-30",
+    "type": "material",
+    "status": null,
+    "source": null,
+    "short": "Assessment schedule",
+    "desc": "Your film studies assessment schedule and course outline document."
+  },
+  {
+    "cls": "FLM223",
+    "title": "Horror films to watch - folder",
+    "date": "2026-02-12",
+    "type": "material",
+    "status": null,
+    "source": null,
+    "short": "Horror films to watch",
+    "desc": "A folder containing horror films recommended for your film studies class."
+  },
+  {
+    "cls": "FLM223",
+    "title": "Halloween final girl brainstorm",
+    "date": "2026-02-20",
+    "type": "material",
+    "status": null,
+    "source": null,
+    "short": "Halloween final girl brainstorm",
+    "desc": "Brainstorming ideas related to the 'Final Girl' trope, possibly around Halloween."
+  },
+  {
+    "cls": "FLM223",
+    "title": "Scream class brainstorm",
+    "date": "2026-02-27",
+    "type": "material",
+    "status": null,
+    "source": null,
+    "short": "Scream class brainstorm",
+    "desc": "Brainstorming ideas related to the film 'Scream' for your film class."
+  },
+  {
+    "cls": "FLM223",
+    "title": "Final girl and good for her articles and worksheets when PBT is away",
+    "date": "2026-03-05",
+    "type": "assignment",
+    "status": "Missing",
+    "source": null,
+    "short": "Final girl articles",
+    "desc": "Articles and worksheets about the 'Final Girl' concept for your film class, to be used when your teacher is away."
+  },
+  {
+    "cls": "FLM223",
+    "title": "2.3 Representation assessment",
+    "date": "2026-04-03",
+    "type": "assignment",
+    "status": "Assigned",
+    "source": null,
+    "short": "Representation assessment",
+    "desc": "Your second assessment for your film studies class focusing on representation."
+  },
+  {
+    "cls": "FLM223",
+    "title": "2.3 Representation assessment issued",
+    "date": "2026-02-03",
+    "type": "info",
+    "status": null,
+    "source": "Coco-Inez-Penn-2026-AS2.3-Representation-Student-Assessment-Instructions-and-cov",
+    "short": "Representation assessment issued",
+    "desc": "The assessment task for exploring group representation in horror films has been given out."
+  },
+  {
+    "cls": "FLM223",
+    "title": "Withdrawal deadline for 2.3 Representation assessment",
+    "date": "2026-02-10",
+    "type": "deadline",
+    "status": null,
+    "source": "Coco-Inez-Penn-2026-AS2.3-Representation-Student-Assessment-Instructions-and-cov",
+    "short": "Representation assessment withdraw",
+    "desc": "The deadline to withdraw from the representation assessment in your film class."
+  },
+  {
+    "cls": "FLM223",
+    "title": "Assignment: Final girl and good for her articles/worksheets",
+    "date": "2026-03-05",
+    "type": "deadline",
+    "status": null,
+    "source": "5/3 Period 4 and 5 Final girl and good for her articles and worksheets when PBT is away",
+    "short": "Final girl articles due",
+    "desc": "Hand in the articles and worksheets about the 'Final Girl' concept for your film class."
+  },
+  {
+    "cls": "FLM223",
+    "title": "2.3 Representation assessment due",
+    "date": "2026-04-03",
+    "type": "deadline",
+    "status": null,
+    "source": "Coco-Inez-Penn-2026-AS2.3-Representation-Student-Assessment-Instructions-and-cov",
+    "short": "Representation assessment due",
+    "desc": "Your film studies assessment on representation in horror films is due."
+  },
+  {
+    "cls": "FLM223",
+    "title": "Intro to horror genre - focus on final girl",
+    "date": "2026-02-24",
+    "type": "task",
+    "status": null,
+    "source": "Film-223-Genre-study-horror-2026-PBT",
+    "short": "Intro to horror genre",
+    "desc": "This lesson introduces the horror genre, its history, and the 'Final Girl' trope."
+  },
+  {
+    "cls": "FLM223",
+    "title": "Horror Film Analysis assessment due",
+    "date": "2026-08-17",
+    "type": "deadline",
+    "status": null,
+    "source": "Film-223-Genre-study-horror-2026-PBT",
+    "short": "Horror analysis due",
+    "desc": "Your assessment analyzing a horror film, focusing on its genre and tropes, is due."
+  },
+  {
+    "cls": "MUS223",
+    "title": "Submit final research question for teacher approval",
+    "date": "2026-03-09",
+    "type": "deadline",
+    "status": null,
+    "source": "L1-[2026]-Investigate-an-Aspect-of-New-Zealand-Music",
+    "short": "Research question approval",
+    "desc": "Submit your research question about New Zealand music for teacher approval."
+  },
+  {
+    "cls": "MUS223",
+    "title": "Present research outline to class for feedback",
+    "date": "2026-03-16",
+    "type": "event",
+    "status": null,
+    "source": "L1-[2026]-Investigate-an-Aspect-of-New-Zealand-Music",
+    "short": "Research outline feedback",
+    "desc": "Present your research outline about New Zealand music to the class for feedback."
+  },
+  {
+    "cls": "MUS223",
+    "title": "Create 'Who are you?' and 'Who are you musically?' slides",
+    "date": "2026-02-09",
+    "type": "task",
+    "status": null,
+    "source": "MUS223-2026-Who-are-we",
+    "short": "Create 'Who are you?' slides",
+    "desc": "Make two slides with pictures about yourself and your musical identity for your music class."
+  },
+  {
+    "cls": "MUS223",
+    "title": "Add completed slides to presentation",
+    "date": "2026-02-16",
+    "type": "task",
+    "status": null,
+    "source": "MUS223-2026-Who-are-we",
+    "short": "Add slides to presentation",
+    "desc": "Add your completed 'Who are you?' slides to your music presentation."
+  },
+  {
+    "cls": "MUS223",
+    "title": "Perform two substantial pieces as a featured soloist",
+    "date": "2026-03-09",
+    "type": "task",
+    "status": null,
+    "source": "Welcome-to-MUS223",
+    "short": "Solo performance 1",
+    "desc": "Perform your first substantial piece as a featured soloist in your music class."
+  },
+  {
+    "cls": "MUS223",
+    "title": "Perform a substantial piece as a member of a group",
+    "date": "2026-05-25",
+    "type": "task",
+    "status": null,
+    "source": "Welcome-to-MUS223",
+    "short": "Group performance",
+    "desc": "Perform a substantial piece as a member of a musical group."
+  },
+  {
+    "cls": "MUS223",
+    "title": "Compose two substantial pieces of music",
+    "date": "2026-03-02",
+    "type": "task",
+    "status": null,
+    "source": "Welcome-to-MUS223",
+    "short": "Compose two pieces",
+    "desc": "Compose two substantial pieces of music for your music assessment."
+  },
+  {
+    "cls": "MUS223",
+    "title": "Investigate an aspect of New Zealand music",
+    "date": "2026-02-02",
+    "type": "task",
+    "status": null,
+    "source": "Welcome-to-MUS223",
+    "short": "Investigate NZ music",
+    "desc": "Research and investigate an aspect of New Zealand music for your class."
+  },
+  {
+    "cls": "MUS223",
+    "title": "Assessment for Investigate an Aspect of New Zealand Music",
+    "date": "2026-04-02",
+    "type": "exam",
+    "status": null,
+    "source": "Welcome-to-MUS223",
+    "short": "NZ music assessment",
+    "desc": "This is the assessment for investigating an aspect of New Zealand music."
+  },
+  {
+    "cls": "MUS223",
+    "title": "Solo 1 performance assessment",
+    "date": "2026-06-19",
+    "type": "event",
+    "status": null,
+    "source": "Welcome-to-MUS223",
+    "short": "Solo 1 assessment",
+    "desc": "Your first solo performance assessment for your music class."
+  },
+  {
+    "cls": "MUS223",
+    "title": "Formal feedback for Composition - Piece 1",
+    "date": "2026-02-23",
+    "type": "event",
+    "status": null,
+    "source": "Welcome-to-MUS223",
+    "short": "Composition feedback 1",
+    "desc": "Receive formal feedback on your first composed music piece."
+  },
+  {
+    "cls": "MUS223",
+    "title": "Formal feedback for Composition - Piece 2",
+    "date": "2026-03-02",
+    "type": "event",
+    "status": null,
+    "source": "Welcome-to-MUS223",
+    "short": "Composition feedback 2",
+    "desc": "Receive formal feedback on your second composed music piece."
+  },
+  {
+    "cls": "MUS223",
+    "title": "Final hand-in for Composition",
+    "date": "2026-03-09",
+    "type": "deadline",
+    "status": null,
+    "source": "Welcome-to-MUS223",
+    "short": "Composition final hand-in",
+    "desc": "Submit your final composition work for your music class."
+  },
+  {
+    "cls": "MAT223",
+    "title": "Latest date to sit first internal assessment AS2.3 is end of Week 7. (Earliest is Week 4)",
+    "date": "2026-03-09",
+    "type": "deadline",
+    "status": null,
+    "source": "Info-about-MAT223-for-2026",
+    "short": "First assessment deadline",
+    "desc": "The latest date to sit your first internal math assessment (AS2.3) is the end of Week 7."
+  },
+  {
+    "cls": "MAT223",
+    "title": "Receive more information about sitting internal assessments.",
+    "date": "2026-03-30",
+    "type": "event",
+    "status": null,
+    "source": "Info-about-MAT223-for-2026",
+    "short": "More assessment info",
+    "desc": "Receive additional information about how to sit your internal math assessments."
+  },
+  {
+    "cls": "MAT223",
+    "title": "External topics must be finished before derived grade exams.",
+    "date": "2026-09-07",
+    "type": "deadline",
+    "status": null,
+    "source": "Info-about-MAT223-for-2026",
+    "short": "External topics deadline",
+    "desc": "All external math topics must be completed before you can sit derived grade exams."
+  },
+  {
+    "cls": "FCM112",
+    "title": "Inspiration Slideshow.",
+    "date": "2026-02-17",
+    "type": "material",
+    "status": null,
+    "source": null,
+    "short": "Inspiration Slideshow",
+    "desc": "A slideshow containing inspirational images or ideas for your furniture project."
+  },
+  {
+    "cls": "FCM112",
+    "title": "Full documentation of your furniture project here.",
+    "date": "2026-10-16",
+    "type": "assignment",
+    "status": "Assigned",
+    "source": null,
+    "short": "Furniture project docs",
+    "desc": "Document all the steps and details of your furniture project here."
+  }
+];
+
+const ANALYSIS = {
+  "2026-student-Calendar": {
+    "what_to_do": "This assignment is about fashion and textiles, focusing on design, pattern adaptation, and construction. You will explore different design eras, develop your own design ideas, learn advanced pattern adaptation techniques, and construct a final garment. You will also develop a portfolio showcasing your work.",
+    "requirements": "*   Explore and use characteristics of a design movement or era to inform your design ideas.\n*   Use visual communication techniques to generate design ideas.\n*   Learn and apply advanced pattern adaptation techniques to change structural and style features of a design.\n*   Implement advanced procedures using textile materials to make a specified product with special features.\n*   Create a final garment.\n*   Develop a portfolio that includes your design process, finished garment photos, and construction details.\n*   Complete written assessments and presentations.",
+    "tips": "*   Use the [scaffold](https://docs.google.com/document/d/1wIeR17r8g2n00c5r06i8i0e0xW0h4p0P7g5L7B6o_Uo/edit) to help organize your writing.\n*   Research and writing for the Design Era assignment continues as homework.\n*   Prepare your presentation draft in Week 6 of Term 1.\n*   Your Design Era assignment presentation is due in Week 10 of Term 1.\n*   Ensure your written brief and design are submitted in Week 3 of Term 2.\n*   Your Pattern Adaptation assessment brief/design/process documentation/garment is due in Week 8 of Term 2.\n*   Your Advanced Procedures work is due in Week 6 of Term 3.\n*   Your External portfolio should have no more than 20 A3 pages.",
+    "html_path": "analysis/2026-student-Calendar__2026-student-Calendar.html"
+  },
+  "Design-Era-Task-Sheet-2026": {
+    "what_to_do": "*   Choose a design movement or era that interests you.\n*   Research the chosen movement, focusing on its characteristics, key designers, and social/cultural influences.\n*   Create a visual presentation about your chosen movement.\n*   Use the design elements and principles of that movement to inform your own design ideas for a garment (shirt/top).\n*   Develop your design ideas through drawing, refining them, and creating a final design.\n*   Produce a working drawing showing construction details for your final design.\n*   Write your work in your own words, proof-read it, and include a list of sources.",
+    "requirements": "*   **Research Presentation:** An A3 visual presentation (max 3 pages) about your chosen design movement, including its characteristics, relevant social factors, and examples.\n*   **Design Ideas:** Develop design ideas for a shirt/top that clearly show the influence of your chosen design movement, using ideation techniques and drawing.\n*   **Working Drawing:** A detailed line drawing of your final design, showing construction details and any adaptations.\n*   **Final Design Page:** A rendered drawing of your final design on a body, with notes on fabric and notions, linking back to your inspiration.\n*   **Written Work:** Must be in your own words, proof-read, and include a bibliography.\n*   **Attribution:** All images must be labelled with the design, designer, and year. Citations and a reference list are required.",
+    "tips": "*   Discuss your chosen design movement with BKJ before starting research.\n*   Use the [Design Era Research Notes worksheet](https://docs.google.com/document/d/1M06F9K1x5v2M5iF1l14c2z_G4f5eR0fF/edit?usp=sharing&ouid=113647902960949838283) to gather and organize information.\n*   Be selective with images and information for your presentation.\n*   Use ideation techniques like tessellating, stretching/shortening, bending, layering, and adding depth to explore shapes.\n*   Make sure your design ideas clearly show links to your ideation through repetition of lines, shapes, textures, colours, and forms.\n*   Your written work must be proof-read for spelling and grammar.",
+    "html_path": "analysis/Design-Era-Task-Sheet-2026__Design-Era-Task-Sheet-2026.html"
+  },
+  "ENW223-Intro-booklet-2026": {
+    "what_to_do": "*   This course is for students who enjoy writing and want to improve their skills.\n*   You will read texts to inspire your own writing.\n*   You will cover different types of writing like poetry, short stories, reviews, and essays.\n*   You will do writing exercises throughout the year.\n*   You will get to do your own investigation into an aspect of writing you are interested in.\n*   You will learn to analyze and interpret literature, moving beyond just describing it.\n*   You will examine texts closely and ask questions about the author's choices.\n*   You will develop your ability to analyze how literature engages audiences and use aspects like language, point of view, and structure in your own writing.",
+    "requirements": "*   You will need pens and an exercise book for notes and writing exercises.\n*   Bring your own device (computer) to class.\n*   All assessments will be given feedback through Google Classroom.\n*   You must read and understand the NZQA rules about assessment opportunities.\n*   You need to be aware of targets and deadlines for assessments.\n*   If you have problems meeting a deadline, discuss it with your teacher early.\n*   Pay attention to all feedback and use it to improve your work.\n*   You need to be prepared for external exams by completing formative tasks and achieving good grades in practice exams.\n*   Keep notes on texts studied in class to help prepare for exams.",
+    "tips": "*   REAL ANALYSIS MAKES AN ARGUABLE CLAIM.\n*   Disagreements about interpretation are important for discussion and help you make stronger arguments or realize when your analysis needs improvement.\n*   To be eligible for external exams, you need to demonstrate preparedness.",
+    "html_path": "analysis/ENW223-Intro-booklet-2026__ENW223-Intro-booklet-2026.html"
+  },
+  "Coco-Inez-Penn-2026-AS91106-Independent-reading-responses": {
+    "what_to_do": "*   Read texts like a writer, focusing on specific aspects of writing.\n*   Use what you learn from your reading to improve your own writing.\n*   Your reading responses will be the research for a connections essay.\n*   You need to plan what aspects of your own writing you want to develop.",
+    "requirements": "*   Focus on aspects of writing such as genre, setting, character types, purpose, ideas, dialogue, types of poetry, or narrative point of view.\n*   Responses must be supported by evidence from the texts.\n*   Develop personal responses to the texts.\n*   The maximum word limit for your response is 600 words.",
+    "tips": "*   Look at the [exemplar](https://docs.google.com/document/d/1-OFe5Yxo4LVbtVGp6XJzTXcAm1PCBAl1QTxnpF3dDyA/edit?usp=sharing) to understand what is expected.\n*   Use the [Overall reading to write Plan](https://docs.google.com/document/d/1CT-3Q01IJFvG1Cg5M36EieXJEqWCxPB3TaNvTesKxxg/edit?usp=sharing1f9YD4HM-yWkBB9kOyYN_fQ/edit) to organize your thinking.\n*   Use the tables provided to keep track of your reading responses.",
+    "html_path": "analysis/Coco-Inez-Penn-2026-AS91106-Independent-reading-re__Coco-Inez-Penn-2026-AS91106-Independent-reading-responses.html"
+  },
+  "Coco-Inez-Penn-ENW223-portfolio-piece-1-student-sheet": {
+    "what_to_do": "*   Write two short stories about the same setting from different perspectives.\n*   The stories should be titled \"A bug's final bow\".\n*   The stories should explore how perspective changes mood and how to make an audience feel empathetic.",
+    "requirements": "*   Write two short stories from different perspectives about the same setting.\n*   The stories should be titled \"A bug's final bow\".\n*   Explore how perspective changes mood and makes the audience feel empathetic.\n*   Use strong emotive language to build setting and describe characters.\n*   Maintain good word flow to keep the story moving and connect the perspectives.\n*   Avoid identifying the characters as human or bug to allow reader connection without pre-formed opinions.\n*   Use a change in perspective as a stylistic device.\n*   Employ similes to create vivid imagery.\n*   Keep the total word count to a maximum of 800 words.",
+    "tips": "*   \"See [ENW223 slides](https://docs.google.com/presentation/u/0/d/1pxKOayqtygdfK6Yx48SUYtbWe1-VLOYsHt5xDMq7Sws/edit) for instructions on how to write it.\"\n*   Consider using strong emotive language to build your setting and describe your characters.\n*   Keep a good word flow to keep the story moving and connect the two perspectives.\n*   Make the reader feel and connect with both sides of the story by not identifying the characters.\n*   Use a change in perspective and similes to create vivid imagery.",
+    "html_path": "analysis/Coco-Inez-Penn-ENW223-portfolio-piece-1-student-sh__Coco-Inez-Penn-ENW223-portfolio-piece-1-student-sheet.html"
+  },
+  "Coco-Inez-Penn-2026-AS2.3-Representation-Student-Assessment-Instructions-and-cov": {
+    "what_to_do": "Your task is to explore how a specific group is represented (as a stereotype) in horror films. You can choose a different group and medium if you get approval from your teacher.\n\nYou will do this by:\n*   Showing how media texts represent the group.\n*   Describing the features of the media texts that create this representation.\n*   Providing specific evidence from the texts.\n*   Explaining the effect of the representation.\n\nThis is a two-part assessment. You need to complete a [visual diary](https://docs.google.com/document/d/1K5-Ro1MzUuKUGHXXzZ3PbAnYQfcIhRoHYsj0-0XyFWU/edit?usp=sharing) and then present your findings either as a [narrated visual sequence](https://docs.google.com/document/d/1K5-Ro1MzUuKUGHXXzZ3PbAnYQfcIhRoHYsj0-0XyFWU/edit?usp=sharing), a [written report](https://docs.google.com/document/d/1K5-Ro1MzUuKUGHXXzZ3PbAnYQfcIhRoHYsj0-0XyFWU/edit?usp=sharing), or by submitting your [visual diary notes](https://docs.google.com/document/d/1K5-Ro1MzUuKUGHXXzZ3PbAnYQfcIhRoHYsj0-0XyFWU/edit?usp=sharing) directly.",
+    "requirements": "*   **Achievement:**\n    *   Select at least three media texts that represent your chosen group.\n    *   Describe how the media texts represent the group.\n    *   Describe the features of the media texts that create the representation.\n    *   Describe the effect of the media representation, using evidence.\n*   **Merit:** All Achievement requirements, plus:\n    *   Describe reasoned explanations for the *effect(s)* of the representation.\n    *   Explain reasons for differences between the representation and reality.\n    *   Explain reasons for the stereotypes, messages, or values created.\n*   **Excellence:** All Achieved and Merit requirements, plus:\n    *   Examine the likely consequences of the representation.\n    *   Draw conclusions about the media's presentation of the group, including implications of differences from reality, effectiveness of stereotypes, and issues related to omissions or creator's worldview.\n\nYou **must** answer the first 5 questions (yellow highlighted) for each text to achieve.",
+    "tips": "*   Use your [visual diary](https://docs.google.com/document/d/1K5-Ro1MzUuKUGHXXzZ3PbAnYQfcIhRoHYsj0-0XyFWU/edit?usp=sharing) to keep notes, videos, pictures, screenshots, and links.\n*   Focus your notes on the provided questions, but feel free to add your own ideas.\n*   Some questions may overlap; you don't need to answer them identically multiple times.\n*   You do not need to answer all Merit or Excellence questions to achieve those grades, but you must answer all Achieved questions.\n*   For your final presentation, ensure your visuals (screenshots) support your discussion.\n*   Your [visual diary](https://docs.google.com/document/d/1K5-Ro1MzUuKUGHXXzZ3PbAnYQfcIhRoHYsj0-0XyFWU/edit?usp=sharing) is mandatory for everyone.\n*   Consider research from interviews with actors/directors, critic reviews, and statistics.",
+    "html_path": "analysis/Coco-Inez-Penn-2026-AS2.3-Representation-Student-A__Coco-Inez-Penn-2026-AS2.3-Representation-Student-Assessment-Instructions-and-cov.html"
+  },
+  "Film-223-Genre-study-horror-2026-PBT": {
+    "what_to_do": "This lesson is asking you to learn about the horror genre, its history, and its key elements. You will also analyze specific films and discuss important concepts like the \"Final Girl\" trope, representation, and whiteness.\n\n*   Complete the [starter activities](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g3bc2159e986_0_5) on [Page 3](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g3bc2159e986_0_5).\n*   Participate in [Pair Share](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g3aba3f1f7e8_0_240#slide=id.g3aba3f1f7e8_0_240) activities throughout the lessons.\n*   Answer questions on your [whiteboard](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g3bc2159e986_0_13#slide=id.g3bc2159e986_0_13) when prompted.\n*   Complete the [Getting to know you questionnaire](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g3bc2159e986_0_0#slide=id.g3bc2159e986_0_0) on Google Classroom.\n*   Watch and analyze films like [The Babadook](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g3c34d7b39b5_0_24#slide=id.g3c34d7b39b5_0_24), [Hereditary](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g3c64ae18e2c_0_0#slide=id.g3c64ae18e2c_0_0), and [Get Out](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g3c64ae18e2c_0_25#slide=id.g3c64ae18e2c_0_25).\n*   Complete the [Assessment Task - Horror Film Analysis](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g3aba3f1f7e8_0_370#slide=id.g3aba3f1f7e8_0_370) by Term 3, Week 5.\n*   Read and highlight the [article on representation of PoC in slasher films](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g395ab2890f4_0_5#slide=id.g395ab2890f4_0_5).\n*   Complete the [sentence level work](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g3cb3b54c8d3_0_88#slide=id.g3cb3b54c8d3_0_88) on whiteness and the \"Final Girl.\"\n*   Discuss and answer questions on the [Good for Her trope](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g3aba3f1f7e8_0_1551#slide=id.g3aba3f1f7e8_0_1551) and the changing ideas around sex and survival in horror.",
+    "requirements": "*   Understand and identify the [codes and conventions](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g3aba3f1f7e8_0_267#slide=id.g3aba3f1f7e8_0_267) of the horror genre.\n*   Analyze how these codes and conventions are used in specific horror films.\n*   Understand the history and evolution of the [Final Girl trope](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g32af8d24156_0_1804#slide=id.g32af8d24156_0_1804).\n*   Discuss the representation of women, whiteness, and other identities in horror films.\n*   Complete the [Horror Film Analysis assessment](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g3aba3f1f7e8_0_370#slide=id.g3aba3f1f7e8_0_370) to a high standard.\n*   Follow [class expectations](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g3aba3f1f7e8_0_66#slide=id.g3aba3f1f7e8_0_66) regarding participation and conduct.\n*   Meet all [assessment deadlines](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g32af8d24156_0_1023#slide=id.g32af8d24156_0_1023).",
+    "tips": "*   Use the [symbols on the slides](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g3c34d7b39b5_0_38#slide=id.g3c34d7b39b5_0_38) to understand what to do on each page.\n*   When asked to use your whiteboard, be ready to write quickly and clearly.\n*   Pay attention during [Pair Share](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g3aba3f1f7e8_0_240#slide=id.g3aba3f1f7e8_0_240) activities; they help you learn from your classmates.\n*   Take notes in your [workbook or digitally](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g3aba3f1f7e8_0_310#slide=id.g3aba3f1f7e8_0_310) during film analysis and discussions.\n*   [Track your deadlines](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g32af8d24156_0_1023#slide=id.g32af8d24156_0_1023) carefully. It's important for managing your schoolwork.\n*   Don't be afraid to [ask for help](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g3aba3f1f7e8_0_66#slide=id.g3aba3f1f7e8_0_66). Your teacher is there to support you.\n*   The page about [Conjunctions and Clauses](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g32af8d24156_0_1872#slide=id.g32af8d24156_0_1872) and [Subordinating Conjunctions](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g3c0911bc363_0_0#slide=id.g3c0911bc363_0_0) can help you write better sentences for your analysis.\n*   Use the [film recommendations](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g32af8d24156_0_1825#slide=id.g32af8d24156_0_1825) to help you understand the \"Final Girl\" trope better.\n*   When considering \"Whiteness and setting\" on [Page 121](https://docs.google.com/presentation/d/1Z3vBJJfuhCPKCPXzjt_K7GmCW1nK4Z-m327c-S2_TV0/edit?slide=id.g3cb3b54c8d3_0_60#slide=id.g3cb3b54c8d3_0_60), think about why certain places feel scarier.",
+    "html_path": "analysis/Film-223-Genre-study-horror-2026-PBT__Film-223-Genre-study-horror-2026-PBT.html"
+  },
+  "L1-[2026]-Investigate-an-Aspect-of-New-Zealand-Music": {
+    "what_to_do": "*   You need to investigate an aspect of New Zealand music.\n*   You will create a presentation to share your findings.\n*   You are responsible for choosing your own research focus.",
+    "requirements": "*   Research and analyze an aspect of NZ music.\n*   Present your findings clearly and engagingly.\n*   Show a deep understanding by making connections and evaluating significance.\n*   Use credible sources and reference them correctly.\n*   Explain how your topic adds to the diversity of the NZ music scene.\n*   Provide broad perspectives, including your own interpretation.\n*   Develop and answer a strong research question to guide your investigation.",
+    "tips": "*   Work with a partner to refine your topic into a strong research question.\n*   Ensure your research question is focused, analytical, and allows for multiple perspectives.\n*   Submit your final research question for teacher approval.\n*   Use the [scaffold](https://docs.google.com/presentation/d/1a9_256XH7_YhN_xpKi6CYNW-wRWcyxURiXk-wqXJdaI/edit?slide=id.g3344d3834f6_8_17#slide=id.g3344d3834f6_8_17) to outline your presentation structure.\n*   Present your outline to the class for feedback.",
+    "html_path": "analysis/L1-[2026]-Investigate-an-Aspect-of-New-Zealand-Mus__L1-[2026]-Investigate-an-Aspect-of-New-Zealand-Music.html"
+  },
+  "MUS223-2026-Who-are-we": {
+    "what_to_do": "*   Create two slides with pictures to talk about in class.\n    *   Slide 1 should be about \"Who are you?\". Think about [Wh\u0101nau, Culture, Friends, Places, Values, Communities, Hobbies, Significant experiences](page 5).\n    *   Slide 2 should be about \"Who are you musically?\". Think about [Instruments, Performances, Genre, Favourite artists/albums/songs, Favourite musical activities](page 5).\n*   Add your completed slides to this presentation.",
+    "requirements": "*   Create two slides with images.\n*   Be ready to speak about the images on your slides to the class.\n*   One slide should be about your personal identity (\"Who are you?\").\n*   The other slide should be about your musical identity (\"Who are you musically?\").",
+    "tips": "*   Use [images](page 5) that connect to your life and your music.\n*   Think about [Wh\u0101nau, Culture, Friends, Places, Values, Communities, Hobbies, Significant experiences](page 5) for your personal slide.\n*   Think about [Instruments, Performances, Genre, Favourite artists/albums/songs, Favourite musical activities](page 5) for your musical slide.\n*   The document shows examples of how other students have presented their interests visually on pages like [Page 6](https://docs.google.com/presentation/d/1oC09znqxaTS9NsHlKLcN-ZR082DGHeAp9-laRyoVCDc/edit?slide=id.g3bc4a674970_0_50#slide=id.g3bc4a674970_0_50), [Page 11](https://docs.google.com/presentation/d/1oC09znqxaTS9NsHlKLcN-ZR082DGHeAp9-laRyoVCDc/edit?slide=id.g3bc4a674970_2_0#slide=id.g3bc4a674970_2_0), and [Page 17](https://docs.google.com/presentation/d/1oC09znqxaTS9NsHlKLcN-ZR082DGHeAp9-laRyoVCDc/edit?slide=id.g3bc4a674970_3_0#slide=id.g3bc4a674970_3_0).",
+    "html_path": "analysis/MUS223-2026-Who-are-we__MUS223-2026-Who-are-we.html"
+  },
+  "Welcome-to-MUS223": {
+    "what_to_do": "You will be assessed on four different music standards:\n*   **Solo Performance:** Perform two substantial pieces of music as a featured soloist.\n*   **Group Performance:** Demonstrate ensemble skills by performing a substantial piece of music as a member of a group.\n*   **Composition:** Compose two substantial pieces of music.\n*   **Investigate an Aspect of New Zealand Music:** Investigate an aspect of New Zealand music.",
+    "requirements": "*   **Solo Performance:**\n    *   Perform two substantial pieces as a featured soloist.\n    *   Pieces should be 4-5 minutes long, musically and technically complex.\n    *   Demonstrate technical, musical, and presentation skills.\n    *   Live presentation to an audience.\n*   **Group Performance:**\n    *   Perform a substantial piece as a member of a group (3-7 members recommended).\n    *   Contribute to the group's cohesion, balance, intonation, feel, style, and accuracy.\n    *   Demonstrate confidence, consistency, and musical responsiveness.\n    *   Piece should be 4-6 minutes long, with significance and complexity.\n*   **Composition:**\n    *   Compose two substantial pieces of music, each at least two minutes in length.\n    *   Musical ideas should be skilfully developed and structured.\n    *   Demonstrate understanding of idiomatic writing, effective use of scales/modes, and compositional devices.\n    *   Structure ideas into a coherent whole with a clear beginning, middle, and end.\n    *   Ability to create and maintain a sense of style.\n    *   Can be solo or group composition (2-5 students for group).\n*   **Investigate an Aspect of New Zealand Music:**\n    *   Conduct an investigation into an aspect of New Zealand music.\n    *   This could be a musical style, genre, historical period, music industry, advocacy group, funding agency, musician, performing group, or festival/competition.\n    *   Presentation can include written assignments, seminars, documentaries, websites, PowerPoints, or static displays.",
+    "tips": "*   **Music Ambassadors:** Consider your skills and ideas for leading clubs or strengthening the music community.\n*   **Solo Performance:**\n    *   Choose pieces that showcase your best skills and that you will enjoy practicing.\n    *   Practice regularly (aim for at least 20 minutes a day).\n    *   Practice performing in front of classmates.\n    *   Bring a copy of your score or a link to a performance of your piece.\n    *   A quality performance is assured, stylistically appropriate, musically expressive, demonstrates interpretive understanding, has appropriate body language, and is introduced by you.\n*   **Group Performance:**\n    *   Make the most of class rehearsal time and organize extra rehearsals if needed.\n    *   Bring a copy of your score or a link to a performance of your piece.\n    *   Quality performance includes enthusiastic interaction, musical responsiveness, awareness of space and audience, self-assurance, fluency, and an appropriate piece.\n*   **Composition:**\n    *   Engage in regular feedback and re-work your compositions.\n    *   Keep good records of your drafts and process.\n    *   Submit both visual representations (e.g., notation, lead sheet) and audio recordings.\n    *   For group composition, ensure your contribution can be verified (e.g., annotations, diary entries).\n*   **Investigate an Aspect of New Zealand Music:**\n    *   Your investigation should include a chronological overview, background profile, significant musical characteristics, and an evaluation of significance.\n    *   Presentation can include elements like performance, music videos, or annotated scores.",
+    "html_path": "analysis/Welcome-to-MUS223__Welcome-to-MUS223.html"
+  },
+  "Info-about-MAT223-for-2026": {
+    "what_to_do": "This course, MAT223 Te Ara P\u0101ngarau, is designed to be flexible. You will choose your own learning methods and standards, and work at your own pace. You will also sit assessments when you feel ready. Your teacher will act as a mentor, helping you plan your work, with difficult questions, and providing feedback.",
+    "requirements": "*   You need to pass at least **four achievement standards** this year.\n*   Ensure you meet the [prerequisites](https://docs.google.com/presentation/d/1a67JwSK6dIK8SPvKoJSB9lfYW-KItzQ3a3U6Y4s-oig/edit?slide=id.g701e6895cd_0_0) for the courses you want to take in Year 13.\n*   If you haven't met the 'numeracy' requirement of NCEA, talk to your teacher.\n*   Year 12 students should focus on Level 2 standards, but two Level 3 standards are also available.\n*   You can only [resubmit](https://docs.google.com/presentation/d/1a67JwSK6dIK8SPvKoJSB9lfYW-KItzQ3a3U6Y4s-oig/edit?slide=id.g473f99fbc9_0_135) an internal assessment to change a 'Not Achieved' grade to 'Achieved'.",
+    "tips": "*   You are in control of your learning and can work at your own pace.\n*   Teachers will act as mentors, guiding you through the course.\n*   It's important to discuss with your teacher if you want to do a standard at a higher level, as it might make getting endorsements harder.\n*   Remember to bring your [laptop](https://www.warehousestationery.co.nz/product/W2684953.html), [headphones](https://www.come-here.co.nz/), pens, pencil, and calculator to every lesson.",
+    "html_path": "analysis/Info-about-MAT223-for-2026__Info-about-MAT223-for-2026.html"
+  }
+};
+
+const ANOMALIES = [];
+
+const TASK_SETS = {
+  "12FTX": {
+    "assignment": "Written part of presentation/draft copy due",
+    "due": "2026-03-17",
+    "tasks": [
+      {
+        "id": "t1",
+        "label": "Start Gothic Revival",
+        "done": "Started",
+        "sub": "Begin research on Gothic revival architecture",
+        "sec": "Research",
+        "requires": [],
+        "bullets": [
+          "Understand the origins and timeframe",
+          "Focus on English Gothic revival"
+        ],
+        "deliverable": "Initial understanding of Gothic revival",
+        "url": null
+      },
+      {
+        "id": "t2",
+        "label": "Research Key Components",
+        "done": "Researched",
+        "sub": "Identify key elements of Gothic revival",
+        "sec": "Research",
+        "requires": [
+          0
+        ],
+        "bullets": [
+          "Identify key designers",
+          "List notable buildings"
+        ],
+        "deliverable": "List of key Gothic revival figures and buildings",
+        "url": null
+      },
+      {
+        "id": "t3",
+        "label": "Historical Context",
+        "done": "Contextualized",
+        "sub": "Connect to historical events",
+        "sec": "Research",
+        "requires": [
+          0
+        ],
+        "bullets": [
+          "Link to the Industrial Revolution",
+          "Explore societal influences"
+        ],
+        "deliverable": "Notes on historical connections",
+        "url": null
+      },
+      {
+        "id": "t4",
+        "label": "Aesthetics & Function",
+        "done": "Analyzed",
+        "sub": "Explore visual and practical aspects",
+        "sec": "Research",
+        "requires": [
+          1,
+          2
+        ],
+        "bullets": [
+          "Discuss aesthetic features",
+          "Examine functional aspects"
+        ],
+        "deliverable": "Analysis of Gothic revival characteristics",
+        "url": null
+      },
+      {
+        "id": "t5",
+        "label": "Arts & Crafts Link",
+        "done": "Linked",
+        "sub": "Connect to Arts and Crafts movement",
+        "sec": "Research",
+        "requires": [
+          3
+        ],
+        "bullets": [
+          "Explore the relationship",
+          "Consider shared principles"
+        ],
+        "deliverable": "Notes on the Arts and Crafts connection",
+        "url": null
+      },
+      {
+        "id": "t6",
+        "label": "Draft Page 1",
+        "done": "Drafted",
+        "sub": "Write overview of Gothic Revival",
+        "sec": "Drafting",
+        "requires": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "bullets": [
+          "Summarize origins and timeframe",
+          "Include key designers and buildings",
+          "Discuss historical context"
+        ],
+        "deliverable": "First draft of Page 1 content",
+        "url": null
+      },
+      {
+        "id": "t7",
+        "label": "Final Polish & Submit",
+        "done": "Submitted",
+        "sub": "Refine and submit written draft",
+        "sec": "Finishing",
+        "requires": [
+          5
+        ],
+        "bullets": [
+          "Review and edit for clarity",
+          "Check against assignment requirements",
+          "Submit written draft copy"
+        ],
+        "deliverable": "Final written draft copy submitted",
+        "url": null
+      }
+    ]
+  },
+  "FLM223": {
+    "assignment": "5/3 Period 4 and 5 Final girl and good for her articles and worksheets when PBT is away",
+    "due": "2026-03-05",
+    "tasks": [
+      {
+        "id": "t1",
+        "label": "Read Final Girl Article",
+        "done": "Read",
+        "sub": "Understand the origins of the final girl.",
+        "sec": "Reading",
+        "requires": [],
+        "bullets": [
+          "Open 'The Rise of The Final Girl.pdf'.",
+          "Read through the article.",
+          "Note down key terms and concepts."
+        ],
+        "deliverable": "General understanding of the 'final girl' concept.",
+        "url": null
+      },
+      {
+        "id": "t2",
+        "label": "Read Good For Her Article",
+        "done": "Read",
+        "sub": "Explore the 'good for her' horror trope.",
+        "sec": "Reading",
+        "requires": [],
+        "bullets": [
+          "Open the 'Coco-Inez-Penn-Good-for-her-horror-worksheet'.",
+          "Read the section on what 'good for her' horror is.",
+          "Identify the author's definition and examples."
+        ],
+        "deliverable": "Understanding of the 'good for her' trope.",
+        "url": null
+      },
+      {
+        "id": "t3",
+        "label": "Analyze Final Girl Worksheet",
+        "done": "Analyzed",
+        "sub": "Answer questions on the 'final girl'.",
+        "sec": "Worksheet 1",
+        "requires": [
+          0
+        ],
+        "bullets": [
+          "Refer to 'The Rise of The Final Girl.pdf'.",
+          "Answer each question using article quotes.",
+          "Include specific film examples for support."
+        ],
+        "deliverable": "Completed answers for the 'Rise of the Final Girl' worksheet.",
+        "url": null
+      },
+      {
+        "id": "t4",
+        "label": "Analyze Good For Her Worksheet",
+        "done": "Analyzed",
+        "sub": "Discuss the 'good for her' trope.",
+        "sec": "Worksheet 2",
+        "requires": [
+          1
+        ],
+        "bullets": [
+          "Review the 'Coco-Inez-Penn-Good-for-her-horror-worksheet'.",
+          "Answer discussion questions using simple language.",
+          "Use bullet points for answers under headings."
+        ],
+        "deliverable": "Completed answers for the 'Good for Her' horror worksheet.",
+        "url": null
+      },
+      {
+        "id": "t5",
+        "label": "Compare Final Girls",
+        "done": "Compared",
+        "sub": "Contrast 'Scream' and 'Halloween' final girls.",
+        "sec": "Analysis",
+        "requires": [
+          2,
+          3
+        ],
+        "bullets": [
+          "Review 'Halloween-final-girl-notes'.",
+          "Review 'Scream-notes-on-Final-girl'.",
+          "Identify key similarities and differences."
+        ],
+        "deliverable": "Notes comparing 'final girl' characteristics.",
+        "url": null
+      },
+      {
+        "id": "t6",
+        "label": "Synthesize & Refine",
+        "done": "Synthesized",
+        "sub": "Combine answers and notes.",
+        "sec": "Refining",
+        "requires": [
+          4
+        ],
+        "bullets": [
+          "Read through all worksheet answers.",
+          "Check for clarity and simple language.",
+          "Ensure all requirements are met.",
+          "Review comparison notes for insights."
+        ],
+        "deliverable": "Draft of combined answers and analysis.",
+        "url": null
+      },
+      {
+        "id": "t7",
+        "label": "Final Review & Submit",
+        "done": "Submitted",
+        "sub": "Polishing and submission.",
+        "sec": "Finishing",
+        "requires": [
+          5
+        ],
+        "bullets": [
+          "Proofread for spelling and grammar.",
+          "Ensure formatting is correct.",
+          "Double-check all answers are evidence-based.",
+          "Submit assignment by the deadline."
+        ],
+        "deliverable": "Completed assignment submitted.",
+        "url": null
+      }
+    ]
+  },
+  "MUS223": {
+    "assignment": "Submit research question for teacher approval (Investigate NZ Music)",
+    "due": "2026-03-23",
+    "tasks": [
+      {
+        "id": "t1",
+        "label": "Brainstorm NZ Music",
+        "done": "Brainstormed",
+        "sub": "Explore NZ music genres and artists",
+        "sec": "Getting Started",
+        "requires": [],
+        "bullets": [
+          "Think about your favourite NZ music.",
+          "List different NZ music eras.",
+          "Consider NZ music's impact."
+        ],
+        "deliverable": "List of initial NZ music ideas",
+        "url": null
+      },
+      {
+        "id": "t2",
+        "label": "Narrow Down Ideas",
+        "done": "Narrowed Down",
+        "sub": "Identify potential research areas",
+        "sec": "Getting Started",
+        "requires": [
+          0
+        ],
+        "bullets": [
+          "Review your brainstormed list.",
+          "Select 2-3 promising topics.",
+          "Consider what interests you most."
+        ],
+        "deliverable": "Shortlist of 2-3 potential research topics",
+        "url": null
+      },
+      {
+        "id": "t3",
+        "label": "Initial Topic Research",
+        "done": "Researched Topics",
+        "sub": "Gather basic info on shortlisted topics",
+        "sec": "Research",
+        "requires": [
+          1
+        ],
+        "bullets": [
+          "Do quick online searches.",
+          "Find key artists/movements.",
+          "Note down interesting facts."
+        ],
+        "deliverable": "Notes on shortlisted research topics",
+        "url": null
+      },
+      {
+        "id": "t4",
+        "label": "Formulate Questions",
+        "done": "Formulated Questions",
+        "sub": "Draft possible research questions",
+        "sec": "Drafting",
+        "requires": [
+          2
+        ],
+        "bullets": [
+          "Turn your chosen topic into questions.",
+          "Make questions specific and focused.",
+          "Aim for 2-3 question drafts."
+        ],
+        "deliverable": "Draft research questions",
+        "url": null
+      },
+      {
+        "id": "t5",
+        "label": "Refine Question",
+        "done": "Refined Question",
+        "sub": "Select and polish your best question",
+        "sec": "Drafting",
+        "requires": [
+          3
+        ],
+        "bullets": [
+          "Evaluate your draft questions.",
+          "Choose the strongest one.",
+          "Check if it's investigable."
+        ],
+        "deliverable": "One refined research question",
+        "url": null
+      },
+      {
+        "id": "t6",
+        "label": "Teacher Approval Check",
+        "done": "Checked with Teacher",
+        "sub": "Show your question to the teacher",
+        "sec": "Checkpoint",
+        "requires": [
+          4
+        ],
+        "bullets": [
+          "Write your question clearly.",
+          "Ask for teacher's feedback.",
+          "Be ready to explain your choice."
+        ],
+        "deliverable": "Teacher's approval or feedback on question",
+        "url": null
+      },
+      {
+        "id": "t7",
+        "label": "Final Submission",
+        "done": "Submitted",
+        "sub": "Submit your approved research question",
+        "sec": "Finishing",
+        "requires": [
+          5
+        ],
+        "bullets": [
+          "Confirm your question is approved.",
+          "Format it correctly.",
+          "Submit on the due date."
+        ],
+        "deliverable": "Approved research question submitted",
+        "url": null
+      }
+    ]
+  },
+  "MAT223": {
+    "assignment": "Latest date to sit first internal assessment AS2.3 is end of Week 7. (Earliest is Week 4)",
+    "due": "2026-03-09",
+    "tasks": [
+      {
+        "id": "t1",
+        "label": "Understand the Assignment",
+        "done": "Understood",
+        "sub": "Clarify requirements for AS2.3",
+        "sec": "Getting Started",
+        "requires": [],
+        "bullets": [
+          "Read the assignment description carefully.",
+          "Note the earliest and latest assessment dates.",
+          "Identify the first topic: Sequences and Series."
+        ],
+        "deliverable": "Clear understanding of AS2.3 goals",
+        "url": null
+      },
+      {
+        "id": "t2",
+        "label": "Gather Resources",
+        "done": "Gathered",
+        "sub": "Find materials on Sequences & Series",
+        "sec": "Research",
+        "requires": [],
+        "bullets": [
+          "Locate textbook chapters on sequences.",
+          "Search for online tutorials for series.",
+          "Find past assessment examples if available."
+        ],
+        "deliverable": "Collection of relevant learning materials",
+        "url": null
+      },
+      {
+        "id": "t3",
+        "label": "Study Sequences",
+        "done": "Studied",
+        "sub": "Learn about arithmetic & geometric sequences",
+        "sec": "Learning",
+        "requires": [
+          1
+        ],
+        "bullets": [
+          "Understand arithmetic sequence formulas.",
+          "Understand geometric sequence formulas.",
+          "Practice identifying sequence types."
+        ],
+        "deliverable": "Notes on sequence definitions and formulas",
+        "url": null
+      },
+      {
+        "id": "t4",
+        "label": "Study Series",
+        "done": "Studied",
+        "sub": "Learn about series summation",
+        "sec": "Learning",
+        "requires": [
+          2
+        ],
+        "bullets": [
+          "Learn formulas for arithmetic series.",
+          "Learn formulas for geometric series.",
+          "Practice calculating sum of terms."
+        ],
+        "deliverable": "Notes on series summation formulas",
+        "url": null
+      },
+      {
+        "id": "t5",
+        "label": "Practice Problems",
+        "done": "Practiced",
+        "sub": "Solve problems on sequences & series",
+        "sec": "Practice",
+        "requires": [
+          3,
+          4
+        ],
+        "bullets": [
+          "Complete textbook exercises.",
+          "Attempt practice exam questions.",
+          "Focus on applying formulas."
+        ],
+        "deliverable": "Completed practice problem set",
+        "url": null
+      },
+      {
+        "id": "t6",
+        "label": "Seek Clarification",
+        "done": "Clarified",
+        "sub": "Ask teacher about any doubts",
+        "sec": "Checkpoint",
+        "requires": [
+          5
+        ],
+        "bullets": [
+          "List questions from practice.",
+          "Attend Q&A session if offered.",
+          "Email teacher with specific queries."
+        ],
+        "deliverable": "Answers to all outstanding questions",
+        "url": null
+      },
+      {
+        "id": "t7",
+        "label": "Prepare for Assessment",
+        "done": "Prepared",
+        "sub": "Final review and planning",
+        "sec": "Finishing",
+        "requires": [
+          6
+        ],
+        "bullets": [
+          "Review all notes and practice solutions.",
+          "Confirm assessment day and time.",
+          "Organize all necessary materials."
+        ],
+        "deliverable": "Ready to sit the internal assessment",
+        "url": null
+      }
+    ]
+  }
+};
+
+</script>
+<script>
+const TODAY = new Date();
+const TODAY_STR = TODAY.toISOString().slice(0, 10);
+
+// CLASSES, RAW, ANALYSIS, ANOMALIES loaded from dates_data.js
+
+function sourceUrl(cls, source) {
+  if (!source || !ANALYSIS[source]) return null;
+  return ANALYSIS[source].html_path || null;
+}
+
+
+// Deduplicate
+function dedup(items) {
+  const key = (it) => it.cls + '|' + it.date;
+  const groups = {};
+  items.forEach(it => { const k = key(it); if (!groups[k]) groups[k] = []; groups[k].push(it); });
+  const result = [];
+  Object.values(groups).forEach(g => {
+    if (g.length === 1) { result.push(g[0]); return; }
+    const dominated = new Set();
+    for (let i = 0; i < g.length; i++) {
+      for (let j = 0; j < g.length; j++) {
+        if (i === j) continue;
+        const ti = g[i].title.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const tj = g[j].title.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (ti.includes(tj) || tj.includes(ti)) {
+          const scoreI = (g[i].status ? 10 : 0) + g[i].title.length;
+          const scoreJ = (g[j].status ? 10 : 0) + g[j].title.length;
+          dominated.add(scoreI >= scoreJ ? j : i);
+        }
+      }
+    }
+    g.forEach((it, idx) => { if (!dominated.has(idx)) result.push(it); });
+  });
+  return result;
+}
+
+const ITEMS = dedup(RAW);
+
+// Format helpers
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const DAYS_S = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+function fmtDate(ds) {
+  const [y,m,d] = ds.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  return `${DAYS_S[dt.getDay()]} ${d} ${MONTHS[m-1]}`;
+}
+
+function fmtDateLong(ds) {
+  const [y,m,d] = ds.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  return `${DAYS[dt.getDay()]} ${d} ${MONTHS[m-1]} ${y}`;
+}
+
+function isToday(ds) { return ds === TODAY_STR; }
+
+function daysUntil(ds) {
+  const [y,m,d] = ds.split('-').map(Number);
+  return Math.round((new Date(y, m-1, d) - TODAY) / 86400000);
+}
+
+function typeIcon(type) {
+  switch(type) {
+    case 'deadline': return '\u25C9';
+    case 'assignment': return '\u25A3';
+    case 'assessment': return '\u25C6';
+    case 'event': return '\u25CB';
+    case 'material': return '\u25E6';
+    default: return '\u00B7';
+  }
+}
+
+function statusBadgeHTML(status) {
+  if (!status) return '';
+  const cls = status === 'Turned in' ? 'st-turned-in' : status === 'Missing' ? 'st-missing' : 'st-assigned';
+  return `<span class="status-badge ${cls}">${status}</span>`;
+}
+
+function urgencyLabel(days) {
+  if (days === 0) return 'today';
+  if (days === 1) return 'tomorrow';
+  if (days < 7) return `${days} days`;
+  if (days === 7) return '1 week';
+  if (days < 14) return `${days} days`;
+  if (days === 14) return '2 weeks';
+  const w = Math.floor(days / 7);
+  if (days <= 28) return `${w} weeks`;
+  const m = Math.floor(days / 30);
+  if (m === 1) return '1 month';
+  if (m < 12) return `${m} months`;
+  return '';
+}
+
+function itemId(it) {
+  return (it.cls + '-' + it.date + '-' + it.title).replace(/[^a-zA-Z0-9]/g, '_').substring(0, 80);
+}
+
+function fmtSource(src) {
+  if (!src) return null;
+  return src.replace(/[-_]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+// State
+let activeFilter = null;
+let statusFilter = null;
+let alertsCollapsed = true;
+let pastCollapsed = true;
+let currentCollapsed = false;
+let upcomingCollapsed = true;
+let expandedId = null;
+
+// ── Canvas-based task rendering (exact duplicate of task_template.html) ──
+
+// Accent colors per class code — matches classroom_tasks.py CLASS_CONFIG
+const CLASS_ACCENTS = {
+  '12FTX':  [184, 80, 30],
+  'FLM223': [138, 58, 150],
+  'ENW223': [43, 95, 138],
+  'FCM112': [160, 120, 50],
+  'MAT223': [50, 140, 120],
+  'MUS223': [180, 70, 70],
+};
+
+// Derive full color palette from accent RGB (mirrors derive_colors in classroom_tasks.py)
+function deriveColors(accent) {
+  const [r, g, b] = accent;
+  const mix = (c, t, f) => Math.round(c + (t - c) * f);
+  return {
+    STROKE: `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`,
+    FILL_UNDONE: [mix(r,255,0.82), mix(g,255,0.82), mix(b,255,0.82), 0.55],
+    FILL_DONE: [mix(r,255,0.1), mix(g,255,0.2), mix(b,255,0.45), 0.22],
+    FILL_SOLID: [r, g, b],
+    TEXT_BASE: [r, Math.max(Math.round(g * 0.68), 10), Math.max(Math.round(b * 0.69), 10)],
+    STROKE_TARGET: [Math.max(Math.round(r * 0.7), 5), Math.max(Math.round(g * 0.68), 5), Math.max(Math.round(b * 0.72), 5)],
+    ACCENT_RGB: [r, g, b],
+    ACCENT_HEX: `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`,
+    MID_HEX: `#${mix(r,255,0.5).toString(16).padStart(2,'0')}${mix(g,255,0.5).toString(16).padStart(2,'0')}${mix(b,255,0.5).toString(16).padStart(2,'0')}`,
+    LIGHT_HEX: `#${mix(r,255,0.7).toString(16).padStart(2,'0')}${mix(g,255,0.7).toString(16).padStart(2,'0')}${mix(b,255,0.7).toString(16).padStart(2,'0')}`,
+  };
+}
+
+// Active TaskCanvas instances keyed by panelId
+const taskCanvases = {};
+
+function recalcPanelSection(panelId) {
+  const panel = document.getElementById('panel-' + panelId);
+  if (panel) {
+    const body = panel.closest('.section-body');
+    if (body) { body.style.transition = 'none'; body.style.maxHeight = body.scrollHeight + 'px'; body.offsetHeight; body.style.transition = ''; }
+  }
+}
+
+// TaskCanvas: self-contained canvas with inline-expand detail
+function TaskCanvas(wrapEl, tasks, storageKey, colors, panelId) {
+  const self = this;
+  const PASS_STROKE = '#7B8B6F';
+  const FINAL_STROKE = '#C49A3C';
+
+  const N = tasks.length;
+  const CH = 78, GAP = 6, R = 18, SW = 1.8, II = SW / 2;
+  const CW = Math.min(340, wrapEl.offsetWidth || 340);
+
+  const _SR = colors.ACCENT_RGB[0], _SG = colors.ACCENT_RGB[1], _SB = colors.ACCENT_RGB[2];
+  const _TR = colors.TEXT_BASE[0], _TG = colors.TEXT_BASE[1], _TB = colors.TEXT_BASE[2];
+  const _STR = colors.STROKE_TARGET[0], _STG = colors.STROKE_TARGET[1], _STB = colors.STROKE_TARGET[2];
+
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const DPR = window.devicePixelRatio || 1;
+  wrapEl.querySelector('.tc-canvas-slot').appendChild(canvas);
+
+  let selectedIdx = -1;
+  let expandIdx = -1; // which cell currently has expand height (may differ from selectedIdx during collapse)
+  let expandH = 0, expandTarget = 0; // animated expand height
+
+  // textBtm: Y offset from cell top where text ends (for detail panel positioning)
+  let cells = Array.from({ length: N }, (_, i) => ({
+    done: false, passed: false, homeY: 0, textBtm: CH,
+    fillOp: 0, strokeOp: 0.25, divotFrac: 0, textFade: 0,
+  }));
+  let solidFrac = 0, tgtSolid = 0;
+  let raf = null;
+  let tgt = cells.map(() => ({ fillOp: 0, strokeOp: 0.25, divotFrac: 0, textFade: 0 }));
+
+  // Dynamic layout — cell height includes expand area
+  // Base cell height accounts for text wrapping
+  function baseCellH(idx) { return Math.max(CH, cells[idx].textBtm + 26); }
+  function cellH(idx) { return baseCellH(idx) + (idx === expandIdx ? expandH : 0); }
+
+  function computeLayout() {
+    let y = 0;
+    for (let i = 0; i < N; i++) {
+      cells[i].homeY = y;
+      y += cellH(i) + GAP;
+    }
+  }
+
+  function totalH() {
+    let h = 0;
+    for (let i = 0; i < N; i++) h += cellH(i);
+    return h + (N - 1) * GAP;
+  }
+
+  function resizeCanvas() {
+    const th = totalH();
+    canvas.width = CW * DPR;
+    canvas.height = th * DPR;
+    canvas.style.width = CW + 'px';
+    canvas.style.height = th + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    wrapEl.style.minHeight = (th + 40) + 'px';
+  }
+
+  function isLocked(idx) {
+    const reqs = tasks[idx].requires;
+    if (!reqs || reqs.length === 0) return false;
+    return reqs.some(r => !cells[r].done && !cells[r].passed);
+  }
+  function pendingDeps(idx) {
+    const reqs = tasks[idx].requires;
+    if (!reqs) return [];
+    return reqs.filter(r => !cells[r].done && !cells[r].passed);
+  }
+
+  function doneCount() { return cells.filter(c => c.done).length; }
+  function passCount() { return cells.filter(c => c.passed).length; }
+  function updateCounter() {
+    const done = doneCount(), skip = passCount(), todo = N - done - skip;
+    const pd = wrapEl.querySelector('.tp-done'), pt = wrapEl.querySelector('.tp-todo'), ps = wrapEl.querySelector('.tp-skip');
+    if (pd) { pd.textContent = done + ' complete'; pd.style.display = done > 0 ? '' : 'none'; }
+    if (pt) { pt.textContent = todo + ' to do'; pt.style.display = todo > 0 ? '' : 'none'; }
+    if (ps) { ps.textContent = skip + ' skipped'; ps.style.display = skip > 0 ? '' : 'none'; }
+  }
+
+  function recalcTargets() {
+    tgtSolid = cells.every(c => c.done || c.passed) ? 1 : 0;
+    cells.forEach((cell, i) => {
+      tgt[i].fillOp = cell.done ? 1.0 : 0;
+      tgt[i].strokeOp = cell.done ? 1.0 : 0.25;
+      tgt[i].textFade = cell.done ? 1.0 : 0;
+      tgt[i].divotFrac = (i < N - 1 && cell.done && cells[i + 1].done) ? 1 : 0;
+    });
+  }
+
+  function saveLS() {
+    const s = {};
+    cells.forEach((c, i) => {
+      if (c.done) s[tasks[i].id] = 'done';
+      else if (c.passed) s[tasks[i].id] = 'passed';
+    });
+    localStorage.setItem(storageKey, JSON.stringify(s));
+  }
+
+  function loadLS() {
+    try {
+      const s = JSON.parse(localStorage.getItem(storageKey)) || {};
+      cells.forEach((c, i) => {
+        const v = s[tasks[i].id];
+        if (v === true || v === 'done') { c.done = true; c.fillOp = 1; c.strokeOp = 1; c.textFade = 1; }
+        else if (v === 'passed') { c.passed = true; }
+      });
+      cells.forEach((c, i) => { if (i < N - 1 && c.done && cells[i + 1].done) c.divotFrac = 1; });
+      if (cells.every(c => c.done || c.passed)) solidFrac = 1;
+    } catch {}
+  }
+
+  // Color helpers
+  function fillColour(fillOp) {
+    const [r0,g0,b0,a0] = colors.FILL_DONE;
+    const [rs,gs,bs] = colors.FILL_SOLID;
+    const r = Math.round(r0 + (rs-r0)*solidFrac);
+    const g = Math.round(g0 + (gs-g0)*solidFrac);
+    const b = Math.round(b0 + (bs-b0)*solidFrac);
+    const a = (a0 + (1-a0)*solidFrac) * fillOp;
+    return `rgba(${r},${g},${b},${a.toFixed(3)})`;
+  }
+  function textColour(alpha) {
+    const r = Math.round(_TR + (255-_TR)*solidFrac);
+    const g = Math.round(_TG + (255-_TG)*solidFrac);
+    const b = Math.round(_TB + (255-_TB)*solidFrac);
+    return `rgba(${r},${g},${b},${alpha.toFixed(3)})`;
+  }
+  function strokeColour(op) {
+    const r = Math.round(_SR + (_STR-_SR)*solidFrac);
+    const g = Math.round(_SG + (_STG-_SG)*solidFrac);
+    const b = Math.round(_SB + (_STB-_SB)*solidFrac);
+    return `rgba(${r},${g},${b},${op.toFixed(3)})`;
+  }
+  function finalTextColour(alpha) {
+    const r = Math.round(156 + (255-156)*solidFrac);
+    const g = Math.round(122 + (235-122)*solidFrac);
+    const b = Math.round(30 + (180-30)*solidFrac);
+    return `rgba(${r},${g},${b},${alpha.toFixed(3)})`;
+  }
+
+  // Paths — rrPath accepts variable height
+  function rrPath(y, h) {
+    h = h || CH;
+    const x0=II, y0=y+II, x1=CW-II, y1=y+h-II, r=R-II;
+    const p = new Path2D();
+    p.moveTo(x0+r, y0);
+    p.lineTo(x1-r, y0); p.quadraticCurveTo(x1, y0, x1, y0+r);
+    p.lineTo(x1, y1-r); p.quadraticCurveTo(x1, y1, x1-r, y1);
+    p.lineTo(x0+r, y1); p.quadraticCurveTo(x0, y1, x0, y1-r);
+    p.lineTo(x0, y0+r); p.quadraticCurveTo(x0, y0, x0+r, y0);
+    p.closePath(); return p;
+  }
+
+  function mergedPathV(ytop, ybot, joins) {
+    const DF = 18, DC = 8;
+    const lx=II, rx=CW-II, ty=ytop+II, by=ybot-II, r=R-II;
+    const p = new Path2D();
+    p.moveTo(lx+r, ty);
+    p.lineTo(rx-r, ty); p.quadraticCurveTo(rx, ty, rx, ty+r);
+    joins.forEach(({ jy, frac }) => {
+      const f = DF*frac, c = DC*frac;
+      p.lineTo(rx, jy-c); p.quadraticCurveTo(rx-f, jy, rx, jy+c);
+    });
+    p.lineTo(rx, by-r); p.quadraticCurveTo(rx, by, rx-r, by);
+    p.lineTo(lx+r, by); p.quadraticCurveTo(lx, by, lx, by-r);
+    [...joins].reverse().forEach(({ jy, frac }) => {
+      const f = DF*frac, c = DC*frac;
+      p.lineTo(lx, jy+c); p.quadraticCurveTo(lx+f, jy, lx, jy-c);
+    });
+    p.lineTo(lx, ty+r); p.quadraticCurveTo(lx, ty, lx+r, ty);
+    p.closePath(); return p;
+  }
+
+  function drawBorderAnim(homeY, progress, isDone, cellIdx) {
+    const h = cellH(cellIdx);
+    const x0 = II, y0 = homeY + II, x1 = CW - II, y1 = homeY + h - II;
+    const r = R - II;
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    const halfW = cx - x0 - r, arcL = (Math.PI / 2) * r, halfH = cy - y0 - r;
+    const arm = halfW + arcL + halfH;
+    const dist = progress * arm;
+    ctx.lineCap = 'round';
+    function traceArm(segs) {
+      let rem = dist; ctx.beginPath(); let on = false;
+      for (const s of segs) {
+        if (rem <= 0) break;
+        if (s.type === 'line') {
+          const len = Math.hypot(s.ex - s.sx, s.ey - s.sy);
+          const t = Math.min(rem / len, 1);
+          if (!on) { ctx.moveTo(s.sx, s.sy); on = true; }
+          ctx.lineTo(s.sx + (s.ex - s.sx) * t, s.sy + (s.ey - s.sy) * t);
+          rem -= len;
+        } else {
+          const aLen = Math.abs(s.ea - s.sa) * r;
+          const t = Math.min(rem / aLen, 1);
+          if (!on) { ctx.moveTo(s.cx + r * Math.cos(s.sa), s.cy + r * Math.sin(s.sa)); on = true; }
+          ctx.arc(s.cx, s.cy, r, s.sa, s.sa + (s.ea - s.sa) * t, s.ccw);
+          rem -= aLen;
+        }
+      }
+      ctx.stroke();
+    }
+    const arms = [
+      [{ type:'line', sx:cx, sy:y0, ex:x1-r, ey:y0 },
+       { type:'arc', cx:x1-r, cy:y0+r, sa:-Math.PI/2, ea:0, ccw:false },
+       { type:'line', sx:x1, sy:y0+r, ex:x1, ey:cy }],
+      [{ type:'line', sx:cx, sy:y0, ex:x0+r, ey:y0 },
+       { type:'arc', cx:x0+r, cy:y0+r, sa:-Math.PI/2, ea:-Math.PI, ccw:true },
+       { type:'line', sx:x0, sy:y0+r, ex:x0, ey:cy }],
+      [{ type:'line', sx:cx, sy:y1, ex:x1-r, ey:y1 },
+       { type:'arc', cx:x1-r, cy:y1-r, sa:Math.PI/2, ea:0, ccw:true },
+       { type:'line', sx:x1, sy:y1-r, ex:x1, ey:cy }],
+      [{ type:'line', sx:cx, sy:y1, ex:x0+r, ey:y1 },
+       { type:'arc', cx:x0+r, cy:y1-r, sa:Math.PI/2, ea:Math.PI, ccw:false },
+       { type:'line', sx:x0, sy:y1-r, ex:x0, ey:cy }],
+    ];
+    const borderStroke = (cellIdx === N - 1) ? FINAL_STROKE : colors.STROKE;
+    if (isDone) {
+      ctx.strokeStyle = '#ECEAE3'; ctx.globalAlpha = 1; ctx.lineWidth = SW + 2;
+      arms.forEach(a => traceArm(a));
+      ctx.strokeStyle = borderStroke; ctx.globalAlpha = 0.25; ctx.lineWidth = SW;
+      arms.forEach(a => traceArm(a));
+    } else {
+      ctx.strokeStyle = borderStroke; ctx.globalAlpha = 1; ctx.lineWidth = SW;
+      arms.forEach(a => traceArm(a));
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function fitText(text, maxW) {
+    if (ctx.measureText(text).width <= maxW) return text;
+    while (text.length > 0 && ctx.measureText(text + '\u2026').width > maxW) text = text.slice(0, -1);
+    return text.trimEnd() + '\u2026';
+  }
+
+  // Wrap text into up to maxLines lines that fit within maxW
+  function wrapText(text, maxW, maxLines) {
+    if (ctx.measureText(text).width <= maxW) return [text];
+    const words = text.split(/\s+/);
+    const lines = [];
+    let line = '';
+    for (const word of words) {
+      const test = line ? line + ' ' + word : word;
+      if (ctx.measureText(test).width > maxW && line) {
+        lines.push(line);
+        if (lines.length >= maxLines) { lines[lines.length - 1] = fitText(lines[lines.length - 1] + ' ' + words.slice(words.indexOf(word)).join(' '), maxW); return lines; }
+        line = word;
+      } else {
+        line = test;
+      }
+    }
+    if (line) {
+      if (lines.length >= maxLines) lines[lines.length - 1] = fitText(lines[lines.length - 1] + ' ' + line, maxW);
+      else lines.push(line);
+    }
+    return lines;
+  }
+
+  function draw() {
+    const th = totalH();
+    ctx.clearRect(0, 0, CW, th);
+
+    // Undone and passed cells — use cellH for variable height
+    cells.forEach((cell, idx) => {
+      if (cell.done) return;
+      const h = cellH(idx);
+      const p = rrPath(cell.homeY, h);
+      const isFinal = idx === N - 1;
+      const st = isFinal ? FINAL_STROKE : colors.STROKE;
+      if (cell.passed) {
+        const pr = Math.round(123 + (88-123)*solidFrac);
+        const pg = Math.round(139 + (115-139)*solidFrac);
+        const pb = Math.round(111 + (72-111)*solidFrac);
+        const pa = 0.12 + (0.88 - 0.12)*solidFrac;
+        ctx.fillStyle = `rgba(${pr},${pg},${pb},${pa.toFixed(3)})`;
+        ctx.fill(p);
+        ctx.strokeStyle = PASS_STROKE; ctx.lineWidth = SW;
+        ctx.globalAlpha = 0.55 + 0.45*solidFrac; ctx.stroke(p); ctx.globalAlpha = 1;
+      } else if (isLocked(idx)) {
+        ctx.fillStyle = isFinal ? 'rgba(196,154,60,0.12)' : 'rgba(202,224,245,0.25)';
+        ctx.fill(p);
+        ctx.setLineDash([6, 4]); ctx.strokeStyle = st; ctx.lineWidth = SW;
+        ctx.globalAlpha = 0.1; ctx.stroke(p); ctx.globalAlpha = 1; ctx.setLineDash([]);
+      } else if (idx === selectedIdx) {
+        ctx.fillStyle = isFinal ? 'rgba(196,154,60,0.25)' : 'rgba(202,224,245,0.85)';
+        ctx.fill(p);
+        ctx.setLineDash([6, 4]); ctx.strokeStyle = st; ctx.lineWidth = SW;
+        ctx.globalAlpha = 0.6; ctx.stroke(p); ctx.globalAlpha = 1; ctx.setLineDash([]);
+      } else {
+        ctx.fillStyle = isFinal ? 'rgba(196,154,60,0.18)' : `rgba(${colors.FILL_UNDONE.join(',')})`;
+        ctx.fill(p);
+        ctx.setLineDash([6, 4]); ctx.strokeStyle = st; ctx.lineWidth = SW;
+        ctx.globalAlpha = cell.strokeOp; ctx.stroke(p); ctx.globalAlpha = 1; ctx.setLineDash([]);
+      }
+    });
+
+    // Done runs — merged path uses cellH for variable heights
+    let i = 0;
+    while (i < N) {
+      if (!cells[i].done) { i++; continue; }
+      let j = i;
+      while (j < N && cells[j].done) j++;
+      const ytop = cells[i].homeY;
+      const ybot = cells[j-1].homeY + cellH(j-1);
+      const joins = [];
+      for (let k = i+1; k < j; k++) {
+        joins.push({
+          jy: (cells[k-1].homeY + cellH(k-1) + cells[k].homeY) / 2,
+          frac: cells[k-1].divotFrac
+        });
+      }
+      const path = (j-i === 1) ? rrPath(cells[i].homeY, cellH(i)) : mergedPathV(ytop, ybot, joins);
+      let avgFill = 0, avgStroke = 0;
+      for (let k = i; k < j; k++) { avgFill += cells[k].fillOp; avgStroke += cells[k].strokeOp; }
+      avgFill /= (j-i); avgStroke /= (j-i);
+      ctx.fillStyle = fillColour(avgFill); ctx.fill(path);
+      ctx.strokeStyle = strokeColour(avgStroke); ctx.lineWidth = SW; ctx.stroke(path);
+      i = j;
+    }
+
+    // Text — always drawn at the top of each cell (fixed CH area)
+    cells.forEach((cell, idx) => {
+      const t = tasks[idx], y = cell.homeY;
+      const selBoost = (idx === selectedIdx) ? 1.6 : 1.0;
+      const isFinal = idx === N - 1;
+      ctx.save();
+      const locked = isLocked(idx);
+      // Helper: draw sub text with wrapping (up to 2 lines), returns line count
+      function drawSub(text, fillStyle, yBase) {
+        ctx.font = '12px JetBrains Mono, monospace';
+        ctx.fillStyle = fillStyle;
+        const lines = wrapText(text, CW - 32, 2);
+        lines.forEach((ln, li) => ctx.fillText(ln, 16, yBase + li * 15));
+        // Track text bottom for detail panel positioning
+        cell.textBtm = (yBase - y) + (lines.length - 1) * 15 + 12;
+      }
+
+      // Task number aligned right
+      function drawNum(alpha) {
+        ctx.font = '600 11px JetBrains Mono, monospace';
+        ctx.fillStyle = isFinal ? finalTextColour(alpha) : textColour(alpha);
+        ctx.textAlign = 'right';
+        ctx.fillText(String(idx + 1), CW - 14, y + 18);
+        ctx.textAlign = 'left';
+      }
+
+
+
+      if (cell.passed) {
+        const pr = Math.round(123 + (255-123)*solidFrac);
+        const pg = Math.round(139 + (255-139)*solidFrac);
+        const pb = Math.round(111 + (255-111)*solidFrac);
+        drawNum(0.3 + 0.3*solidFrac);
+        ctx.font = solidFrac > 0.5 ? 'italic 400 19px Nunito, sans-serif' : '400 19px Nunito, sans-serif';
+        ctx.fillStyle = `rgba(${pr},${pg},${pb},${(0.55 + 0.4*solidFrac).toFixed(3)})`;
+        ctx.fillText((solidFrac > 0.5 ? t.done : t.label) + ' \u00b7 Skipped', 16, y + 30);
+        drawSub(t.sub, `rgba(${pr},${pg},${pb},${(0.5 + 0.35*solidFrac).toFixed(3)})`, y + 48);
+      } else if (locked) {
+        const tc = isFinal ? finalTextColour : textColour;
+        drawNum(0.15);
+        ctx.font = '400 19px Nunito, sans-serif';
+        ctx.fillStyle = tc(0.22); ctx.fillText(t.label, 16, y + 30);
+        drawSub(t.sub, tc(0.16), y + 48);
+      } else {
+        const tc = isFinal ? finalTextColour : textColour;
+        const tf = cell.textFade;
+        const undoneA = (1 - tf) * 0.6, doneA = tf * 0.95;
+        if (undoneA > 0.005) {
+          drawNum(Math.min(undoneA * 0.6 * selBoost, 0.5));
+          ctx.font = '400 19px Nunito, sans-serif';
+          ctx.fillStyle = tc(Math.min(undoneA * selBoost, 1));
+          ctx.fillText(t.label, 16, y + 30);
+          drawSub(t.sub, tc(Math.min(undoneA * 0.85 * selBoost, 1)), y + 48);
+        }
+        if (doneA > 0.005) {
+          drawNum(doneA * 0.4);
+          ctx.font = 'italic 400 19px Nunito, sans-serif';
+          ctx.fillStyle = tc(doneA); ctx.fillText(t.done, 16, y + 30);
+          drawSub(t.sub, tc(doneA * 0.8), y + 48);
+        }
+      }
+      ctx.restore();
+    });
+
+    // Hold border — uses cellH for full cell height
+    if (pressIdx >= 0 && holdProg > 0 && !holdDone) {
+      drawBorderAnim(cells[pressIdx].homeY, holdProg, cells[pressIdx].done, pressIdx);
+    }
+  }
+
+  // Animation
+  const S_FILL = 0.055, S_STROKE = 0.07, S_DIVOT = 0.06, S_TEXT = 0.045, S_SOLID = 0.04, S_EXPAND = 0.14;
+  function tick() {
+    let dirty = false;
+    cells.forEach((cell, i) => {
+      function step(key, speed) {
+        const d = tgt[i][key] - cell[key];
+        if (Math.abs(d) > 0.001) { cell[key] += d * speed; dirty = true; }
+        else cell[key] = tgt[i][key];
+      }
+      step('fillOp', S_FILL); step('strokeOp', S_STROKE);
+      step('divotFrac', S_DIVOT); step('textFade', S_TEXT);
+    });
+    const ds = tgtSolid - solidFrac;
+    if (Math.abs(ds) > 0.001) { solidFrac += ds * S_SOLID; dirty = true; }
+    else solidFrac = tgtSolid;
+    // Animate expand height
+    const de = expandTarget - expandH;
+    if (Math.abs(de) > 0.5) { expandH += de * S_EXPAND; dirty = true; }
+    else { expandH = expandTarget; if (expandH === 0) expandIdx = -1; }
+    // Relayout every frame while expanding/collapsing
+    computeLayout(); resizeCanvas();
+    if (expandIdx >= 0) {
+      detailPanel.style.top = (cells[expandIdx].homeY + baseCellH(expandIdx)) + 'px';
+    }
+    draw();
+    raf = dirty ? requestAnimationFrame(tick) : null;
+  }
+  function kick() { if (!raf) raf = requestAnimationFrame(tick); }
+
+  // Detail panel elements
+  const detailPanel = wrapEl.querySelector('.task-detail-panel');
+  const elSection = wrapEl.querySelector('.td-section');
+  const elUnlock = wrapEl.querySelector('.td-unlock');
+  const elBullets = wrapEl.querySelector('.td-bullets');
+  const elDeliv = wrapEl.querySelector('.td-deliverable');
+  const btnPass = wrapEl.querySelector('.td-pass');
+  const btnDoc = wrapEl.querySelector('.td-doc');
+  const btnCloseTask = wrapEl.querySelector('.td-close');
+
+  function refreshDetailButtons(idx) {
+    const isDone = cells[idx].done;
+    const isPassed = cells[idx].passed;
+    const locked = isLocked(idx);
+    const deps = pendingDeps(idx);
+    elUnlock.textContent = deps.length > 0
+      ? 'COMPLETE ' + deps.map(d => String(d + 1)).join(' + ') + ' FIRST'
+      : '';
+    if (locked && !isDone && !isPassed) {
+      btnPass.style.display = 'none';
+    } else if (isDone) {
+      btnPass.style.display = 'none';
+    } else if (isPassed) {
+      btnPass.textContent = 'unskip'; btnPass.classList.add('is-passed'); btnPass.style.display = '';
+    } else {
+      btnPass.textContent = 'skip'; btnPass.classList.remove('is-passed'); btnPass.style.display = '';
+    }
+  }
+
+  function relayout() {
+    computeLayout();
+    resizeCanvas();
+    if (expandIdx >= 0) {
+      detailPanel.style.top = (cells[expandIdx].homeY + baseCellH(expandIdx)) + 'px';
+    }
+    draw();
+    recalcPanelSection(panelId);
+  }
+
+  function showDetail(idx) {
+    if (idx === selectedIdx) { hideDetail(); return; }
+    selectedIdx = idx;
+    expandIdx = idx;
+    expandH = 0; // start from zero for animation
+    const t = tasks[idx];
+
+    // Populate content
+    elSection.textContent = t.sec;
+    elSection.style.color = colors.ACCENT_HEX;
+    const deps = pendingDeps(idx);
+    elUnlock.textContent = deps.length > 0
+      ? 'COMPLETE ' + deps.map(d => String(d + 1)).join(' + ') + ' FIRST'
+      : '';
+    elBullets.innerHTML = t.bullets.map(b => '<li>' + b + '</li>').join('');
+    elBullets.style.setProperty('--dot-color', colors.MID_HEX);
+    elDeliv.textContent = '\u2714 ' + t.deliverable;
+    elDeliv.style.color = colors.ACCENT_HEX;
+    if (btnDoc) { btnDoc.href = t.url || '#'; btnDoc.style.display = t.url ? '' : 'none'; }
+    refreshDetailButtons(idx);
+
+    // Measure panel height: show invisibly, measure, then animate open
+    detailPanel.style.visibility = 'hidden';
+    detailPanel.style.top = '0';
+    detailPanel.classList.add('open');
+    expandTarget = detailPanel.offsetHeight + 8;
+    detailPanel.style.visibility = '';
+
+    // Start expand animation
+    kick();
+
+    setTimeout(() => detailPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 250);
+  }
+
+  function hideDetail() {
+    detailPanel.classList.remove('open');
+    expandTarget = 0;
+    selectedIdx = -1;
+    // expandIdx stays so cellH still applies during collapse animation
+    // it gets cleared when expandH reaches 0 in tick
+    kick();
+  }
+
+  // Cascade uncomplete: undo any downstream tasks that depend on idx
+  function cascadeUndo(idx) {
+    for (let k = 0; k < N; k++) {
+      const reqs = tasks[k].requires;
+      if (!reqs || !reqs.includes(idx)) continue;
+      if (cells[k].done || cells[k].passed) {
+        cells[k].done = false;
+        cells[k].passed = false;
+        cascadeUndo(k); // recurse for deeper dependants
+      }
+    }
+  }
+
+  function toggleDone(idx) {
+    if (cells[idx].done) {
+      cells[idx].done = false;
+      cascadeUndo(idx);
+    } else {
+      cells[idx].done = true; cells[idx].passed = false;
+    }
+    saveLS(); updateCounter(); recalcTargets(); kick();
+    if (selectedIdx >= 0) {
+      refreshDetailButtons(selectedIdx);
+    }
+  }
+
+  function togglePass(idx) {
+    if (cells[idx].passed) {
+      cells[idx].passed = false;
+      cascadeUndo(idx);
+    } else {
+      cells[idx].passed = true; cells[idx].done = false;
+    }
+    saveLS(); updateCounter(); recalcTargets(); kick();
+    if (selectedIdx >= 0) refreshDetailButtons(selectedIdx);
+  }
+
+  btnPass.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (selectedIdx >= 0) { togglePass(selectedIdx); hideDetail(); draw(); }
+  });
+  btnCloseTask.addEventListener('click', (e) => { e.stopPropagation(); hideDetail(); });
+
+  // Long press
+  const HOLD_MS = 500;
+  let pressIdx = -1, pressStart = 0, holdProg = 0, holdDone = false, holdRaf = null;
+  let pressStartX = 0, pressStartY = 0;
+  const MOVE_THRESH = 10;
+
+  function hitCell(clientY) {
+    const rect = canvas.getBoundingClientRect();
+    const my = clientY - rect.top;
+    for (let k = 0; k < N; k++) {
+      // Only the base cell area is tappable (detail DOM handles the rest)
+      const top = cells[k].homeY;
+      if (my >= top && my < top + baseCellH(k)) return k;
+    }
+    return -1;
+  }
+
+  function holdTick() {
+    if (pressIdx < 0) return;
+    holdProg = Math.min((Date.now() - pressStart) / HOLD_MS, 1);
+    draw();
+    if (holdProg >= 1 && !holdDone) {
+      holdDone = true;
+      if (navigator.vibrate) navigator.vibrate(18);
+      toggleDone(pressIdx);
+      setTimeout(() => { holdProg = 0; pressIdx = -1; draw(); }, 150);
+      return;
+    }
+    if (!holdDone) holdRaf = requestAnimationFrame(holdTick);
+  }
+
+  function cancelHold() {
+    if (holdRaf) { cancelAnimationFrame(holdRaf); holdRaf = null; }
+    pressIdx = -1; holdProg = 0; holdDone = false; draw();
+  }
+
+  canvas.addEventListener('pointerdown', e => {
+    e.preventDefault(); canvas.setPointerCapture(e.pointerId);
+    const idx = hitCell(e.clientY);
+    if (idx < 0) { pressIdx = -1; return; }
+    pressIdx = idx; pressStart = Date.now();
+    pressStartX = e.clientX; pressStartY = e.clientY;
+    holdProg = 0; holdDone = false;
+    if (!isLocked(idx)) holdRaf = requestAnimationFrame(holdTick);
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (pressIdx < 0) return;
+    const dx = e.clientX - pressStartX, dy = e.clientY - pressStartY;
+    if (dx*dx + dy*dy > MOVE_THRESH*MOVE_THRESH) cancelHold();
+  });
+  canvas.addEventListener('pointerup', e => {
+    if (holdRaf) { cancelAnimationFrame(holdRaf); holdRaf = null; }
+    const elapsed = Date.now() - pressStart;
+    const idx = pressIdx;
+    pressIdx = -1; holdProg = 0;
+    if (holdDone) { holdDone = false; draw(); return; }
+    holdDone = false; draw();
+    if (idx >= 0 && elapsed < 250) { showDetail(idx); }
+  });
+  canvas.addEventListener('pointercancel', cancelHold);
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+  // Pre-measure sub text line counts for layout
+  function measureTextHeights() {
+    ctx.font = '12px JetBrains Mono, monospace';
+    cells.forEach((cell, idx) => {
+      const lines = wrapText(tasks[idx].sub, CW - 32, 2);
+      cell.textBtm = 48 + (lines.length - 1) * 15 + 12; // 48 = sub yBase relative to cell top
+    });
+  }
+
+  // Init
+  loadLS(); recalcTargets();
+  // Need initial canvas size for text measurement
+  canvas.width = CW * DPR; canvas.height = 100 * DPR;
+  canvas.style.width = CW + 'px'; canvas.style.height = '100px';
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  measureTextHeights();
+  computeLayout(); resizeCanvas();
+  updateCounter(); draw();
+  // Re-measure after fonts load (JetBrains Mono may change text widths)
+  document.fonts.ready.then(() => {
+    measureTextHeights(); computeLayout(); resizeCanvas(); draw();
+  });
+
+  self.destroy = function() {
+    if (raf) cancelAnimationFrame(raf);
+    if (holdRaf) cancelAnimationFrame(holdRaf);
+  };
+}
+
+function applyTaskStates(panelId) {
+  // Init or re-init the canvas for this panel's task group
+  initTaskCanvas(panelId);
+}
+
+function initTaskCanvas(panelId) {
+  const wrap = document.querySelector(`#panel-${panelId} .task-canvas-wrap`);
+  if (!wrap) return;
+  const cls = wrap.dataset.cls;
+  const taskSet = TASK_SETS[cls];
+  if (!taskSet || !taskSet.tasks || taskSet.tasks.length === 0) return;
+
+  // Destroy previous instance if exists
+  if (taskCanvases[panelId]) {
+    taskCanvases[panelId].destroy();
+    delete taskCanvases[panelId];
+  }
+
+  // Clear any previous canvas
+  const slot = wrap.querySelector('.tc-canvas-slot');
+  if (slot) slot.innerHTML = '';
+
+  const accent = CLASS_ACCENTS[cls] || [140, 140, 140];
+  const colors = deriveColors(accent);
+  const storageKey = `dates-tasks-${cls}`;
+
+  taskCanvases[panelId] = new TaskCanvas(wrap, taskSet.tasks, storageKey, colors, panelId);
+}
+
+function renderHeader() {
+  const classItems = activeFilter ? ITEMS.filter(it => it.cls === activeFilter) : ITEMS;
+  const upDeadlines = classItems.filter(it => it.date >= TODAY_STR && (it.type === 'deadline' || it.type === 'assignment' || it.type === 'assessment')).length;
+  const miss = classItems.filter(it => it.status === 'Missing').length;
+  const done = classItems.filter(it => it.status === 'Turned in').length;
+
+  document.getElementById('headerBlock').innerHTML = `
+    <p class="date-line">${fmtDateLong(TODAY_STR).toUpperCase()}</p>
+    <p class="page-title">All Dates</p>
+    <hr class="header-sep">
+    <div class="status-pills">
+      ${miss > 0 ? `<span class="pill pill-urgent${statusFilter === 'missing' ? ' active' : ''}" data-sf="missing">${miss} missing</span>` : ''}
+      <span class="pill pill-upcoming${statusFilter === 'upcoming' ? ' active' : ''}" data-sf="upcoming">${upDeadlines} upcoming</span>
+      ${done > 0 ? `<span class="pill pill-done${statusFilter === 'done' ? ' active' : ''}" data-sf="done">${done} turned in</span>` : ''}
+    </div>
+  `;
+}
+
+function renderFilterBar() {
+  let html = `<button class="filter-btn${!activeFilter ? ' active' : ''}" data-cls="">All</button>`;
+  Object.keys(CLASSES).forEach(c => {
+    html += `<button class="filter-btn${activeFilter === c ? ' active' : ''}" data-cls="${c}">${c}</button>`;
+  });
+  document.getElementById('filterBar').innerHTML = html;
+}
+
+function applyStatusFilter(items) {
+  if (!statusFilter) return items;
+  if (statusFilter === 'missing') return items.filter(it => it.status === 'Missing');
+  if (statusFilter === 'done') return items.filter(it => it.status === 'Turned in');
+  if (statusFilter === 'upcoming') return items.filter(it => it.type === 'deadline' || it.type === 'assignment' || it.type === 'assessment');
+  return items;
+}
+
+function renderItemCards(items, isPast) {
+  let html = '';
+  let lastDate = '';
+  let idx = 0;
+
+  items.forEach(it => {
+    if (it.date !== lastDate) {
+      lastDate = it.date;
+      const days = daysUntil(it.date);
+      const todayCls = isToday(it.date) ? ' is-today' : isPast ? ' is-past' : '';
+      const urgency = !isPast ? urgencyLabel(days) : '';
+      html += `<div class="date-marker${todayCls}" style="animation-delay:${idx * 40}ms">
+        <span>${fmtDate(it.date).toUpperCase()}</span>
+        ${urgency ? `<span class="day-name">\u00b7 ${urgency.toUpperCase()}</span>` : ''}
+      </div>`;
+      idx++;
+    }
+
+    const id = itemId(it);
+    const pastCls = isPast ? ' is-past' : '';
+    const doneCls = it.status === 'Turned in' ? ' is-done' : '';
+    const missCls = it.status === 'Missing' ? ' is-missing' : '';
+    const todayCard = isToday(it.date) && !isPast ? ' is-today-card' : '';
+    const typeCls = (it.type === 'deadline' || it.type === 'assessment') ? ` type-label type-${it.type}` : 'type-label';
+
+    html += `<div class="item-card${pastCls}${doneCls}${missCls}${todayCard}" data-id="${id}" style="animation-delay:${idx * 40}ms">
+      <svg class="card-border"><rect/></svg>
+      <div class="item-meta-line">
+        <span class="class-pill ${CLASSES[it.cls].css}">${it.cls}</span>
+        <span class="${typeCls}">${it.type}</span>
+        ${statusBadgeHTML(it.status)}
+      </div>
+      <div class="item-title">${it.short || it.title}</div>
+    </div>`;
+
+    // Detail panel (hidden by default, rendered inline for this card)
+    const days = daysUntil(it.date);
+    const sourceFmt = fmtSource(it.source);
+    const classworkUrl = CLASSES[it.cls].classwork;
+    const dateLabel = it.type === 'material' ? 'Posted' : 'Due';
+    let timeCtx = `${fmtDate(it.date)}`;
+    if (!isPast && days > 0) timeCtx += ` \u00b7 ${days} day${days !== 1 ? 's' : ''} away`;
+    else if (days < 0) timeCtx += ` \u00b7 ${Math.abs(days)} day${Math.abs(days) !== 1 ? 's' : ''} ago`;
+    else if (days === 0) timeCtx += ' \u00b7 today';
+
+    let srcHtml = '';
+    if (sourceFmt) {
+      const srcUrl = sourceUrl(it.cls, it.source);
+      srcHtml = srcUrl
+        ? `<div class="detail-source"><strong>Source:</strong> <a href="${srcUrl}" target="_blank" onclick="event.stopPropagation()">${sourceFmt}</a></div>`
+        : `<div class="detail-source"><strong>Source:</strong> ${sourceFmt}</div>`;
+    }
+
+    const srcPath = it.source ? sourceUrl(it.cls, it.source) : null;
+
+    // Build canvas task widget if available for this class
+    const taskSet = TASK_SETS[it.cls];
+    let tasksHtml = '';
+    if (taskSet && taskSet.tasks && taskSet.tasks.length > 0) {
+      tasksHtml = `<div class="task-canvas-wrap" data-cls="${it.cls}">
+        <div class="task-status-pills">
+          <span class="task-pill task-pill-done tp-done"></span>
+          <span class="task-pill task-pill-todo tp-todo"></span>
+          <span class="task-pill task-pill-skip tp-skip"></span>
+        </div>
+        <div class="tc-canvas-slot"></div>
+        <div class="task-detail-panel">
+          <div class="task-detail-inner">
+            <hr class="task-detail-sep">
+            <div class="task-detail-section-row">
+              <div class="task-detail-section td-section"></div>
+              <div class="task-unlock-hint td-unlock"></div>
+            </div>
+            <ul class="task-detail-bullets td-bullets"></ul>
+            <div class="task-detail-deliverable td-deliverable"></div>
+            <div class="task-detail-actions">
+              <button class="action-btn btn-pass td-pass">skip</button>
+              <button class="btn-close-task td-close">&times;</button>
+            </div>
+            <div class="task-detail-links">
+              <a class="btn-doc td-doc" target="_blank">&#8599; open doc</a>
+            </div>
+          </div>
+        </div>
+        <div class="task-hold-hint">hold to complete \u00b7 tap to expand</div>
+      </div>`;
+    } else if (it.desc) {
+      tasksHtml = `<div class="task-no-tasks">${it.desc}</div>`;
+    }
+
+    html += `<div class="detail-panel" id="panel-${id}">
+      <div class="detail-pointer"></div>
+      <div class="detail-inner">
+        <div class="detail-head">
+          <span class="detail-title">${it.title}</span>
+        </div>
+        ${it.desc && taskSet ? `<div class="detail-desc">${it.desc}</div>` : ''}
+        ${tasksHtml}
+        ${srcHtml}
+        <div class="detail-actions">
+          ${classworkUrl ? `<a class="action-btn btn-classwork" href="${classworkUrl}" target="_blank" onclick="event.stopPropagation()">&#8599; classwork</a>` : ''}
+          ${srcPath ? `<a class="action-btn btn-doc" href="${srcPath}" target="_blank" onclick="event.stopPropagation()">&#8599; full analysis</a>` : ''}
+          <button class="action-btn btn-close" onclick="event.stopPropagation(); closeDetail()">&times;</button>
+        </div>
+      </div>
+    </div>`;
+
+    idx++;
+  });
+
+  return html;
+}
+
+function renderAlerts(anomalies) {
+  let html = '';
+  anomalies.forEach((a, i) => {
+    const isWarn = a.type === 'needs_turn_in';
+    const cardCls = isWarn ? 'alert-card alert-warn' : 'alert-card';
+    const badgeCls = isWarn ? 'badge-turn-in' : 'badge-overdue';
+    const aid = 'alert-' + i;
+
+    html += `<div class="${cardCls}" data-alert="${aid}" style="animation-delay:${i * 60}ms">
+      <svg class="card-border alert-border"><rect/></svg>
+      <div class="item-meta-line">
+        <span class="class-pill ${CLASSES[a.cls].css}">${a.cls}</span>
+        <span class="alert-badge ${badgeCls}">${a.type === 'needs_turn_in' ? 'needs turn in' : a.status}</span>
+      </div>
+      <div style="margin-top:8px">
+        <div class="alert-title">${a.doc}</div>
+        <div class="item-type" style="margin-top:3px">${a.assignment}</div>
+      </div>
+      <div class="alert-detail" id="alert-detail-${aid}">
+        <hr class="alert-sep">
+        ${a.pct > 0 ? `<div class="alert-progress"><div class="alert-progress-bar" style="width:${a.pct}%"></div></div>
+        <div class="progress-label"><span>Progress:</span> ${a.pct}% ${a.progress.replace('_',' ')}</div>` : ''}
+        <div class="alert-sub">${a.summary}</div>
+        <div class="next-steps-label">Next steps</div>
+        <ul class="alert-steps">${a.next_steps.map(s => `<li>${s}</li>`).join('')}</ul>
+        <div class="detail-actions" style="margin-top:14px">
+          <a class="action-btn btn-classwork" href="${a.doc_url}" target="_blank" onclick="event.stopPropagation()">&#8599; open doc</a>
+          <button class="action-btn btn-close" onclick="event.stopPropagation(); closeAlert('${aid}')">&times;</button>
+        </div>
+      </div>
+    </div>`;
+  });
+  return html;
+}
+
+function closeDetail() {
+  if (!expandedId) return;
+  const panel = document.getElementById('panel-' + expandedId);
+  const card = document.querySelector(`[data-id="${expandedId}"]`);
+  if (panel) panel.classList.remove('open');
+  if (card) card.classList.remove('is-expanded');
+  expandedId = null;
+}
+
+function closeAlert(aid) {
+  const detail = document.getElementById('alert-detail-' + aid);
+  const card = document.querySelector(`[data-alert="${aid}"]`);
+  if (detail) { detail.style.maxHeight = detail.scrollHeight + 'px'; requestAnimationFrame(() => { detail.style.maxHeight = '0'; detail.classList.remove('open'); }); }
+  if (card) card.classList.remove('is-expanded');
+  if (expandedId === aid) expandedId = null;
+}
+
+function render() {
+  const classFiltered = activeFilter ? ITEMS.filter(it => it.cls === activeFilter) : ITEMS;
+
+  const allFuture = applyStatusFilter(classFiltered.filter(it => it.date >= TODAY_STR)).sort((a,b) => a.date.localeCompare(b.date) || a.cls.localeCompare(b.cls));
+  const current = allFuture.filter(it => daysUntil(it.date) <= 14);
+  const upcoming = allFuture.filter(it => daysUntil(it.date) > 14);
+  const filteredPast = applyStatusFilter(classFiltered.filter(it => it.date < TODAY_STR)).sort((a,b) => b.date.localeCompare(a.date) || a.cls.localeCompare(b.cls));
+
+  renderHeader();
+  renderFilterBar();
+
+  let html = '';
+
+  // Alerts
+  const filteredAnomalies = activeFilter ? ANOMALIES.filter(a => a.cls === activeFilter) : ANOMALIES;
+  if (filteredAnomalies.length > 0 && !statusFilter) {
+    html += `<div class="section-label section-alerts" data-section="alerts">
+      <span class="section-chevron${!alertsCollapsed ? ' open' : ''}">&#x25B8;</span>
+      Alerts <span class="section-count">(${filteredAnomalies.length})</span>
+    </div>`;
+    html += `<div class="section-body${alertsCollapsed ? ' collapsed' : ''}" id="alertsBody" style="max-height:${alertsCollapsed ? '0' : 'none'}">`;
+    html += renderAlerts(filteredAnomalies);
+    html += `</div>`;
+  }
+
+  // Past
+  html += `<div class="section-label section-past" data-section="past">
+    <span class="section-chevron${!pastCollapsed ? ' open' : ''}">&#x25B8;</span>
+    Past <span class="section-count">(${filteredPast.length})</span>
+  </div>`;
+  html += `<div class="section-body${pastCollapsed ? ' collapsed' : ''}" id="pastBody" style="max-height:${pastCollapsed ? '0' : 'none'}">`;
+  html += filteredPast.length > 0 ? renderItemCards(filteredPast, true) : `<div class="empty-note">${statusFilter ? 'No matching items' : 'No past items'}</div>`;
+  html += `</div>`;
+
+  // Current
+  html += `<div class="section-label section-current" data-section="current">
+    <span class="section-chevron${!currentCollapsed ? ' open' : ''}">&#x25B8;</span>
+    Current <span class="section-count">(${current.length})</span>
+  </div>`;
+  html += `<div class="section-body${currentCollapsed ? ' collapsed' : ''}" id="currentBody" style="max-height:${currentCollapsed ? '0' : 'none'}">`;
+  html += current.length > 0 ? renderItemCards(current, false) : `<div class="empty-note">${statusFilter ? 'No matching items' : 'Nothing due in the next 2 weeks'}</div>`;
+  html += `</div>`;
+
+  // Upcoming
+  html += `<div class="section-label" data-section="upcoming">
+    <span class="section-chevron${!upcomingCollapsed ? ' open' : ''}">&#x25B8;</span>
+    Upcoming <span class="section-count">(${upcoming.length})</span>
+  </div>`;
+  html += `<div class="section-body${upcomingCollapsed ? ' collapsed' : ''}" id="upcomingBody" style="max-height:${upcomingCollapsed ? '0' : 'none'}">`;
+  html += upcoming.length > 0 ? renderItemCards(upcoming, false) : `<div class="empty-note">${statusFilter ? 'No matching items' : 'No upcoming items'}</div>`;
+  html += `</div>`;
+
+  document.getElementById('sections').innerHTML = html;
+  document.getElementById('sections').style.width = '100%';
+  document.getElementById('sections').style.maxWidth = '380px';
+  document.getElementById('sections').style.display = 'flex';
+  document.getElementById('sections').style.flexDirection = 'column';
+  document.getElementById('sections').style.gap = '0';
+
+  expandedId = null;
+  bindEvents();
+}
+
+function bindEvents() {
+  // Status filter pills
+  document.querySelectorAll('.pill[data-sf]').forEach(pill => {
+    pill.addEventListener('click', () => {
+      statusFilter = statusFilter === pill.dataset.sf ? null : pill.dataset.sf;
+      render();
+    });
+  });
+
+  // Class filter buttons
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeFilter = btn.dataset.cls || null;
+      render();
+    });
+  });
+
+  // Section toggles
+  document.querySelectorAll('.section-label[data-section]').forEach(label => {
+    label.addEventListener('click', () => {
+      const section = label.dataset.section;
+      const body = document.getElementById(section + 'Body');
+      if (!body) return;
+      const chevron = label.querySelector('.section-chevron');
+      const isCollapsed = body.classList.contains('collapsed');
+
+      if (body.dataset.animating === '1') return;
+      body.dataset.animating = '1';
+
+      const children = Array.from(body.querySelectorAll('.item-card, .alert-card, .date-marker, .detail-panel'));
+      const total = children.length;
+
+      if (isCollapsed) {
+        children.forEach((child, i) => { child.style.animationDelay = (i * 40) + 'ms'; });
+        body.classList.remove('collapsed', 'closing');
+        body.style.transition = 'none';
+        body.style.maxHeight = '0';
+        body.offsetHeight;
+        body.classList.add('opening');
+        body.style.transition = '';
+        requestAnimationFrame(() => { body.style.maxHeight = body.scrollHeight + 'px'; });
+        if (chevron) chevron.classList.add('open');
+        if (section === 'alerts') alertsCollapsed = false;
+        else if (section === 'past') pastCollapsed = false;
+        else if (section === 'current') currentCollapsed = false;
+        else if (section === 'upcoming') upcomingCollapsed = false;
+        setTimeout(() => { body.classList.remove('opening'); body.style.maxHeight = body.scrollHeight + 'px'; body.dataset.animating = '0'; }, Math.max(400, total * 40 + 400));
+      } else {
+        // Close any open detail panel inside this section first
+        closeDetail();
+        children.forEach((child, i) => { child.style.animationDelay = ((total - 1 - i) * 30) + 'ms'; });
+        body.classList.remove('opening');
+        body.classList.add('closing');
+        if (chevron) chevron.classList.remove('open');
+        if (section === 'alerts') alertsCollapsed = true;
+        else if (section === 'past') pastCollapsed = true;
+        else if (section === 'current') currentCollapsed = true;
+        else if (section === 'upcoming') upcomingCollapsed = true;
+        body.style.transition = 'none';
+        body.style.maxHeight = body.scrollHeight + 'px';
+        body.offsetHeight;
+        body.style.transition = '';
+        requestAnimationFrame(() => { body.style.maxHeight = '0'; });
+        setTimeout(() => { body.classList.remove('closing'); body.classList.add('collapsed'); body.dataset.animating = '0'; }, Math.max(500, total * 30 + 500));
+      }
+    });
+  });
+
+  // Item card → floating detail panel
+  document.querySelectorAll('.item-card[data-id]').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.detail-panel.open')) return;
+      const id = card.dataset.id;
+      const panel = document.getElementById('panel-' + id);
+      if (!panel) return;
+
+      if (expandedId === id) {
+        // Close
+        panel.classList.remove('open');
+        card.classList.remove('is-expanded');
+        expandedId = null;
+        // Shrink section smoothly after panel collapses
+        setTimeout(() => { recalcSectionHeight(card); }, 300);
+      } else {
+        // Close previous
+        if (expandedId) {
+          const prevPanel = document.getElementById('panel-' + expandedId);
+          const prevCard = document.querySelector(`[data-id="${expandedId}"]`);
+          if (prevPanel) prevPanel.classList.remove('open');
+          if (prevCard) prevCard.classList.remove('is-expanded');
+        }
+        // Open this one — immediately grow section to avoid pop-in reflow
+        const body = card.closest('.section-body');
+        if (body) { body.style.transition = 'none'; body.style.maxHeight = body.scrollHeight + 1200 + 'px'; body.offsetHeight; body.style.transition = ''; }
+        panel.classList.add('open');
+        card.classList.add('is-expanded');
+        expandedId = id;
+        applyTaskStates(id);
+        // Refine section height after panel finishes opening
+        setTimeout(() => { recalcSectionHeight(card); }, 350);
+        setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 380);
+      }
+    });
+  });
+
+  // Alert card expand/collapse
+  document.querySelectorAll('.alert-card[data-alert]').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.alert-detail.open')) return;
+      const aid = card.dataset.alert;
+      const detail = document.getElementById('alert-detail-' + aid);
+      if (!detail) return;
+
+      if (expandedId === aid) {
+        detail.style.maxHeight = detail.scrollHeight + 'px';
+        requestAnimationFrame(() => { detail.style.maxHeight = '0'; detail.classList.remove('open'); });
+        card.classList.remove('is-expanded');
+        expandedId = null;
+      } else {
+        // Close previous alert detail
+        if (expandedId && expandedId.startsWith('alert-')) {
+          closeAlert(expandedId.replace('alert-', ''));
+        } else if (expandedId) {
+          closeDetail();
+        }
+        detail.style.maxHeight = '0';
+        detail.classList.add('open');
+        requestAnimationFrame(() => {
+          detail.style.maxHeight = detail.scrollHeight + 'px';
+          // Update parent section height
+          const body = card.closest('.section-body');
+          if (body) setTimeout(() => { body.style.maxHeight = body.scrollHeight + 'px'; }, 50);
+          setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 150);
+        });
+        card.classList.add('is-expanded');
+        expandedId = aid;
+      }
+    });
+  });
+
+  // Task canvases are initialized on panel open via applyTaskStates()
+}
+
+function recalcSectionHeight(el) {
+  const body = el.closest('.section-body');
+  if (body && !body.classList.contains('collapsed')) {
+    setTimeout(() => { body.style.maxHeight = body.scrollHeight + 'px'; }, 50);
+  }
+}
+
+// Telegram
+if (window.Telegram && window.Telegram.WebApp) {
+  const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
+}
+
+function fixSectionHeights() {
+  document.querySelectorAll('.section-body').forEach(body => {
+    if (!body.classList.contains('collapsed')) {
+      body.style.maxHeight = body.scrollHeight + 'px';
+    }
+  });
+}
+
+// Init
+document.fonts.ready.then(() => { render(); requestAnimationFrame(fixSectionHeights); });
+</script>
+</body>
+</html>
