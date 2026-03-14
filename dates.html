@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>All Dates — Classroom Dashboard</title>
+<title>What's Due — Classroom Dashboard</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,7 +21,7 @@
     align-items: center;
     padding: 36px 24px 90px;
     font-family: 'JetBrains Mono', monospace;
-    gap: 16px;
+    gap: 6px;
     -webkit-user-select: none;
     user-select: none;
   }
@@ -52,45 +52,59 @@
     margin: 0 0 8px 0;
   }
 
-  .status-pills {
-    display: flex; gap: 8px; flex-wrap: wrap;
-    margin-bottom: 4px;
-  }
-
-  .pill {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px; font-weight: 600; letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 5px 12px; border-radius: 10px;
-    cursor: pointer; transition: all 0.2s ease;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .pill:active { transform: scale(0.95); }
-  .pill-urgent  { background: rgba(180,60,50,0.18); color: rgb(126,42,35); }
-  .pill-upcoming { background: rgba(140,120,48,0.18); color: #8C7830; }
-  .pill-done    { background: rgba(55,130,65,0.18); color: rgb(38,91,45); }
-  .pill.active  { outline: 2px solid currentColor; outline-offset: 1px; }
-
-  /* Filter bar */
-  .filter-bar {
-    display: flex; gap: 6px; flex-wrap: wrap;
+  /* Tab pills — individual rounded pills, frame extends below */
+  .tab-row {
+    display: flex; gap: 12px;
     width: 100%; max-width: 380px;
-    padding: 0 4px;
+    margin: 32px 0 0;
+    position: relative; z-index: 3;
   }
-
-  .filter-btn {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 8px; font-weight: 600; letter-spacing: 0.12em;
-    text-transform: uppercase; color: #A09888;
-    background: none; border: 1px solid rgba(160,150,140,0.35);
-    border-radius: 20px; padding: 7px 14px; cursor: pointer;
-    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  .tab-btn {
+    flex: 1;
+    font-family: 'Nunito', sans-serif;
+    font-size: 21px; font-weight: 700; letter-spacing: 0.02em;
+    color: rgba(160,152,136,0.5);
+    background: rgba(200,192,180,0.15);
+    border: 1.5px solid rgba(58,48,40,0.2);
+    border-radius: 14px;
+    padding: 12px 16px; cursor: pointer;
+    transition: color 0.2s, background 0.2s, border-color 0.2s, border-radius 0.15s;
     -webkit-tap-highlight-color: transparent;
+    text-align: left;
+    position: relative;
+    z-index: 3;
   }
-  .filter-btn:active { transform: scale(0.95); }
-  .filter-btn.active {
-    background: rgba(58,48,40,0.1); color: #3A3028;
+  .tab-btn:active { opacity: 0.7; }
+  .tab-btn.active {
+    color: rgba(58,48,40,0.55);
+    background: transparent;
     border-color: transparent;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    z-index: 3;
+  }
+  .tab-frame {
+    display: none;
+    background: transparent;
+    border: none;
+    padding: 0;
+    position: relative;
+    width: 100%; max-width: 380px;
+  }
+  .tab-frame.open { display: block; }
+  /* SVG draws the entire pill+frame outline */
+  .tab-frame-svg {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    pointer-events: none;
+    z-index: 2;
+    overflow: visible;
+  }
+  .tab-frame-content {
+    position: relative;
+    padding: 22px 13.5px 13.5px;
+    z-index: 3;
   }
 
   /* Section headers */
@@ -164,8 +178,12 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 14px; font-weight: 600; letter-spacing: 0.12em;
     text-transform: uppercase; color: #8C7830;
-    padding: 34px 4px 6px;
+    padding: 18px 4px 6px;
     display: flex; align-items: center; gap: 8px;
+  }
+  .section-body > .date-marker:first-child,
+  .tab-frame-content > .date-marker:first-child {
+    padding-top: 4px;
   }
   .date-marker .day-name {
     color: #B8A060; font-weight: 400;
@@ -198,8 +216,20 @@
     stroke-width: 1.8; stroke-dasharray: 6 4;
   }
   .item-card:active { transform: scale(0.985); }
-  .item-card.is-expanded { background: rgba(202,224,245,0.85); background-clip: padding-box; }
-  .item-card.is-expanded .card-border rect { stroke: rgba(43,95,138,0.6); }
+  .item-card.is-expanded {
+    background: transparent; background-clip: padding-box;
+    margin-bottom: 0;
+  }
+  .item-card.is-expanded .card-border { display: none; }
+  .item-card.is-expanded > *:not(.expand-border-svg) {
+    position: relative; z-index: 2;
+  }
+  .expand-border-svg {
+    position: absolute;
+    top: -1px; left: -1px;
+    pointer-events: none;
+    z-index: 0;
+  }
   .item-card.is-done {
     background: rgba(64,127,190,0.22);
     background-clip: padding-box;
@@ -212,6 +242,29 @@
   .item-card.is-missing .card-border rect { stroke: rgba(180,60,50,0.4); }
   .item-card.is-today-card .card-border rect { stroke: rgba(184,80,30,0.35); }
 
+  /* Per-class card border colors */
+  .item-card.cp-12ftx  .card-border rect { stroke: rgba(184,80,30,0.3); }
+  .item-card.cp-enw223 .card-border rect { stroke: rgba(80,120,160,0.3); }
+  .item-card.cp-flm223 .card-border rect { stroke: rgba(140,60,120,0.3); }
+  .item-card.cp-mus223 .card-border rect { stroke: rgba(60,130,100,0.3); }
+  .item-card.cp-mat223 .card-border rect { stroke: rgba(100,90,160,0.3); }
+  .item-card.cp-fcm112 .card-border rect { stroke: rgba(160,120,50,0.3); }
+  .item-card.is-past.cp-12ftx  .card-border rect { stroke: rgba(184,80,30,0.12); }
+  .item-card.is-past.cp-enw223 .card-border rect { stroke: rgba(80,120,160,0.12); }
+  .item-card.is-past.cp-flm223 .card-border rect { stroke: rgba(140,60,120,0.12); }
+  .item-card.is-past.cp-mus223 .card-border rect { stroke: rgba(60,130,100,0.12); }
+  .item-card.is-past.cp-mat223 .card-border rect { stroke: rgba(100,90,160,0.12); }
+  .item-card.is-past.cp-fcm112 .card-border rect { stroke: rgba(160,120,50,0.12); }
+
+  /* Solid border when all tasks complete */
+  .item-card.tasks-complete .card-border rect { stroke-dasharray: none !important; }
+  .item-card.tasks-complete.cp-12ftx  .card-border rect { stroke: rgba(184,80,30,0.5); }
+  .item-card.tasks-complete.cp-enw223 .card-border rect { stroke: rgba(80,120,160,0.5); }
+  .item-card.tasks-complete.cp-flm223 .card-border rect { stroke: rgba(140,60,120,0.5); }
+  .item-card.tasks-complete.cp-mus223 .card-border rect { stroke: rgba(60,130,100,0.5); }
+  .item-card.tasks-complete.cp-mat223 .card-border rect { stroke: rgba(100,90,160,0.5); }
+  .item-card.tasks-complete.cp-fcm112 .card-border rect { stroke: rgba(160,120,50,0.5); }
+
   .item-meta-line {
     display: flex; align-items: center; gap: 6px;
     margin-bottom: 4px;
@@ -219,9 +272,9 @@
 
   .class-pill {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 14px; font-weight: 600; letter-spacing: 0.08em;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
     text-transform: uppercase;
-    padding: 2px 8px; border-radius: 6px;
+    padding: 1px 6px; border-radius: 4px;
     white-space: nowrap; flex-shrink: 0;
   }
   .cp-12ftx  { background: rgba(184,80,30,0.14); color: #9C4A1A; }
@@ -231,17 +284,38 @@
   .cp-mat223 { background: rgba(100,90,160,0.14); color: #5A50A0; }
   .cp-fcm112 { background: rgba(160,120,50,0.14); color: #8A6820; }
 
+  /* Per-class card tints */
+  .item-card.cp-12ftx  { background: rgba(184,80,30,0.08); }
+  .item-card.cp-enw223 { background: rgba(80,120,160,0.08); }
+  .item-card.cp-flm223 { background: rgba(140,60,120,0.08); }
+  .item-card.cp-mus223 { background: rgba(60,130,100,0.08); }
+  .item-card.cp-mat223 { background: rgba(100,90,160,0.08); }
+  .item-card.cp-fcm112 { background: rgba(160,120,50,0.08); }
+  .item-card.is-past.cp-12ftx  { background: rgba(184,80,30,0.04); }
+  .item-card.is-past.cp-enw223 { background: rgba(80,120,160,0.04); }
+  .item-card.is-past.cp-flm223 { background: rgba(140,60,120,0.04); }
+  .item-card.is-past.cp-mus223 { background: rgba(60,130,100,0.04); }
+  .item-card.is-past.cp-mat223 { background: rgba(100,90,160,0.04); }
+  .item-card.is-past.cp-fcm112 { background: rgba(160,120,50,0.04); }
+
   .item-title {
     font-family: 'Nunito', sans-serif;
     font-size: 19px; font-weight: 400; color: rgba(43,64,95,0.6);
     line-height: 1.3;
+  }
+  .mini-progress {
+    display: flex; align-items: center; margin-top: 6px;
+    height: 8px;
+  }
+  .mini-progress-svg {
+    height: 100%;
   }
   .is-done .item-title { font-style: italic; color: rgba(43,64,95,0.95); }
   .is-past .item-title { color: rgba(43,64,95,0.3); }
 
   .item-meta-line .type-label {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 14px; font-weight: 400; letter-spacing: 0.08em;
+    font-size: 10px; font-weight: 400; letter-spacing: 0.08em;
     text-transform: uppercase; color: #A09888;
   }
   .item-meta-line .type-label.type-deadline { color: #B8501E; }
@@ -249,9 +323,9 @@
 
   .status-badge {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 12px; font-weight: 600; letter-spacing: 0.06em;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.06em;
     text-transform: uppercase;
-    padding: 2px 8px; border-radius: 6px;
+    padding: 1px 6px; border-radius: 4px;
     margin-left: auto;
   }
   .st-turned-in { background: rgba(55,130,65,0.12); color: rgb(38,91,45); }
@@ -266,28 +340,23 @@
     pointer-events: none;
     transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.3s ease;
     max-height: 0; overflow: hidden;
-    margin-top: -4px;
+    margin-top: 0;
   }
   .detail-panel.open {
     opacity: 1; transform: translateY(0);
     pointer-events: auto;
     max-height: 1200px;
+    margin-bottom: 10px;
   }
 
   .detail-pointer {
-    width: 10px; height: 10px;
-    background: rgba(255,252,245,0.92);
-    border: 1.5px solid rgba(160,150,140,0.25);
-    border-right: none; border-bottom: none;
-    transform: rotate(45deg);
-    margin-left: 32px; margin-bottom: -6px;
-    position: relative; z-index: 1;
+    display: none;
   }
 
   .detail-inner {
-    background: rgba(255,252,245,0.92);
-    border: 1.5px solid rgba(160,150,140,0.25);
-    border-radius: 14px; padding: 16px 18px;
+    background: transparent;
+    border: none;
+    border-radius: 0 0 18px 18px; padding: 16px 18px;
     position: relative; z-index: 2;
   }
 
@@ -341,6 +410,7 @@
     font-family: 'Nunito', sans-serif;
     font-size: 13px; color: #6A6058;
     line-height: 1.5; margin-bottom: 10px;
+    display: none;
   }
   .detail-source strong { color: #3A3028; font-weight: 700; }
   .detail-source a {
@@ -357,80 +427,88 @@
     -webkit-user-select: none; user-select: none;
   }
 
-  .task-status-pills {
-    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;
+  .task-progress-row {
+    position: relative; margin-bottom: 10px;
+    height: 26px;
   }
-  .task-pill {
+  .task-progress-svg {
+    position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+    pointer-events: none;
+  }
+  .task-progress-circles {
+    position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: space-around;
+  }
+  .task-circle {
+    width: 38px; height: 22px; border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 9px; font-weight: 600; letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 5px 12px; border-radius: 10px;
-    transition: all 0.3s ease;
+    font-size: 10px; font-weight: 600;
+    color: rgba(160,152,136,0.28);
+    flex-shrink: 0;
+    position: relative; z-index: 2;
+    transition: color 0.35s ease, transform 0.15s ease;
+    background: none; border: none;
+    cursor: pointer;
   }
-  .task-pill-todo { background: rgba(180,60,50,0.18); color: rgb(126,42,35); }
-  .task-pill-done { background: rgba(55,130,65,0.18); color: rgb(38,91,45); }
-  .task-pill-skip { background: rgba(180,150,40,0.18); color: rgb(126,105,28); }
+  .task-circle.is-done { color: #F5F3EE; }
+  .task-circle.is-skip { color: rgb(126,105,28); }
+  .task-circle.is-active { color: #C0707A; }
+  .task-circle.is-next { color: rgba(192,112,122,0.45); }
 
   .task-detail-panel {
     position: absolute; left: 14px; right: 14px; z-index: 10;
     opacity: 0; pointer-events: none;
     transition: opacity 0.25s ease 0.08s;
+    overflow: hidden;
   }
   .task-detail-panel.open { opacity: 1; pointer-events: auto; }
 
   .task-detail-inner {
     padding: 6px 2px 4px;
   }
+  .task-detail-panel.is-locked .task-detail-inner {
+    opacity: 0.45;
+  }
 
   .task-detail-sep {
     border: none; border-top: 1.5px dashed rgba(160,150,140,0.25);
-    margin: 0 0 10px;
+    margin: 14px 0 8px;
   }
-  .task-detail-section-row {
-    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
-  }
-  .task-detail-section {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px; font-weight: 600; letter-spacing: 0.12em;
-    text-transform: uppercase; opacity: 0.7;
+  .task-detail-desc {
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px; font-weight: 400; color: #5A5048;
+    line-height: 1.5; margin-bottom: 6px;
   }
   .task-unlock-hint {
     font-family: 'JetBrains Mono', monospace;
     font-size: 9px; font-weight: 600; letter-spacing: 0.06em;
-    margin-left: auto; color: rgba(180,60,50,0.55);
-    white-space: nowrap;
+    color: rgba(180,60,50,0.55); margin-bottom: 10px;
   }
   .task-unlock-hint:empty { display: none; }
-  .task-detail-bullets { list-style: none; margin: 0 0 14px 0; padding: 0; }
+  .task-detail-bullets {
+    list-style: none; margin: 8px 0 6px 0; padding: 10px 12px 10px 14px;
+    background: rgba(107,140,168,0.15); border-radius: 12px;
+  }
   .task-detail-bullets li {
     font-family: 'Nunito', sans-serif;
-    font-size: 13px; font-weight: 400; color: #5A5045;
-    line-height: 1.6; padding: 4px 0 4px 16px; position: relative;
+    font-size: 15px; font-weight: 400; color: #4A4540;
+    line-height: 1.55; padding: 4px 0 4px 18px; position: relative;
   }
   .task-detail-bullets li::before {
     content: ""; position: absolute; left: 0; top: 13px;
-    width: 5px; height: 5px; border-radius: 50%;
+    width: 6px; height: 6px; border-radius: 50%;
     background: var(--dot-color, #95AFC4);
   }
-  .task-detail-deliverable {
-    font-family: 'Nunito', sans-serif;
-    font-size: 12px; font-weight: 400; font-style: italic;
-    padding: 10px 0;
-    border-top: 1.5px dashed rgba(160,150,140,0.25); margin-bottom: 12px;
-  }
-  .task-detail-actions { display: flex; gap: 10px; align-items: center; }
+  .task-detail-deliverable { display: none; }
+  .task-detail-actions { display: flex; gap: 10px; align-items: center; margin-top: 14px; }
   .task-detail-actions .action-btn { font-size: 11px; padding: 8px 16px; }
   .task-detail-actions .btn-pass {
-    background: none; border: 1.5px solid rgba(123,139,111,0.4); color: #7B8B6F;
+    background: rgba(196,164,60,0.18); border: none; color: #9A7E1E;
     cursor: pointer; border-radius: 22px; transition: all 0.2s;
   }
-  .task-detail-actions .btn-pass.is-passed { background: rgba(123,139,111,0.12); }
-  .task-detail-actions .btn-close-task {
-    background: rgba(160,150,140,0.15); color: #A09888;
-    width: 32px; height: 32px; padding: 0; border: none; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; margin-left: auto; border-radius: 50%;
-  }
+  .task-detail-actions .btn-pass.is-passed { background: rgba(196,164,60,0.12); }
+  .task-detail-actions .btn-close-task { display: none; }
   .task-detail-links { display: flex; gap: 10px; margin-top: 10px; }
 
   .task-hold-hint {
@@ -446,8 +524,7 @@
   }
 
   .detail-actions {
-    display: flex; gap: 10px; align-items: center;
-    margin-top: 14px;
+    display: none;
   }
 
   .action-btn {
@@ -465,6 +542,7 @@
   .btn-classwork:hover { background: #346A96; }
 
   .btn-close {
+    display: none;
     background: rgba(160,150,140,0.15); color: #A09888;
     width: 36px; height: 36px; padding: 0;
     display: flex; align-items: center; justify-content: center;
@@ -621,7 +699,6 @@
 <body>
 
 <div class="header" id="headerBlock"></div>
-<div class="filter-bar" id="filterBar"></div>
 <div id="sections"></div>
 
 <script>
@@ -671,9 +748,9 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "FTX Year Plan",
-    "desc": "This is the overall plan for your Year 12 Fashion and Textiles class, outlining what you'll cover and when.",
-    "detail": "This document details the entire year's curriculum for 12FTX, including the major projects, key learning areas like design eras and pattern adaptation, and the schedule for all assessments. It's your roadmap for the year, so make sure you understand what's expected."
+    "short": "12FTX plan & tasks",
+    "desc": "This is your course overview for Year 12 Fashion and Textiles, including the year's plan and all assessments.",
+    "detail": "This document lays out the entire year for your Fashion and Textiles course. It's crucial for understanding the scope of your learning, key assessment dates, and what skills you'll be developing throughout the year."
   },
   {
     "cls": "12FTX",
@@ -682,9 +759,9 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Design eras and movements",
-    "desc": "Learn about different historical styles that influence fashion.",
-    "detail": "This material will introduce you to various design eras and movements relevant to fashion and textiles. Understanding these historical styles is crucial for informing your own design projects and developing a visual language."
+    "short": "Design history stuff",
+    "desc": "This material covers different historical design eras and movements relevant to fashion and textiles.",
+    "detail": "Understanding historical design eras and movements is fundamental to developing your own design aesthetic. This resource will provide context and inspiration for your projects, helping you to connect contemporary design to its past."
   },
   {
     "cls": "12FTX",
@@ -694,8 +771,8 @@ const RAW = [
     "status": null,
     "source": null,
     "short": "Design elements basics",
-    "desc": "Understand the building blocks of design.",
-    "detail": "This section covers the fundamental Elements and Principles of Design, which are the core concepts you'll use to create and analyze fashion. Mastering these basics is essential for any visual design work."
+    "desc": "An introduction to the fundamental building blocks and principles used in design.",
+    "detail": "This material explains the core concepts like line, shape, colour, and texture (elements) and how they are organized using balance, contrast, and rhythm (principles). Mastering these will improve your design choices and communication."
   },
   {
     "cls": "12FTX",
@@ -704,9 +781,9 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "First drawing examples",
-    "desc": "See examples of early design sketches.",
-    "detail": "These examples will showcase how to approach the initial drawing stages of your design projects. They will provide inspiration and guidance on how to develop and present your early design ideas effectively."
+    "short": "Drawing examples",
+    "desc": "Examples of how to set up and present your initial drawing pages for design ideas.",
+    "detail": "This resource shows you good examples of how to sketch and present your early design concepts. It will help you develop a strong visual communication style for your portfolio and assignments."
   },
   {
     "cls": "12FTX",
@@ -715,9 +792,9 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Shapes on forms",
-    "desc": "How shapes look on 3D objects.",
-    "detail": "This material focuses on how two-dimensional shapes appear and interact when applied to three-dimensional forms, like garments. It's about understanding visual perception and how to create dynamic designs."
+    "short": "Shapes on objects",
+    "desc": "Focuses on how to represent and draw basic shapes on three-dimensional forms.",
+    "detail": "This lesson will teach you techniques for drawing geometric and organic shapes and how they appear on solid objects, giving your designs a sense of volume and realism. This is a foundational skill for technical drawing in fashion."
   },
   {
     "cls": "12FTX",
@@ -726,9 +803,9 @@ const RAW = [
     "type": "assignment",
     "status": "Turned in",
     "source": null,
-    "short": "Design era/movement writing",
-    "desc": "Write about a specific design style.",
-    "detail": "This assignment requires you to write about a particular design era or movement, likely as part of your research for a larger project. You'll need to demonstrate your understanding of its characteristics and influences."
+    "short": "Design era writing",
+    "desc": "Write about a specific historical design era or movement for your assignment.",
+    "detail": "This assignment requires you to research and write about a chosen historical design era or movement, analysing its key characteristics and influences. This written component will form part of a larger assessment on design exploration."
   },
   {
     "cls": "12FTX",
@@ -738,8 +815,8 @@ const RAW = [
     "status": "Assigned",
     "source": null,
     "short": "Design era task sheet",
-    "desc": "Get the instructions for the design era task.",
-    "detail": "This is the official task sheet for your design era assignment. It will contain all the specific requirements, criteria, and submission details you need to complete this part of your fashion and textiles studies."
+    "desc": "Get the task sheet and submit your work for the design era assignment.",
+    "detail": "This task sheet outlines the specific requirements for your design era assignment. Make sure to read it carefully and submit your completed work by the due date."
   },
   {
     "cls": "12FTX",
@@ -748,9 +825,9 @@ const RAW = [
     "type": "event",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "Design Era Assessment Intro",
-    "desc": "Get started on your design era project.",
-    "detail": "This marks the introduction to the Design Era assessment, which is a key part of your fashion and textiles coursework. You'll be exploring historical design movements to inspire your own garment creation and portfolio development."
+    "short": "Design Era assessment intro",
+    "desc": "An introduction to the assessment focused on exploring different design eras.",
+    "detail": "This is the kick-off for your Design Era assessment, a major component of the Fashion and Textiles course. You'll be diving deep into a specific design movement, using it to inspire your own creative work and portfolio development."
   },
   {
     "cls": "12FTX",
@@ -759,9 +836,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "Written draft due",
-    "desc": "Hand in your first draft of writing.",
-    "detail": "This deadline is for a written draft related to your Design Era project. It's a crucial milestone where you'll be expected to submit your initial written work for feedback, helping you refine your ideas before the final submission."
+    "short": "Presentation draft due",
+    "desc": "Hand in a draft of your written presentation for feedback.",
+    "detail": "This is a crucial step for your Design Era assessment. Submitting a draft allows your teacher to provide feedback on your written work, helping you to refine your ideas and arguments before the final submission."
   },
   {
     "cls": "12FTX",
@@ -770,9 +847,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "Design Era assignment finishing",
-    "desc": "Wrap up your design era work.",
-    "detail": "This is a deadline for the final stages of your Design Era assignment. It signifies the completion of this specific task, likely involving incorporating feedback and finalizing all components before submission."
+    "short": "Finish Design Era assignment",
+    "desc": "Final submission for your Design Era assignment.",
+    "detail": "This is the final deadline for your Design Era assignment. Ensure all components, including research, written analysis, and any visual elements, are completed and submitted as per the requirements."
   },
   {
     "cls": "12FTX",
@@ -781,9 +858,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "Presentation due",
-    "desc": "Hand in your design era presentation.",
-    "detail": "This deadline is for the final version of your Design Era presentation. It means you need to have completed all research, visual aids, and written content to be submitted for grading."
+    "short": "Final presentation due",
+    "desc": "Submit your completed presentation for the Design Era assessment.",
+    "detail": "This is the final submission for your Design Era assessment, which includes your presentation. Make sure it effectively communicates your research and design ideas derived from a specific historical movement."
   },
   {
     "cls": "12FTX",
@@ -792,9 +869,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "Brief and design due",
-    "desc": "Submit your project plan and design.",
-    "detail": "This deadline is for your written brief and initial design concepts for a fashion project. It's where you formalize your project idea and showcase your early visual development."
+    "short": "Brief & designs due",
+    "desc": "Submit your written brief and initial design concepts.",
+    "detail": "This deadline is for submitting your initial design brief and your first set of design ideas related to your chosen design era. This is where you translate your research into tangible visual concepts."
   },
   {
     "cls": "12FTX",
@@ -804,8 +881,8 @@ const RAW = [
     "status": null,
     "source": "2026-student-Calendar",
     "short": "Pattern Adaptation due",
-    "desc": "Submit your pattern adaptation work.",
-    "detail": "This is the deadline for your Pattern Adaptation assessment. It means you need to have completed and submitted all the work related to modifying and applying patterns for garment construction."
+    "desc": "Submit your work for the Pattern Adaptation assessment.",
+    "detail": "This assessment focuses on your ability to adapt and modify existing patterns to create new garment designs. It's a practical skill that allows for creative interpretation within fashion construction."
   },
   {
     "cls": "12FTX",
@@ -814,9 +891,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "Advanced Procedures due",
-    "desc": "Hand in advanced construction work.",
-    "detail": "This deadline is for your Advanced Procedures work, which likely involves complex construction techniques for your final garment. You'll be submitting evidence of your skill in advanced sewing and garment making."
+    "short": "Advanced Procedures work",
+    "desc": "Hand in your work on advanced construction techniques.",
+    "detail": "This is where you submit the practical work showcasing your skills in advanced garment construction techniques learned throughout the course. This demonstrates your ability to translate designs into finished garments."
   },
   {
     "cls": "12FTX",
@@ -825,9 +902,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "Portfolio due",
-    "desc": "Submit your final portfolio.",
-    "detail": "This is the final deadline for your external portfolio. This portfolio will showcase all your work throughout the year, demonstrating your design process, research, and practical skills in fashion and textiles."
+    "short": "External portfolio due",
+    "desc": "Submit your final external portfolio.",
+    "detail": "This is the final submission of your external portfolio, which should showcase your best work, research, and development throughout the Fashion and Textiles course. It's a comprehensive representation of your skills and learning."
   },
   {
     "cls": "12FTX",
@@ -836,9 +913,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Design-Era-Task-Sheet-2026",
-    "short": "Written presentation draft",
-    "desc": "First draft of presentation writing.",
-    "detail": "This is a deadline for a draft of the written component of your presentation. It's an opportunity to get feedback on your research and how you've articulated your ideas about a design movement or era."
+    "short": "Presentation draft due",
+    "desc": "Submit a draft of your presentation and initial design ideas.",
+    "detail": "This deadline is for a draft submission of your presentation about a design movement and your initial design ideas stemming from that research. It's a chance to get feedback before the final version is due."
   },
   {
     "cls": "12FTX",
@@ -847,9 +924,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Design-Era-Task-Sheet-2026",
-    "short": "Final presentation/designs",
-    "desc": "Submit your final presentation and designs.",
-    "detail": "This deadline is for the final submission of both your research presentation on a design movement and your own design ideas. You'll be showcasing how you've applied the principles of a historical era to your contemporary fashion concepts."
+    "short": "Presentation & ideas due",
+    "desc": "Submit your final presentation and design ideas.",
+    "detail": "This is the final submission for your research presentation on a design movement and your subsequent design ideas. Ensure your presentation is polished and your design concepts are well-developed."
   },
   {
     "cls": "ENW223",
@@ -858,9 +935,9 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "English for Writers booklet",
-    "desc": "Intro booklet for writing class.",
-    "detail": "This is an introductory booklet for your English for Writers course, providing essential information about the class structure, expectations, and early tasks. It's your first point of reference for the term."
+    "short": "Writer's intro booklet",
+    "desc": "Read the introductory booklet for English for Writers.",
+    "detail": "This booklet provides an overview of the English for Writers course, outlining its goals, expectations, and the types of writing you'll be exploring. It's your first step into understanding the course structure."
   },
   {
     "cls": "ENW223",
@@ -869,9 +946,9 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Writing prompts galore",
-    "desc": "Lots of ideas for writing.",
-    "detail": "This resource provides a collection of writing prompts to inspire your creative work in the English for Writers class. Use these to spark ideas for your portfolio pieces and exercises."
+    "short": "Writing prompts",
+    "desc": "Here are lots of writing prompts to inspire you.",
+    "detail": "This resource offers a collection of writing prompts designed to spark your creativity and encourage you to experiment with different writing styles and themes. Use these as starting points for your portfolio pieces."
   },
   {
     "cls": "ENW223",
@@ -880,9 +957,9 @@ const RAW = [
     "type": "assignment",
     "status": "Turned in",
     "source": null,
-    "short": "Writing portfolio piece 1",
-    "desc": "First piece for your writing portfolio.",
-    "detail": "This is the first creative writing piece you'll submit for your English for Writers portfolio. It's an opportunity to showcase your skills in a specific genre or style."
+    "short": "Portfolio piece #1",
+    "desc": "Submit your first piece for your writing portfolio.",
+    "detail": "This is your first graded assignment for the English for Writers course. You'll be submitting a written piece that demonstrates your skills in a particular genre or style, based on the course's focus."
   },
   {
     "cls": "ENW223",
@@ -892,8 +969,8 @@ const RAW = [
     "status": null,
     "source": "English for Writers intro booklet",
     "short": "Intro booklet posted",
-    "desc": "Course intro now available.",
-    "detail": "The introductory booklet for your English for Writers course has been posted. Make sure to download and read it to understand the course outline and what to expect from the beginning of term."
+    "desc": "The introductory booklet is now available, and the course has begun.",
+    "detail": "This marks the official start of the English for Writers course. You should have access to the introductory booklet, and the teacher will likely be covering its contents and course expectations."
   },
   {
     "cls": "ENW223",
@@ -903,8 +980,8 @@ const RAW = [
     "status": null,
     "source": "Writing prompts galore",
     "short": "Writing prompts posted",
-    "desc": "Writing idea prompts are up.",
-    "detail": "The collection of writing prompts has now been posted. These are designed to help you generate ideas for your creative writing assignments and portfolio pieces."
+    "desc": "The writing prompts material has been posted online.",
+    "detail": "This means the collection of writing prompts you can use for inspiration has been made available. You should check these out to start brainstorming ideas for your upcoming assignments."
   },
   {
     "cls": "ENW223",
@@ -913,9 +990,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Writing portfolio piece #1",
-    "short": "Writing portfolio piece 1 due",
-    "desc": "First portfolio piece is due.",
-    "detail": "This is the deadline for your first writing portfolio piece. You need to have completed and submitted your initial creative writing submission for this course."
+    "short": "Portfolio piece #1 due",
+    "desc": "Your first writing portfolio piece is due now.",
+    "detail": "This is the deadline for your first graded writing submission. Make sure you have completed and submitted your chosen writing piece, adhering to all instructions and requirements."
   },
   {
     "cls": "ENW223",
@@ -924,9 +1001,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Develop personal responses #3",
-    "desc": "Write personal responses (3).",
-    "detail": "This assignment, AS91106 #3, requires you to develop and submit personal responses based on texts you've read. This is a core component of the English for Writers course, focusing on your interpretation and engagement with literature."
+    "short": "Personal responses due",
+    "desc": "Submit your personal responses for AS91106.",
+    "detail": "This is an assessment where you'll demonstrate your personal responses to texts, a key part of the English for Writers course. Your responses will show your understanding and engagement with the material."
   },
   {
     "cls": "ENW223",
@@ -935,9 +1012,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Writing portfolio due #3",
-    "desc": "Submit writing portfolio (3).",
-    "detail": "This is the deadline for the third submission of your writing portfolio for AS91101. Ensure all required pieces are completed and uploaded according to the assessment criteria."
+    "short": "Writing portfolio due",
+    "desc": "Submit your writing portfolio for AS91101.",
+    "detail": "This is a deadline for submitting your writing portfolio, which will likely contain a collection of your best writing pieces developed throughout the course. It's a comprehensive assessment of your writing skills."
   },
   {
     "cls": "ENW223",
@@ -946,9 +1023,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Develop personal responses #4",
-    "desc": "Write personal responses (4).",
-    "detail": "This is the deadline for AS91106 #4, your fourth set of personal responses. Continue to develop your writing by analyzing and responding to provided texts."
+    "short": "Personal responses due",
+    "desc": "Submit your personal responses for AS91106.",
+    "detail": "This is another submission point for your personal responses to texts. Ensure you are developing your analytical and creative engagement with the reading material as the course progresses."
   },
   {
     "cls": "ENW223",
@@ -957,9 +1034,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Writing portfolio due #4",
-    "desc": "Submit writing portfolio (4).",
-    "detail": "This is the deadline for the fourth submission of your writing portfolio for AS91101. Ensure all required pieces are completed and uploaded according to the assessment criteria."
+    "short": "Writing portfolio due",
+    "desc": "Submit your writing portfolio for AS91101.",
+    "detail": "This is a further deadline for submitting components of your writing portfolio. It's important to keep track of these submissions to ensure your overall portfolio is strong."
   },
   {
     "cls": "ENW223",
@@ -968,9 +1045,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Analyse connections across texts",
-    "desc": "Connect ideas across different texts.",
-    "detail": "This assignment, AS91104, requires you to analyze and explain the connections between different texts. This involves comparing themes, styles, or messages across various literary works."
+    "short": "Analyse text connections",
+    "desc": "This assessment requires you to analyse connections across texts.",
+    "detail": "This is a specific assessment focused on identifying and analysing the relationships between different texts you've studied. It tests your ability to synthesize information and draw broader conclusions about literary themes or techniques."
   },
   {
     "cls": "ENW223",
@@ -979,9 +1056,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Develop personal responses #5",
-    "desc": "Write personal responses (5).",
-    "detail": "This is the deadline for AS91106 #5, your fifth set of personal responses. Focus on critically engaging with texts and articulating your personal interpretations and analytical insights."
+    "short": "Personal responses due",
+    "desc": "Submit your personal responses for AS91106.",
+    "detail": "This is a subsequent submission for your personal responses. Continue to engage critically with the texts and develop your own unique perspectives and insights."
   },
   {
     "cls": "ENW223",
@@ -990,9 +1067,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Develop personal responses #6",
-    "desc": "Write personal responses (6).",
-    "detail": "This is the deadline for AS91106 #6, your sixth set of personal responses. Continue to hone your analytical and reflective writing skills by responding to assigned readings."
+    "short": "Personal responses due",
+    "desc": "Submit your personal responses for AS91106.",
+    "detail": "This is another submission opportunity for your personal responses. Focus on demonstrating your deepening understanding and ability to articulate your thoughts on the texts."
   },
   {
     "cls": "ENW223",
@@ -1001,9 +1078,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Develop personal responses #1",
-    "desc": "Write personal responses (1).",
-    "detail": "This is the deadline for AS91106 #1, your first set of personal responses. This assignment focuses on your ability to engage with texts and express your personal interpretations and analyses."
+    "short": "Personal responses due",
+    "desc": "Submit your personal responses for AS91106.",
+    "detail": "This is the first submission for your personal responses to texts. This assessment will evaluate your initial engagement with and interpretation of the reading material."
   },
   {
     "cls": "ENW223",
@@ -1012,9 +1089,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Coco-Inez-Penn-2026-AS91106-Independent-reading-responses",
-    "short": "Week 9, Term 3 tasks due",
-    "desc": "Complete Week 9 tasks by end of term.",
-    "detail": "This deadline covers all tasks for Week 9 of Term 3. You should have completed your readings, written your responses, and begun to plan how these will feed into your connections essay."
+    "short": "Week 9 tasks due",
+    "desc": "Complete and submit all tasks for Week 9 of Term 3.",
+    "detail": "This is a general deadline for all outstanding tasks and assignments for Week 9 of Term 3. Ensure you check the course outline for specific requirements and submit everything on time."
   },
   {
     "cls": "ENW223",
@@ -1023,9 +1100,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Writing portfolio due #1",
-    "desc": "Submit writing portfolio (1).",
-    "detail": "This is the deadline for the first submission of your writing portfolio for AS91101. Ensure you have completed and submitted your initial creative writing pieces as per the assessment guidelines."
+    "short": "Writing portfolio due",
+    "desc": "Submit your writing portfolio for AS91101.",
+    "detail": "This is an early deadline for submitting parts of your writing portfolio. It's important to start compiling and refining your work to meet this requirement."
   },
   {
     "cls": "ENW223",
@@ -1034,9 +1111,9 @@ const RAW = [
     "type": "info",
     "status": null,
     "source": "Coco-Inez-Penn-ENW223-portfolio-piece-1-student-sheet",
-    "short": "Feedback on portfolio piece 1",
-    "desc": "Review feedback for portfolio piece 1.",
-    "detail": "You will receive feedback on your first portfolio piece, which involved writing two short stories titled 'A bug's final bow' from different perspectives. Use this feedback to improve your future writing."
+    "short": "Portfolio feedback",
+    "desc": "Feedback has been provided for portfolio piece 1.",
+    "detail": "You should now check Google Classroom or your preferred platform for feedback on your first portfolio piece. Use this feedback constructively to improve your subsequent writing."
   },
   {
     "cls": "ENW223",
@@ -1045,9 +1122,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Develop personal responses #2",
-    "desc": "Write personal responses (2).",
-    "detail": "This is the deadline for AS91106 #2, your second set of personal responses. Continue to practice developing thoughtful and analytical responses to the texts provided."
+    "short": "Personal responses due",
+    "desc": "Submit your personal responses for AS91106.",
+    "detail": "This is an early submission for your personal responses to texts. This allows for earlier feedback and helps you stay on track with the course requirements."
   },
   {
     "cls": "ENW223",
@@ -1056,9 +1133,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Writing portfolio due #2",
-    "desc": "Submit writing portfolio (2).",
-    "detail": "This is the deadline for the second submission of your writing portfolio for AS91101. Ensure all required pieces are completed and uploaded according to the assessment criteria."
+    "short": "Writing portfolio due",
+    "desc": "Submit your writing portfolio for AS91101.",
+    "detail": "This is another deadline for submitting components of your writing portfolio. Stay organized and ensure you're making consistent progress on your writing pieces."
   },
   {
     "cls": "FLM223",
@@ -1067,9 +1144,9 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Femininity media slides",
-    "desc": "Slides on femininity in media.",
-    "detail": "These are presentation slides focused on the representation of femininity in the media and a related assessment. They will likely explore how gender is portrayed and analyzed within media texts."
+    "short": "Femininity in media slides",
+    "desc": "Slideshow about femininity and representation in media.",
+    "detail": "This material provides slides that explore the concept of femininity and how it's represented in media, likely in relation to the upcoming assessment on representation."
   },
   {
     "cls": "FLM223",
@@ -1078,9 +1155,9 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Horror - Final Girl slides",
-    "desc": "Slides on 'Final Girl' trope.",
-    "detail": "This material consists of slides specifically discussing the 'Final Girl' trope within horror films. It's a key concept for understanding character archetypes and genre conventions in horror."
+    "short": "Horror slides - final girl",
+    "desc": "Slides focusing on the 'final girl' trope in horror films.",
+    "detail": "This resource delves into the 'final girl' archetype within the horror genre. Understanding this trope is essential for analyzing horror films and their narrative structures."
   },
   {
     "cls": "FLM223",
@@ -1089,9 +1166,9 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Film course information",
-    "desc": "Info for the film class.",
-    "detail": "This is general course information for your film studies. It will likely cover the curriculum, assessment structure, and expectations for the entire year."
+    "short": "Course information",
+    "desc": "General information about the Film Studies course.",
+    "detail": "This document provides an overview of the Film Studies course, including its structure, learning objectives, and assessment expectations. It's a good starting point for understanding the whole year."
   },
   {
     "cls": "FLM223",
@@ -1100,9 +1177,9 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Assessment schedule",
-    "desc": "Film assessment dates.",
-    "detail": "This document outlines the assessment schedule for your film studies, including deadlines for all major assignments. It's essential for planning your workload throughout the year."
+    "short": "Assessment schedule & outline",
+    "desc": "Your assessment schedule and course outline for D1.",
+    "detail": "This is a key document outlining all the assessments for the year, including their weighting and due dates, as well as the overall structure and topics covered in the course."
   },
   {
     "cls": "FLM223",
@@ -1112,8 +1189,8 @@ const RAW = [
     "status": null,
     "source": null,
     "short": "Horror films to watch",
-    "desc": "List of horror films.",
-    "detail": "This is a folder containing a list of horror films recommended or required for viewing as part of your film studies. These films will be analyzed in class."
+    "desc": "A folder containing horror films recommended for viewing.",
+    "detail": "This is a curated list or collection of horror films you should watch as part of the course. Viewing these films will provide you with material and context for analysis."
   },
   {
     "cls": "FLM223",
@@ -1122,9 +1199,9 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Final Girl brainstorm",
-    "desc": "Brainstorm 'Final Girl' ideas.",
-    "detail": "This is a brainstorming activity related to the 'Final Girl' trope in horror films. It's designed to help you generate ideas and develop your understanding of this recurring character type."
+    "short": "Final girl brainstorm",
+    "desc": "Brainstorming material related to the 'final girl' concept.",
+    "detail": "This resource will help you generate ideas and develop your understanding of the 'final girl' trope in horror films, likely as preparation for an assignment or discussion."
   },
   {
     "cls": "FLM223",
@@ -1133,9 +1210,9 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Scream brainstorm",
-    "desc": "Brainstorm 'Scream' movie ideas.",
-    "detail": "This is a brainstorming session focused on the film 'Scream.' It's likely intended to help you analyze its themes, characters, and its place within the horror genre."
+    "short": "Scream class brainstorm",
+    "desc": "Brainstorming session related to the film 'Scream'.",
+    "detail": "This material is from a class brainstorming session about the film 'Scream'. It will contain ideas, themes, and analytical points related to the movie, likely for a specific assignment."
   },
   {
     "cls": "FLM223",
@@ -1144,9 +1221,9 @@ const RAW = [
     "type": "assignment",
     "status": "Missing",
     "source": null,
-    "short": "Final girl articles/worksheets",
-    "desc": "Articles and worksheets on 'Final Girl'.",
-    "detail": "This assignment involves working with articles and worksheets related to the 'Final Girl' trope. You'll be analyzing texts and completing tasks to deepen your understanding of this concept."
+    "short": "Final girl articles",
+    "desc": "Articles and worksheets on the 'final girl' trope.",
+    "detail": "This assignment involves reading and working with articles and worksheets that explore the 'final girl' concept and related ideas, possibly as a precursor to a larger analytical task."
   },
   {
     "cls": "FLM223",
@@ -1156,8 +1233,8 @@ const RAW = [
     "status": "Assigned",
     "source": null,
     "short": "Representation assessment",
-    "desc": "Assessment on media representation.",
-    "detail": "This is an assessment focused on media representation, specifically how certain groups are portrayed, often as stereotypes, within film or other media. You'll need to analyze media texts to demonstrate your understanding."
+    "desc": "Your assignment on representation in media.",
+    "detail": "This is a specific assignment that requires you to analyse how different groups are represented in media, likely focusing on stereotypes within horror films, as per the course content."
   },
   {
     "cls": "FLM223",
@@ -1167,8 +1244,8 @@ const RAW = [
     "status": null,
     "source": "Coco-Inez-Penn-2026-AS2.3-Representation-Student-Assessment-Instructions-and-cov",
     "short": "Representation assessment issued",
-    "desc": "Your representation assessment is here.",
-    "detail": "The '2.3 Representation' assessment has been issued. This task requires you to explore how a specific group is stereotypically represented in horror films, analyzing media texts to support your findings."
+    "desc": "The assessment on representation in media has been released.",
+    "detail": "This means the details and requirements for your assignment on representation have been provided. You should now familiarize yourself with what you need to do to complete it effectively."
   },
   {
     "cls": "FLM223",
@@ -1177,9 +1254,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Coco-Inez-Penn-2026-AS2.3-Representation-Student-Assessment-Instructions-and-cov",
-    "short": "Withdrawal deadline for Representation",
-    "desc": "Last day to drop Representation assessment.",
-    "detail": "This is the deadline to withdraw from the '2.3 Representation' assessment. If you decide not to proceed with this assignment, you must inform your teacher by this date."
+    "short": "Representation withdrawal deadline",
+    "desc": "The deadline to withdraw from the Representation assessment.",
+    "detail": "If you decide not to proceed with the Representation assessment, this is your final opportunity to formally withdraw. Make sure you understand the implications of withdrawing."
   },
   {
     "cls": "FLM223",
@@ -1188,9 +1265,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "5/3 Period 4 and 5 Final girl and good for her articles and worksheets when PBT is away",
-    "short": "Final girl articles due",
-    "desc": "Hand in 'Final Girl' work.",
-    "detail": "This is the deadline for submitting the articles and worksheets related to the 'Final Girl' trope. Ensure all your completed work is handed in on time."
+    "short": "Final girl assignment due",
+    "desc": "The assignment on 'final girl' articles and worksheets is due.",
+    "detail": "This is the deadline for submitting the work related to the 'final girl' articles and worksheets. Ensure all tasks within this assignment have been completed and submitted."
   },
   {
     "cls": "FLM223",
@@ -1200,8 +1277,8 @@ const RAW = [
     "status": null,
     "source": "Coco-Inez-Penn-2026-AS2.3-Representation-Student-Assessment-Instructions-and-cov",
     "short": "Representation assessment due",
-    "desc": "Your representation assessment is due.",
-    "detail": "This is the final deadline for the '2.3 Representation' assessment. You need to submit your analysis of how a specific group is represented in horror films, supported by evidence from media texts."
+    "desc": "Your assessment on representation in media is due now.",
+    "detail": "This is the final deadline for your Representation assessment. Ensure you have selected appropriate media texts, analysed their representations, and described the relevant features."
   },
   {
     "cls": "FLM223",
@@ -1210,9 +1287,9 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "Film-223-Genre-study-horror-2026-PBT",
-    "short": "Intro to horror genre",
-    "desc": "Learn about horror films.",
-    "detail": "This lesson introduces the horror genre, covering its history and key elements, with a specific focus on the 'Final Girl' trope and representation. You'll be analyzing films and discussing these concepts."
+    "short": "Horror genre intro",
+    "desc": "Introduction to the horror genre, focusing on the 'final girl'.",
+    "detail": "This lesson introduces the horror genre, its history, and key elements, with a special focus on the 'Final Girl' trope. You'll analyze films and concepts like representation."
   },
   {
     "cls": "FLM223",
@@ -1221,9 +1298,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Film-223-Genre-study-horror-2026-PBT",
-    "short": "Horror Film Analysis due",
-    "desc": "Submit your horror film analysis.",
-    "detail": "This is the deadline for your Horror Film Analysis assessment. You will need to demonstrate your understanding of horror genre conventions and specific film analyses, likely including concepts like the 'Final Girl'."
+    "short": "Horror analysis due",
+    "desc": "Submit your analysis of horror films.",
+    "detail": "This is the deadline for your horror film analysis assignment. You should have analysed specific films, discussed concepts like the 'Final Girl' trope, and demonstrated your understanding of the genre's conventions."
   },
   {
     "cls": "MUS223",
@@ -1232,9 +1309,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "L1-[2026]-Investigate-an-Aspect-of-New-Zealand-Music",
-    "short": "Submit research question",
-    "desc": "Hand in your research topic.",
-    "detail": "You need to submit your proposed research question for your New Zealand Music investigation by this deadline. This is the first step in defining your research focus for the assessment."
+    "short": "Research question approval",
+    "desc": "Submit your NZ music research question for approval.",
+    "detail": "This is the first step for your New Zealand music research project. You need to propose a specific research question about an aspect of NZ music for your teacher's approval."
   },
   {
     "cls": "MUS223",
@@ -1243,9 +1320,9 @@ const RAW = [
     "type": "event",
     "status": null,
     "source": "L1-[2026]-Investigate-an-Aspect-of-New-Zealand-Music",
-    "short": "Present research outline",
-    "desc": "Share your research plan.",
-    "detail": "This event involves presenting your research outline for the New Zealand Music investigation to the class. It's an opportunity to receive feedback and refine your research approach."
+    "short": "Research outline feedback",
+    "desc": "Present your research outline to the class for feedback.",
+    "detail": "You'll be presenting the plan for your NZ music research to your classmates to get constructive feedback. This will help you refine your research direction and presentation strategy."
   },
   {
     "cls": "MUS223",
@@ -1254,9 +1331,9 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "MUS223-2026-Who-are-we",
-    "short": "Create identity slides",
-    "desc": "Make 'Who are you?' slides.",
-    "detail": "You need to create two presentation slides: one about 'Who are you?' (identity) and one about 'Who are you musically?'. These slides will be used for class discussion and are a starting point for understanding your place in music."
+    "short": "Identity slides creation",
+    "desc": "Create slides about 'Who you are' and 'Who you are musically'.",
+    "detail": "This task involves creating two slides with images that represent your personal identity and your musical interests. You'll use these slides to introduce yourself to the class."
   },
   {
     "cls": "MUS223",
@@ -1266,8 +1343,8 @@ const RAW = [
     "status": null,
     "source": "MUS223-2026-Who-are-we",
     "short": "Add slides to presentation",
-    "desc": "Put your slides into the presentation.",
-    "detail": "This task involves adding your completed 'Who are you?' and 'Who are you musically?' slides to the main class presentation. Be ready to discuss the images and ideas on your slides."
+    "desc": "Add your completed identity slides to the main presentation.",
+    "detail": "Once you've created your 'Who you are' and 'Who you are musically' slides, you need to integrate them into a larger presentation, likely for your introduction or a related task."
   },
   {
     "cls": "MUS223",
@@ -1276,9 +1353,9 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "Perform two solo pieces",
-    "desc": "Play two solo music pieces.",
-    "detail": "This is a performance task where you will play two substantial pieces of music as a featured soloist. This is part of your assessment for the Music standards, focusing on your individual instrumental or vocal skills."
+    "short": "Solo performances due",
+    "desc": "Perform two substantial musical pieces as a soloist.",
+    "detail": "This is a key performance assessment where you will showcase your skills by performing two significant musical pieces individually. Focus on technicality, musicality, and stage presence."
   },
   {
     "cls": "MUS223",
@@ -1287,9 +1364,9 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "Perform group piece",
-    "desc": "Play one group music piece.",
-    "detail": "This task requires you to perform a substantial piece of music as part of a group. It assesses your ensemble skills and ability to collaborate musically with others."
+    "short": "Group performance due",
+    "desc": "Perform a substantial musical piece as part of a group.",
+    "detail": "This assessment evaluates your ability to collaborate and perform effectively within an ensemble. You'll need to demonstrate strong group performance skills and contribute to a cohesive musical output."
   },
   {
     "cls": "MUS223",
@@ -1298,9 +1375,9 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "Compose two music pieces",
-    "desc": "Write two music pieces.",
-    "detail": "You need to compose two substantial pieces of music. This task assesses your creativity and ability to create original musical works."
+    "short": "Compose two pieces",
+    "desc": "Compose two substantial pieces of music.",
+    "detail": "This is a composition assessment where you will create two original musical pieces. Focus on developing your compositional skills, exploring musical ideas, and demonstrating creativity."
   },
   {
     "cls": "MUS223",
@@ -1310,8 +1387,8 @@ const RAW = [
     "status": null,
     "source": "Welcome-to-MUS223",
     "short": "Investigate NZ music",
-    "desc": "Research New Zealand music.",
-    "detail": "This is a core task for your music studies: to investigate and research an aspect of New Zealand music. Your findings will likely form the basis of a presentation or written report."
+    "desc": "Research an aspect of New Zealand music.",
+    "detail": "This is the core research task for the NZ Music standard. You'll be investigating a specific topic within New Zealand music, which will likely culminate in a presentation or written report."
   },
   {
     "cls": "MUS223",
@@ -1320,9 +1397,9 @@ const RAW = [
     "type": "exam",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "NZ Music assessment exam",
-    "desc": "Exam on NZ music research.",
-    "detail": "This is the assessment for your 'Investigate an Aspect of New Zealand Music' standard. It will likely involve demonstrating your understanding of the research you've conducted and the key findings."
+    "short": "NZ music assessment",
+    "desc": "The assessment for investigating New Zealand music.",
+    "detail": "This is the formal assessment for your research on New Zealand music. It will evaluate the depth of your investigation, your analysis, and how you present your findings."
   },
   {
     "cls": "MUS223",
@@ -1331,9 +1408,9 @@ const RAW = [
     "type": "event",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "Solo 1 performance assessment",
-    "desc": "First solo performance assessment.",
-    "detail": "This is an assessment event for your first solo performance. You will be evaluated on your execution, musicality, and technical proficiency during this performance."
+    "short": "Solo 1 performance",
+    "desc": "Your first solo performance assessment.",
+    "detail": "This is the assessment for your first substantial solo musical performance. Ensure you are well-prepared and demonstrate your best musical and technical abilities."
   },
   {
     "cls": "MUS223",
@@ -1343,8 +1420,8 @@ const RAW = [
     "status": null,
     "source": "Welcome-to-MUS223",
     "short": "Composition feedback 1",
-    "desc": "Feedback on first composition.",
-    "detail": "You will receive formal feedback on your first composed piece of music. This is a crucial step for refining your composition and understanding areas for improvement."
+    "desc": "Receive formal feedback on your first composed piece.",
+    "detail": "This is when you'll get detailed feedback on your first composed piece of music. Use this feedback to understand strengths and areas for improvement before composing your second piece."
   },
   {
     "cls": "MUS223",
@@ -1354,8 +1431,8 @@ const RAW = [
     "status": null,
     "source": "Welcome-to-MUS223",
     "short": "Composition feedback 2",
-    "desc": "Feedback on second composition.",
-    "detail": "This is where you will receive formal feedback on your second composed piece of music. Use this feedback to make any final adjustments before submission."
+    "desc": "Receive formal feedback on your second composed piece.",
+    "detail": "This is where you'll receive feedback on your second composed piece. This will help you assess your progress as a composer and refine your skills for future projects."
   },
   {
     "cls": "MUS223",
@@ -1364,9 +1441,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "Final Composition hand-in",
-    "desc": "Submit your composed music.",
-    "detail": "This is the final deadline for submitting your composed pieces of music. Ensure both compositions meet the requirements and are submitted on time."
+    "short": "Composition hand-in",
+    "desc": "Final hand-in for your composed music pieces.",
+    "detail": "This is the final deadline for submitting your two composed musical pieces. Ensure they meet all the requirements and showcase your best compositional work."
   },
   {
     "cls": "MAT223",
@@ -1375,9 +1452,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Info-about-MAT223-for-2026",
-    "short": "Sit AS2.3 assessment",
-    "desc": "Take first internal math assessment.",
-    "detail": "This is the latest date you can sit your first internal assessment, AS2.3, in the flexible MAT223 course. Remember, you can sit it as early as Week 4 if you feel ready."
+    "short": "First internal assessment",
+    "desc": "Latest date to sit the first internal assessment (AS2.3).",
+    "detail": "This is the deadline for your first internal assessment in Mathematics. You have flexibility to sit it between Week 4 and Week 7, so choose a time when you feel best prepared."
   },
   {
     "cls": "MAT223",
@@ -1387,8 +1464,8 @@ const RAW = [
     "status": null,
     "source": "Info-about-MAT223-for-2026",
     "short": "More assessment info",
-    "desc": "Get more info on assessments.",
-    "detail": "You will receive more detailed information about sitting your internal assessments for MAT223. This is a chance to ask questions and clarify any doubts you have about the assessment process."
+    "desc": "Receive more details about sitting internal assessments.",
+    "detail": "This is an opportunity to get further information and clarification on how to approach and complete your internal assessments in Mathematics. Ask any questions you have."
   },
   {
     "cls": "MAT223",
@@ -1397,9 +1474,9 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Info-about-MAT223-for-2026",
-    "short": "External topics finished",
-    "desc": "Finish external topics.",
-    "detail": "All external topics for MAT223 must be completed before the derived grade exams. This ensures you are prepared for any external assessments or grading components of the course."
+    "short": "External topics finish",
+    "desc": "External topics must be completed before derived grade exams.",
+    "detail": "This deadline means you must have finished all work related to the external assessment topics before you can sit your derived grade exams. This ensures you are prepared for those high-stakes assessments."
   },
   {
     "cls": "FCM112",
@@ -1408,9 +1485,9 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Furniture inspiration slides",
-    "desc": "Slides for furniture ideas.",
-    "detail": "These are inspiration slides for your furniture project. They will provide visual examples and ideas to help you conceptualize and design your furniture piece."
+    "short": "Inspiration slideshow",
+    "desc": "Review the inspiration slideshow for furniture projects.",
+    "detail": "This slideshow likely contains images, examples, and ideas to spark your creativity for your furniture design project. Look through it for inspiration on styles, materials, and forms."
   },
   {
     "cls": "FCM112",
@@ -1419,9 +1496,9 @@ const RAW = [
     "type": "assignment",
     "status": "Assigned",
     "source": null,
-    "short": "Furniture project documentation",
-    "desc": "Document your furniture project.",
-    "detail": "This is where you need to provide full documentation of your furniture project. This means showing your design process, research, sketches, and potentially construction details."
+    "short": "Furniture project docs",
+    "desc": "Full documentation of your furniture project goes here.",
+    "detail": "This is the place to compile all your work for the furniture project, including research, sketches, design development, and final outcomes. It's your comprehensive record of the project."
   }
 ];
 
@@ -1503,120 +1580,146 @@ const TASK_SETS = {
     "tasks": [
       {
         "id": "t1",
-        "label": "Start Gothic Revival",
-        "done": "Started",
-        "sub": "Begin research on Gothic revival architecture",
+        "label": "Research Gothic Revival Origins",
+        "done": "Researched Gothic Revival Origins",
+        "sub": "Explore Gothic Revival's beginnings.",
+        "detail": "Begin by understanding when and why Gothic Revival architecture emerged. Focus on its initial emergence and primary influences to establish a foundational understanding.",
         "sec": "Research",
         "requires": [],
         "bullets": [
-          "Understand the origins and timeframe",
-          "Focus on English Gothic revival"
+          "Define Gothic Revival.",
+          "Identify timeframe of origin.",
+          "Note early influences."
         ],
-        "deliverable": "Initial understanding of Gothic revival",
-        "url": null
+        "deliverable": "Notes on the origins and timeframe of Gothic Revival.",
+        "url": null,
+        "skip": "Research skipped",
+        "skipSub": "Origins already known"
       },
       {
         "id": "t2",
-        "label": "Research Key Components",
-        "done": "Researched",
-        "sub": "Identify key elements of Gothic revival",
+        "label": "Identify Key Figures & Buildings",
+        "done": "Identified Key Figures & Buildings",
+        "sub": "Find important architects and sites.",
+        "detail": "Investigate prominent designers and landmark buildings associated with the Gothic Revival movement. This will provide concrete examples for your analysis.",
         "sec": "Research",
         "requires": [
           0
         ],
         "bullets": [
-          "Identify key designers",
-          "List notable buildings"
+          "List key architects.",
+          "Name notable buildings.",
+          "Note their locations."
         ],
-        "deliverable": "List of key Gothic revival figures and buildings",
-        "url": null
+        "deliverable": "List of key Gothic Revival designers and buildings.",
+        "url": null,
+        "skip": "Identification skipped",
+        "skipSub": "Key figures readily available"
       },
       {
         "id": "t3",
-        "label": "Historical Context",
-        "done": "Contextualized",
-        "sub": "Connect to historical events",
+        "label": "Connect to Industrial Revolution",
+        "done": "Connected to Industrial Revolution",
+        "sub": "Link architecture to historical events.",
+        "detail": "Explore how the Industrial Revolution influenced or intersected with the Gothic Revival movement. Consider societal changes and their architectural reflections.",
         "sec": "Research",
         "requires": [
           0
         ],
         "bullets": [
-          "Link to the Industrial Revolution",
-          "Explore societal influences"
+          "Explain Industrial Revolution's impact.",
+          "Discuss architectural responses.",
+          "Identify related social changes."
         ],
-        "deliverable": "Notes on historical connections",
-        "url": null
+        "deliverable": "Notes on the connection between Gothic Revival and the Industrial Revolution.",
+        "url": null,
+        "skip": "Connection skipped",
+        "skipSub": "Link already understood"
       },
       {
         "id": "t4",
-        "label": "Aesthetics & Function",
-        "done": "Analyzed",
-        "sub": "Explore visual and practical aspects",
+        "label": "Analyze Aesthetic & Function",
+        "done": "Analyzed Aesthetic & Function",
+        "sub": "Examine visual style and purpose.",
+        "detail": "Dive into the visual characteristics and practical uses of Gothic Revival architecture. Consider what made it appealing and how buildings were designed to function.",
         "sec": "Research",
         "requires": [
-          1,
-          2
+          0
         ],
         "bullets": [
-          "Discuss aesthetic features",
-          "Examine functional aspects"
+          "Describe aesthetic features.",
+          "Discuss functional aspects.",
+          "Consider decorative elements."
         ],
-        "deliverable": "Analysis of Gothic revival characteristics",
-        "url": null
+        "deliverable": "Analysis of Gothic Revival's aesthetic and functional qualities.",
+        "url": null,
+        "skip": "Analysis skipped",
+        "skipSub": "Aesthetics clear now"
       },
       {
         "id": "t5",
-        "label": "Arts & Crafts Link",
-        "done": "Linked",
-        "sub": "Connect to Arts and Crafts movement",
+        "label": "Explore Arts & Crafts Link",
+        "done": "Explored Arts & Crafts Link",
+        "sub": "Understand connection to Arts & Crafts.",
+        "detail": "Investigate the relationship between Gothic Revival and the Arts and Crafts movement. This will highlight evolving design philosophies and craft-focused ideals.",
         "sec": "Research",
         "requires": [
-          3
+          0
         ],
         "bullets": [
-          "Explore the relationship",
-          "Consider shared principles"
+          "Define Arts & Crafts.",
+          "Find overlaps/differences.",
+          "Note shared principles."
         ],
-        "deliverable": "Notes on the Arts and Crafts connection",
-        "url": null
+        "deliverable": "Notes on the link between Gothic Revival and the Arts and Crafts movement.",
+        "url": null,
+        "skip": "Exploration skipped",
+        "skipSub": "Arts & Crafts understood"
       },
       {
         "id": "t6",
-        "label": "Draft Page 1",
-        "done": "Drafted",
-        "sub": "Write overview of Gothic Revival",
+        "label": "Draft Presentation Text",
+        "done": "Drafted Presentation Text",
+        "sub": "Write your initial draft copy.",
+        "detail": "Synthesize all your research into a coherent written draft for your presentation. Ensure all key requirements are addressed clearly and logically.",
         "sec": "Drafting",
         "requires": [
-          0,
           1,
           2,
           3,
           4
         ],
         "bullets": [
-          "Summarize origins and timeframe",
-          "Include key designers and buildings",
-          "Discuss historical context"
+          "Structure your written copy.",
+          "Incorporate research findings.",
+          "Address all key requirements.",
+          "Write for clarity."
         ],
-        "deliverable": "First draft of Page 1 content",
-        "url": null
+        "deliverable": "First complete draft of the written part of the presentation.",
+        "url": null,
+        "skip": "Drafting skipped",
+        "skipSub": "Ready to finalize"
       },
       {
         "id": "t7",
-        "label": "Final Polish & Submit",
-        "done": "Submitted",
-        "sub": "Refine and submit written draft",
-        "sec": "Finishing",
+        "label": "Review & Finalize Draft",
+        "done": "Reviewed & Finalized Draft",
+        "sub": "Polish and prepare for submission.",
+        "detail": "Thoroughly review your drafted text for clarity, accuracy, and completeness. Make any necessary edits and ensure it meets all assignment criteria before submitting.",
+        "sec": "Refining",
         "requires": [
           5
         ],
         "bullets": [
-          "Review and edit for clarity",
-          "Check against assignment requirements",
-          "Submit written draft copy"
+          "Check for errors.",
+          "Ensure all points covered.",
+          "Proofread carefully.",
+          "Submit draft."
         ],
-        "deliverable": "Final written draft copy submitted",
-        "url": null
+        "deliverable": "Finalized written draft of the presentation ready for submission.",
+        "url": null,
+        "skip": "Review skipped",
+        "skipSub": "Draft is perfect"
       }
     ]
   },
@@ -1626,121 +1729,145 @@ const TASK_SETS = {
     "tasks": [
       {
         "id": "t1",
-        "label": "Read Final Girl Article",
+        "label": "Initial Reading",
         "done": "Read",
-        "sub": "Understand the origins of the final girl.",
+        "sub": "Read Final Girl Article",
+        "detail": "Start by reading 'The Rise of The Final Girl.pdf' to understand the historical context and development of this horror trope. This will provide a foundation for the worksheet questions.",
         "sec": "Reading",
         "requires": [],
         "bullets": [
-          "Open 'The Rise of The Final Girl.pdf'.",
-          "Read through the article.",
-          "Note down key terms and concepts."
+          "Open and read 'The Rise of The Final Girl.pdf'.",
+          "Take initial notes on key terms.",
+          "Highlight important film examples."
         ],
-        "deliverable": "General understanding of the 'final girl' concept.",
-        "url": null
+        "deliverable": "Initial understanding of the final girl trope.",
+        "url": null,
+        "skip": "Reading skipped",
+        "skipSub": "Moving on to worksheet"
       },
       {
         "id": "t2",
-        "label": "Read Good For Her Article",
-        "done": "Read",
-        "sub": "Explore the 'good for her' horror trope.",
-        "sec": "Reading",
-        "requires": [],
-        "bullets": [
-          "Open the 'Coco-Inez-Penn-Good-for-her-horror-worksheet'.",
-          "Read the section on what 'good for her' horror is.",
-          "Identify the author's definition and examples."
-        ],
-        "deliverable": "Understanding of the 'good for her' trope.",
-        "url": null
-      },
-      {
-        "id": "t3",
-        "label": "Analyze Final Girl Worksheet",
-        "done": "Analyzed",
-        "sub": "Answer questions on the 'final girl'.",
+        "label": "Final Girl Worksheet",
+        "done": "Completed",
+        "sub": "Answer Final Girl Worksheet",
+        "detail": "Work through the 'Coco-Inez-Penn-Rise-of-the-final-girl-work-sheet' using the article you just read. Focus on using specific quotes and film examples as requested.",
         "sec": "Worksheet 1",
         "requires": [
           0
         ],
         "bullets": [
-          "Refer to 'The Rise of The Final Girl.pdf'.",
-          "Answer each question using article quotes.",
-          "Include specific film examples for support."
+          "Answer worksheet questions with quotes.",
+          "Include specific film examples.",
+          "Check requirements for evidence."
         ],
-        "deliverable": "Completed answers for the 'Rise of the Final Girl' worksheet.",
-        "url": null
+        "deliverable": "Completed Final Girl worksheet.",
+        "url": null,
+        "skip": "Worksheet skipped",
+        "skipSub": "Already answered"
       },
       {
-        "id": "t4",
-        "label": "Analyze Good For Her Worksheet",
-        "done": "Analyzed",
-        "sub": "Discuss the 'good for her' trope.",
-        "sec": "Worksheet 2",
+        "id": "t3",
+        "label": "Good For Her Reading",
+        "done": "Read",
+        "sub": "Read Good for Her Article",
+        "detail": "Read the 'Coco-Inez-Penn-Good-for-her-horror-worksheet' to understand the 'good for her' trope. Pay attention to its definition, critiques, and potential feminist implications.",
+        "sec": "Reading",
         "requires": [
           1
         ],
         "bullets": [
-          "Review the 'Coco-Inez-Penn-Good-for-her-horror-worksheet'.",
-          "Answer discussion questions using simple language.",
-          "Use bullet points for answers under headings."
+          "Open and read the 'good for her' article.",
+          "Note the author's definition of the trope.",
+          "Identify critiques and examples used."
         ],
-        "deliverable": "Completed answers for the 'Good for Her' horror worksheet.",
-        "url": null
+        "deliverable": "Initial understanding of the 'good for her' trope.",
+        "url": null,
+        "skip": "Reading skipped",
+        "skipSub": "Moving on to worksheet"
+      },
+      {
+        "id": "t4",
+        "label": "Good For Her Worksheet",
+        "done": "Completed",
+        "sub": "Answer Good For Her Worksheet",
+        "detail": "Complete the discussion questions in the 'Coco-Inez-Penn-Good-for-her-horror-worksheet'. Use simple language and bullet points as instructed, reflecting on the feminist aspects.",
+        "sec": "Worksheet 2",
+        "requires": [
+          2
+        ],
+        "bullets": [
+          "Answer discussion questions.",
+          "Use simple language and bullet points.",
+          "Reflect on feminist aspects."
+        ],
+        "deliverable": "Completed 'Good for Her' worksheet.",
+        "url": null,
+        "skip": "Worksheet skipped",
+        "skipSub": "Already answered"
       },
       {
         "id": "t5",
-        "label": "Compare Final Girls",
-        "done": "Compared",
-        "sub": "Contrast 'Scream' and 'Halloween' final girls.",
-        "sec": "Analysis",
+        "label": "Character Notes Review",
+        "done": "Reviewed",
+        "sub": "Review Halloween & Scream Notes",
+        "detail": "Look over the 'Halloween-final-girl-notes' and 'Scream-notes-on-Final-girl' to see how these specific films embody or subvert the final girl trope. This will help connect theory to practice.",
+        "sec": "Research",
         "requires": [
-          2,
+          1,
           3
         ],
         "bullets": [
-          "Review 'Halloween-final-girl-notes'.",
-          "Review 'Scream-notes-on-Final-girl'.",
-          "Identify key similarities and differences."
+          "Read 'Halloween-final-girl-notes'.",
+          "Read 'Scream-notes-on-Final-girl'.",
+          "Identify connections to worksheets."
         ],
-        "deliverable": "Notes comparing 'final girl' characteristics.",
-        "url": null
+        "deliverable": "Understanding of specific film examples.",
+        "url": null,
+        "skip": "Review skipped",
+        "skipSub": "Notes are clear"
       },
       {
         "id": "t6",
-        "label": "Synthesize & Refine",
-        "done": "Synthesized",
-        "sub": "Combine answers and notes.",
-        "sec": "Refining",
+        "label": "Synthesize and Draft",
+        "done": "Drafted",
+        "sub": "Combine Worksheets & Notes",
+        "detail": "Combine your answers from both worksheets and insights from the character notes into a cohesive set of responses. Ensure all key requirements are met for both parts of the assignment.",
+        "sec": "Drafting",
         "requires": [
+          1,
           4
         ],
         "bullets": [
-          "Read through all worksheet answers.",
-          "Check for clarity and simple language.",
-          "Ensure all requirements are met.",
-          "Review comparison notes for insights."
+          "Integrate answers from both worksheets.",
+          "Incorporate film examples from notes.",
+          "Check for consistent formatting.",
+          "Ensure all questions are answered."
         ],
-        "deliverable": "Draft of combined answers and analysis.",
-        "url": null
+        "deliverable": "Draft of completed assignment.",
+        "url": null,
+        "skip": "Drafting skipped",
+        "skipSub": "Already drafted"
       },
       {
         "id": "t7",
-        "label": "Final Review & Submit",
+        "label": "Final Review",
         "done": "Submitted",
-        "sub": "Polishing and submission.",
+        "sub": "Proofread and Submit",
+        "detail": "Carefully proofread your entire assignment for any errors in grammar, spelling, or formatting. Make sure your answers are clear, concise, and directly address the assignment prompts before submitting.",
         "sec": "Finishing",
         "requires": [
           5
         ],
         "bullets": [
-          "Proofread for spelling and grammar.",
-          "Ensure formatting is correct.",
-          "Double-check all answers are evidence-based.",
-          "Submit assignment by the deadline."
+          "Read through all answers.",
+          "Check for spelling and grammar errors.",
+          "Confirm formatting is correct.",
+          "Submit the final assignment."
         ],
-        "deliverable": "Completed assignment submitted.",
-        "url": null
+        "deliverable": "Final, submitted assignment.",
+        "url": null,
+        "skip": "Review skipped",
+        "skipSub": "Already submitted"
       }
     ]
   },
@@ -1761,7 +1888,10 @@ const TASK_SETS = {
           "Consider NZ music's impact."
         ],
         "deliverable": "List of initial NZ music ideas",
-        "url": null
+        "url": null,
+        "detail": "To brainstorm NZ music, consider your personal preferences and delve into different eras and genres that define New Zealand's musical landscape. This exploration will help you uncover the unique contributions and evolution of music from Aotearoa.",
+        "skip": "Brainstorming skipped",
+        "skipSub": "Already had ideas"
       },
       {
         "id": "t2",
@@ -1778,7 +1908,10 @@ const TASK_SETS = {
           "Consider what interests you most."
         ],
         "deliverable": "Shortlist of 2-3 potential research topics",
-        "url": null
+        "url": null,
+        "detail": "To narrow down your ideas, review the diverse list of NZ music topics you've generated and identify 2-3 that genuinely pique your curiosity and seem feasible for research. Focusing on your personal interest will make the research process more engaging and successful.",
+        "skip": "Narrowing skipped",
+        "skipSub": "Focusing on one idea"
       },
       {
         "id": "t3",
@@ -1795,7 +1928,10 @@ const TASK_SETS = {
           "Note down interesting facts."
         ],
         "deliverable": "Notes on shortlisted research topics",
-        "url": null
+        "url": null,
+        "detail": "For initial topic research, conduct brief online searches for your shortlisted NZ music areas to get a foundational understanding. Quickly identify significant artists, movements, and any particularly intriguing facts that could inform your research direction.",
+        "skip": "Topic research skipped",
+        "skipSub": "Moving to question"
       },
       {
         "id": "t4",
@@ -1812,7 +1948,10 @@ const TASK_SETS = {
           "Aim for 2-3 question drafts."
         ],
         "deliverable": "Draft research questions",
-        "url": null
+        "url": null,
+        "detail": "When formulating research questions about NZ music, transform your chosen topic into 2-3 specific and focused inquiries that you can realistically investigate. This step is crucial for guiding your research and ensuring you have a clear objective.",
+        "skip": "Question formulation skipped",
+        "skipSub": "Directly refining"
       },
       {
         "id": "t5",
@@ -1829,7 +1968,10 @@ const TASK_SETS = {
           "Check if it's investigable."
         ],
         "deliverable": "One refined research question",
-        "url": null
+        "url": null,
+        "detail": "To refine your question, critically assess your drafted research questions, selecting the one that is most compelling and clearly investigable. Ensure your chosen question is precise enough to lead to a manageable and insightful research project.",
+        "skip": "Refining skipped",
+        "skipSub": "Teacher will guide"
       },
       {
         "id": "t6",
@@ -1846,7 +1988,10 @@ const TASK_SETS = {
           "Be ready to explain your choice."
         ],
         "deliverable": "Teacher's approval or feedback on question",
-        "url": null
+        "url": null,
+        "detail": "For teacher approval, present your polished research question clearly and be prepared to articulate why you chose it and what you hope to discover. Seeking teacher feedback early ensures your question aligns with the assignment's goals and is suitable for investigation.",
+        "skip": "Approval check skipped",
+        "skipSub": "Submitted directly"
       },
       {
         "id": "t7",
@@ -1863,7 +2008,10 @@ const TASK_SETS = {
           "Submit on the due date."
         ],
         "deliverable": "Approved research question submitted",
-        "url": null
+        "url": null,
+        "detail": "For final submission, ensure your research question has been officially approved by your teacher and is formatted according to any specific guidelines. Submitting your approved question on time demonstrates your preparedness and adherence to deadlines.",
+        "skip": "Submission skipped",
+        "skipSub": "Already submitted"
       }
     ]
   },
@@ -1884,7 +2032,10 @@ const TASK_SETS = {
           "Identify the first topic: Sequences and Series."
         ],
         "deliverable": "Clear understanding of AS2.3 goals",
-        "url": null
+        "url": null,
+        "detail": "Thoroughly read the assignment description for AS2.3, paying close attention to the earliest and latest assessment dates. This ensures you understand the scope of the assessment and have a clear timeline for completion, focusing initially on the topic of Sequences and Series.",
+        "skip": "Assignment understanding skipped",
+        "skipSub": "Requirements clear, no need to clarify."
       },
       {
         "id": "t2",
@@ -1899,7 +2050,10 @@ const TASK_SETS = {
           "Find past assessment examples if available."
         ],
         "deliverable": "Collection of relevant learning materials",
-        "url": null
+        "url": null,
+        "detail": "Actively search for and gather all necessary learning materials for Sequences and Series, which might include relevant textbook chapters, online video tutorials, and any available past assessment examples. Having a comprehensive set of resources will aid in a deeper understanding of the concepts.",
+        "skip": "Resource gathering skipped",
+        "skipSub": "Materials readily available."
       },
       {
         "id": "t3",
@@ -1916,7 +2070,10 @@ const TASK_SETS = {
           "Practice identifying sequence types."
         ],
         "deliverable": "Notes on sequence definitions and formulas",
-        "url": null
+        "url": null,
+        "detail": "Dedicate time to understanding the core concepts of both arithmetic and geometric sequences by learning their respective formulas and practicing how to differentiate between them. This foundational knowledge is crucial for solving sequence-related problems.",
+        "skip": "Sequence study skipped",
+        "skipSub": "Already familiar with concepts."
       },
       {
         "id": "t4",
@@ -1933,7 +2090,10 @@ const TASK_SETS = {
           "Practice calculating sum of terms."
         ],
         "deliverable": "Notes on series summation formulas",
-        "url": null
+        "url": null,
+        "detail": "Focus on learning the formulas for summing arithmetic and geometric series, and then practice calculating the sum of terms for various series. Mastering series summation is key to solving problems involving the total value of a sequence.",
+        "skip": "Series study skipped",
+        "skipSub": "Summation concepts understood."
       },
       {
         "id": "t5",
@@ -1951,7 +2111,10 @@ const TASK_SETS = {
           "Focus on applying formulas."
         ],
         "deliverable": "Completed practice problem set",
-        "url": null
+        "url": null,
+        "detail": "Apply your understanding by solving a variety of practice problems on sequences and series, including textbook exercises and practice exam questions, specifically focusing on the practical application of learned formulas. Consistent problem-solving reinforces your comprehension and builds confidence.",
+        "skip": "Practice problems skipped",
+        "skipSub": "Confident in understanding."
       },
       {
         "id": "t6",
@@ -1968,7 +2131,10 @@ const TASK_SETS = {
           "Email teacher with specific queries."
         ],
         "deliverable": "Answers to all outstanding questions",
-        "url": null
+        "url": null,
+        "detail": "Proactively address any uncertainties by listing your questions that arise during practice and seeking clarification from your teacher, either by attending Q&A sessions or sending specific email queries. This step is vital to ensure no misunderstandings hinder your preparation.",
+        "skip": "Clarification seeking skipped",
+        "skipSub": "No doubts remain."
       },
       {
         "id": "t7",
@@ -1985,7 +2151,10 @@ const TASK_SETS = {
           "Organize all necessary materials."
         ],
         "deliverable": "Ready to sit the internal assessment",
-        "url": null
+        "url": null,
+        "detail": "Conduct a final review of all your notes and practice solutions, confirm the exact assessment day and time, and organize all required materials. This systematic preparation minimizes last-minute stress and ensures you are ready for the assessment.",
+        "skip": "Preparation skipped",
+        "skipSub": "Assessment ready, no review needed."
       }
     ]
   }
@@ -1993,7 +2162,8 @@ const TASK_SETS = {
 
 </script>
 <script>
-const TODAY = new Date();
+const _now = new Date();
+const TODAY = new Date(_now.getFullYear(), _now.getMonth(), _now.getDate());
 const TODAY_STR = TODAY.toISOString().slice(0, 10);
 
 // CLASSES, RAW, ANALYSIS, ANOMALIES loaded from dates_data.js
@@ -2098,12 +2268,8 @@ function fmtSource(src) {
 }
 
 // State
-let activeFilter = null;
-let statusFilter = null;
 let alertsCollapsed = true;
-let pastCollapsed = true;
-let currentCollapsed = false;
-let upcomingCollapsed = true;
+let activeTab = null; // null = both closed, 'past' or 'upcoming'
 let expandedId = null;
 
 // ── Canvas-based task rendering (exact duplicate of task_template.html) ──
@@ -2136,6 +2302,20 @@ function deriveColors(accent) {
   };
 }
 
+// Unified task canvas palette — cohesive across all classes (dusty pink active)
+const TASK_COLORS = {
+  STROKE: '#C0707A',
+  FILL_UNDONE: [232, 200, 206, 0.6],
+  FILL_DONE: [200, 145, 155, 0.25],
+  FILL_SOLID: [192, 110, 120],
+  TEXT_BASE: [120, 55, 62],
+  STROKE_TARGET: [140, 65, 72],
+  ACCENT_RGB: [192, 110, 120],
+  ACCENT_HEX: '#C0707A',
+  MID_HEX: '#D4A0A6',
+  LIGHT_HEX: '#E2BCC0',
+};
+
 // Active TaskCanvas instances keyed by panelId
 const taskCanvases = {};
 
@@ -2144,17 +2324,18 @@ function recalcPanelSection(panelId) {
   if (panel) {
     const body = panel.closest('.section-body');
     if (body) { body.style.transition = 'none'; body.style.maxHeight = body.scrollHeight + 'px'; body.offsetHeight; body.style.transition = ''; }
+    // tab-content panels don't need max-height adjustment
   }
 }
 
 // TaskCanvas: self-contained canvas with inline-expand detail
 function TaskCanvas(wrapEl, tasks, storageKey, colors, panelId) {
   const self = this;
-  const PASS_STROKE = '#7B8B6F';
+  const PASS_STROKE = '#C4A43C';
   const FINAL_STROKE = '#C49A3C';
 
   const N = tasks.length;
-  const CH = 78, GAP = 6, R = 18, SW = 1.8, II = SW / 2;
+  const CH = 78, DONE_CH = 38, GAP = 6, R = 18, DONE_R = 12, SW = 1.8, II = SW / 2;
   const CW = Math.min(340, wrapEl.offsetWidth || 340);
 
   const _SR = colors.ACCENT_RGB[0], _SG = colors.ACCENT_RGB[1], _SB = colors.ACCENT_RGB[2];
@@ -2169,33 +2350,63 @@ function TaskCanvas(wrapEl, tasks, storageKey, colors, panelId) {
   let selectedIdx = -1;
   let expandIdx = -1; // which cell currently has expand height (may differ from selectedIdx during collapse)
   let expandH = 0, expandTarget = 0; // animated expand height
+  let collapseIdx = -1, collapseH = 0, collapseH0 = 0; // second slot: old task collapsing while new expands
 
   // textBtm: Y offset from cell top where text ends (for detail panel positioning)
   let cells = Array.from({ length: N }, (_, i) => ({
     done: false, passed: false, homeY: 0, textBtm: CH,
-    fillOp: 0, strokeOp: 0.25, divotFrac: 0, textFade: 0,
+    fillOp: 0, strokeOp: 0.25, divotFrac: 0, textFade: 0, doneH: CH,
   }));
   let solidFrac = 0, tgtSolid = 0;
   let raf = null;
-  let tgt = cells.map(() => ({ fillOp: 0, strokeOp: 0.25, divotFrac: 0, textFade: 0 }));
+  let tgt = cells.map(() => ({ fillOp: 0, strokeOp: 0.25, divotFrac: 0, textFade: 0, doneH: CH }));
 
   // Dynamic layout — cell height includes expand area
   // Base cell height accounts for text wrapping
-  function baseCellH(idx) { return Math.max(CH, cells[idx].textBtm + 26); }
-  function cellH(idx) { return baseCellH(idx) + (idx === expandIdx ? expandH : 0); }
+  function baseCellH(idx) {
+    const fullH = Math.max(CH, cells[idx].textBtm + 14);
+    const dh = cells[idx].doneH;
+    // Animate between full height and compact done height
+    if (dh < fullH - 1) return Math.round(dh);
+    return fullH;
+  }
+  function cellH(idx) {
+    let h = baseCellH(idx);
+    if (idx === expandIdx) h += expandH;
+    if (idx === collapseIdx) h += collapseH;
+    return h;
+  }
 
   function computeLayout() {
-    let y = 0;
+    let y = 0, first = true;
     for (let i = 0; i < N; i++) {
+      if (!isVisible(i)) { cells[i].homeY = -9999; continue; }
+      const h = cellH(i);
+      if (h < 0.5) { cells[i].homeY = y; continue; }
+      if (!first) {
+        // Fade GAP proportionally for shrinking cells
+        const gapFrac = i === fadingOutTemp ? Math.min(h / DONE_CH, 1) : 1;
+        y += GAP * gapFrac;
+      }
       cells[i].homeY = y;
-      y += cellH(i) + GAP;
+      y += h;
+      first = false;
     }
   }
 
   function totalH() {
-    let h = 0;
-    for (let i = 0; i < N; i++) h += cellH(i);
-    return h + (N - 1) * GAP;
+    let h = 0, first = true;
+    for (let i = 0; i < N; i++) {
+      if (!isVisible(i)) continue;
+      const ch = cellH(i);
+      if (ch < 0.5) continue;
+      if (!first) {
+        const gapFrac = i === fadingOutTemp ? Math.min(ch / DONE_CH, 1) : 1;
+        h += GAP * gapFrac;
+      }
+      h += ch; first = false;
+    }
+    return h;
   }
 
   function resizeCanvas() {
@@ -2205,7 +2416,7 @@ function TaskCanvas(wrapEl, tasks, storageKey, colors, panelId) {
     canvas.style.width = CW + 'px';
     canvas.style.height = th + 'px';
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    wrapEl.style.minHeight = (th + 40) + 'px';
+    wrapEl.style.minHeight = (th + 20) + 'px';
   }
 
   function isLocked(idx) {
@@ -2218,23 +2429,137 @@ function TaskCanvas(wrapEl, tasks, storageKey, colors, panelId) {
     if (!reqs) return [];
     return reqs.filter(r => r !== idx && !cells[r].done && !cells[r].passed);
   }
+  // Temporarily revealed tasks (via pill click)
+  let tempVisibleIdx = -1;
+  let fadingOutTemp = -1; // old temp cell still visible during shrink animation
+
+  // Is this task visible? Show: done, passed, unlocked, next-locked, or temp-revealed
+  function isVisible(idx) {
+    if (idx === tempVisibleIdx) return true;
+    if (idx === fadingOutTemp) return true;
+    if (cells[idx].done || cells[idx].passed) return true;
+    if (!isLocked(idx)) return true; // unlocked
+    // Locked — check if all pending deps are unlocked (directly next)
+    const deps = pendingDeps(idx);
+    return deps.length > 0 && deps.every(d => !isLocked(d));
+  }
 
   function doneCount() { return cells.filter(c => c.done).length; }
   function passCount() { return cells.filter(c => c.passed).length; }
   function updateCounter() {
-    const done = doneCount(), skip = passCount(), todo = N - done - skip;
-    const pd = wrapEl.querySelector('.tp-done'), pt = wrapEl.querySelector('.tp-todo'), ps = wrapEl.querySelector('.tp-skip');
-    if (pd) { pd.textContent = done + ' complete'; pd.style.display = done > 0 ? '' : 'none'; }
-    if (pt) { pt.textContent = todo + ' to do'; pt.style.display = todo > 0 ? '' : 'none'; }
-    if (ps) { ps.textContent = skip + ' skipped'; ps.style.display = skip > 0 ? '' : 'none'; }
+    const circleEls = wrapEl.querySelectorAll('.task-circle');
+    circleEls.forEach((el, i) => {
+      el.classList.remove('is-done', 'is-skip', 'is-active', 'is-next');
+      if (cells[i].done) el.classList.add('is-done');
+      else if (cells[i].passed) el.classList.add('is-skip');
+      else if (!isLocked(i)) el.classList.add('is-active');
+      else if (isVisible(i)) el.classList.add('is-next');
+    });
+    // Draw SVG blobs
+    drawProgressSvg();
+  }
+
+  function drawProgressSvg() {
+    const svg = wrapEl.querySelector('.task-progress-svg');
+    if (!svg) return;
+    const circleEls = wrapEl.querySelectorAll('.task-circle');
+    if (circleEls.length === 0) return;
+    const row = wrapEl.querySelector('.task-progress-row');
+    const rowRect = row.getBoundingClientRect();
+    const W = rowRect.width, H = rowRect.height;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+    // Get center X of each pill relative to the row
+    const cx = [];
+    circleEls.forEach(el => {
+      const r = el.getBoundingClientRect();
+      cx.push(r.left + r.width / 2 - rowRect.left);
+    });
+    const PW = 38; // pill width
+    const PH = 22; // pill height
+    const PR = PH / 2; // end-cap radius (fully rounded ends)
+    const DIVOT = 0; // divot depth inward (0 = smooth)
+    const DIVOT_W = 0; // divot half-width
+    const CY = H / 2;
+
+    let paths = '';
+    const unlocked = cells.map((c, i) => !c.done && !c.passed && !isLocked(i));
+
+    // Individual pill path helper
+    function pillPath(x, y, w, h, r) {
+      const hw = w / 2;
+      return `M ${x - hw + r} ${y - h/2}` +
+        ` L ${x + hw - r} ${y - h/2}` +
+        ` A ${r} ${r} 0 0 1 ${x + hw - r} ${y + h/2}` +
+        ` L ${x - hw + r} ${y + h/2}` +
+        ` A ${r} ${r} 0 0 1 ${x - hw + r} ${y - h/2} Z`;
+    }
+
+    // Build runs
+    let i = 0;
+    while (i < N) {
+      if (cells[i].done) {
+        let j = i;
+        while (j < N && cells[j].done) j++;
+        if (j - i === 1) {
+          // Solo done pill
+          paths += `<path data-pill="${i}" d="${pillPath(cx[i], CY, PW, PH, PR)}" fill="rgba(90,155,145,0.75)" stroke="rgba(60,130,118,0.85)" stroke-width="1.5" style="transform-origin:${cx[i]}px ${CY}px"/>`;
+        } else {
+          // Merged blob: from left edge of first pill to right edge of last
+          const lx = cx[i] - PW / 2; // left edge
+          const rx = cx[j - 1] + PW / 2; // right edge
+          const ty = CY - PH / 2, by = CY + PH / 2;
+          let d = `M ${lx + PR} ${ty}`;
+          // Top edge with divots between each pair
+          for (let k = i; k < j - 1; k++) {
+            const mid = (cx[k] + cx[k + 1]) / 2;
+            d += ` L ${mid - DIVOT_W} ${ty}`;
+            d += ` Q ${mid} ${ty + DIVOT} ${mid + DIVOT_W} ${ty}`;
+          }
+          d += ` L ${rx - PR} ${ty}`;
+          // Right cap
+          d += ` A ${PR} ${PR} 0 0 1 ${rx - PR} ${by}`;
+          // Bottom edge with divots (right to left)
+          for (let k = j - 2; k >= i; k--) {
+            const mid = (cx[k] + cx[k + 1]) / 2;
+            d += ` L ${mid + DIVOT_W} ${by}`;
+            d += ` Q ${mid} ${by - DIVOT} ${mid - DIVOT_W} ${by}`;
+          }
+          d += ` L ${lx + PR} ${by}`;
+          // Left cap
+          d += ` A ${PR} ${PR} 0 0 1 ${lx + PR} ${ty} Z`;
+          const mergedIds = Array.from({length: j - i}, (_, k) => i + k).join(',');
+          const mergedCx = (cx[i] + cx[j - 1]) / 2;
+          paths += `<path data-pills="${mergedIds}" d="${d}" fill="rgba(90,155,145,0.75)" stroke="rgba(60,130,118,0.85)" stroke-width="1.5" style="transform-origin:${mergedCx}px ${CY}px"/>`;
+        }
+        i = j;
+      } else {
+        let fill, stroke;
+        if (cells[i].passed) {
+          fill = 'rgba(180,150,40,0.2)'; stroke = 'rgba(180,150,40,0.5)';
+        } else if (unlocked[i]) {
+          fill = 'rgba(215,160,168,0.55)'; stroke = 'rgba(192,110,120,0.65)';
+        } else if (isVisible(i)) {
+          // Next-locked — lighter pink
+          fill = 'rgba(215,160,168,0.18)'; stroke = 'rgba(192,110,120,0.25)';
+        } else {
+          fill = 'rgba(236,234,227,0.4)'; stroke = 'rgba(160,150,140,0.15)';
+        }
+        paths += `<path data-pill="${i}" d="${pillPath(cx[i], CY, PW, PH, PR)}" fill="${fill}" stroke="${stroke}" stroke-width="1.5" style="transform-origin:${cx[i]}px ${CY}px"/>`;
+        i++;
+      }
+    }
+    svg.innerHTML = paths;
   }
 
   function recalcTargets() {
     tgtSolid = cells.every(c => c.done || c.passed) ? 1 : 0;
     cells.forEach((cell, i) => {
-      tgt[i].fillOp = cell.done ? 1.0 : 0;
-      tgt[i].strokeOp = cell.done ? 1.0 : 0.25;
+      const compact = cell.done || cell.passed;
+      tgt[i].fillOp = compact ? 1.0 : 0;
+      tgt[i].strokeOp = compact ? 1.0 : 0.25;
       tgt[i].textFade = cell.done ? 1.0 : 0;
+      tgt[i].doneH = compact ? DONE_CH : CH;
       tgt[i].divotFrac = (i < N - 1 && cell.done && cells[i + 1].done) ? 1 : 0;
     });
   }
@@ -2246,6 +2571,7 @@ function TaskCanvas(wrapEl, tasks, storageKey, colors, panelId) {
       else if (c.passed) s[tasks[i].id] = 'passed';
     });
     localStorage.setItem(storageKey, JSON.stringify(s));
+    refreshMiniProgress();
   }
 
   function loadLS() {
@@ -2253,8 +2579,8 @@ function TaskCanvas(wrapEl, tasks, storageKey, colors, panelId) {
       const s = JSON.parse(localStorage.getItem(storageKey)) || {};
       cells.forEach((c, i) => {
         const v = s[tasks[i].id];
-        if (v === true || v === 'done') { c.done = true; c.fillOp = 1; c.strokeOp = 1; c.textFade = 1; }
-        else if (v === 'passed') { c.passed = true; }
+        if (v === true || v === 'done') { c.done = true; c.fillOp = 1; c.strokeOp = 1; c.textFade = 1; c.doneH = DONE_CH; }
+        else if (v === 'passed') { c.passed = true; c.fillOp = 1; c.strokeOp = 1; c.doneH = DONE_CH; }
       });
       cells.forEach((c, i) => { if (i < N - 1 && c.done && cells[i + 1].done) c.divotFrac = 1; });
       if (cells.every(c => c.done || c.passed)) solidFrac = 1;
@@ -2314,10 +2640,10 @@ function TaskCanvas(wrapEl, tasks, storageKey, colors, panelId) {
     ctx.globalAlpha = 1; ctx.setLineDash([]);
   }
 
-  // Paths — rrPath accepts variable height
-  function rrPath(y, h) {
+  // Paths — rrPath accepts variable height and optional radius
+  function rrPath(y, h, rOverride) {
     h = h || CH;
-    const x0=II, y0=y+II, x1=CW-II, y1=y+h-II, r=R-II;
+    const x0=II, y0=y+II, x1=CW-II, y1=y+h-II, r=Math.min((rOverride || R)-II, (h-SW)/2);
     const p = new Path2D();
     p.moveTo(x0+r, y0);
     p.lineTo(x1-r, y0); p.quadraticCurveTo(x1, y0, x1, y0+r);
@@ -2390,11 +2716,10 @@ function TaskCanvas(wrapEl, tasks, storageKey, colors, panelId) {
        { type:'arc', cx:x0+r, cy:y1-r, sa:Math.PI/2, ea:Math.PI, ccw:false },
        { type:'line', sx:x0, sy:y1-r, ex:x0, ey:cy }],
     ];
-    const borderStroke = (cellIdx === N - 1) ? FINAL_STROKE : colors.STROKE;
+    const isPassed = cells[cellIdx].passed;
+    const borderStroke = isDone ? (isPassed ? PASS_STROKE : '#5A9B91') : colors.STROKE;
     if (isDone) {
-      ctx.strokeStyle = '#ECEAE3'; ctx.globalAlpha = 1; ctx.lineWidth = SW + 2;
-      arms.forEach(a => traceArm(a));
-      ctx.strokeStyle = borderStroke; ctx.globalAlpha = 0.25; ctx.lineWidth = SW;
+      ctx.strokeStyle = borderStroke; ctx.globalAlpha = 0.7; ctx.lineWidth = SW;
       arms.forEach(a => traceArm(a));
     } else {
       ctx.strokeStyle = borderStroke; ctx.globalAlpha = 1; ctx.lineWidth = SW;
@@ -2436,9 +2761,9 @@ function TaskCanvas(wrapEl, tasks, storageKey, colors, panelId) {
     const th = totalH();
     ctx.clearRect(0, 0, CW, th);
 
-    // Undone and passed cells — use cellH for variable height
+    // Undone cells — use cellH for variable height
     cells.forEach((cell, idx) => {
-      if (cell.done) return;
+      if (cell.done || cell.passed || !isVisible(idx)) return;
       const h = cellH(idx);
       // Press scale effect (animated)
       const isScaling = (idx === pressScaleIdx && pressScale < 0.999);
@@ -2448,58 +2773,69 @@ function TaskCanvas(wrapEl, tasks, storageKey, colors, panelId) {
       }
       const p = rrPath(cell.homeY, h);
       const isFinal = idx === N - 1;
-      const st = isFinal ? FINAL_STROKE : colors.STROKE;
-      if (cell.passed) {
-        const pr = Math.round(123 + (88-123)*solidFrac);
-        const pg = Math.round(139 + (115-139)*solidFrac);
-        const pb = Math.round(111 + (72-111)*solidFrac);
-        const pa = 0.12 + (0.88 - 0.12)*solidFrac;
-        ctx.fillStyle = `rgba(${pr},${pg},${pb},${pa.toFixed(3)})`;
+      const st = colors.STROKE;
+      if (idx === tempVisibleIdx && isLocked(idx)) {
+        // Temp-revealed via pill — grey
+        ctx.fillStyle = 'rgba(180,175,168,0.2)';
         ctx.fill(p);
-        ctx.strokeStyle = PASS_STROKE; ctx.lineWidth = SW;
-        ctx.globalAlpha = 0.55 + 0.45*solidFrac; ctx.stroke(p); ctx.globalAlpha = 1;
+        dashedBorder(cell.homeY, h, 'rgba(160,150,140,0.4)', 0.15);
       } else if (isLocked(idx)) {
-        ctx.fillStyle = isFinal ? 'rgba(196,154,60,0.12)' : 'rgba(202,224,245,0.25)';
+        ctx.fillStyle = 'rgba(232,200,206,0.3)';
         ctx.fill(p);
         dashedBorder(cell.homeY, h, st, 0.1);
       } else if (idx === selectedIdx) {
-        ctx.fillStyle = isFinal ? 'rgba(196,154,60,0.25)' : 'rgba(202,224,245,0.85)';
+        ctx.fillStyle = `rgba(${colors.FILL_UNDONE.join(',')})`;
         ctx.fill(p);
-        dashedBorder(cell.homeY, h, st, 0.6);
+        ctx.strokeStyle = st; ctx.lineWidth = SW; ctx.globalAlpha = 0.6; ctx.stroke(p); ctx.globalAlpha = 1;
       } else {
-        ctx.fillStyle = isFinal ? 'rgba(196,154,60,0.18)' : `rgba(${colors.FILL_UNDONE.join(',')})`;
+        ctx.fillStyle = `rgba(${colors.FILL_UNDONE.join(',')})`;
         ctx.fill(p);
-        dashedBorder(cell.homeY, h, st, cell.strokeOp);
+        ctx.strokeStyle = st; ctx.lineWidth = SW; ctx.globalAlpha = cell.strokeOp; ctx.stroke(p); ctx.globalAlpha = 1;
       }
       if (isScaling) ctx.restore();
     });
 
-    // Done runs — merged path uses cellH for variable heights
-    let i = 0;
-    while (i < N) {
-      if (!cells[i].done) { i++; continue; }
-      let j = i;
-      while (j < N && cells[j].done) j++;
-      const ytop = cells[i].homeY;
-      const ybot = cells[j-1].homeY + cellH(j-1);
-      const joins = [];
-      for (let k = i+1; k < j; k++) {
-        joins.push({
-          jy: (cells[k-1].homeY + cellH(k-1) + cells[k].homeY) / 2,
-          frac: cells[k-1].divotFrac
-        });
+    // Done cells — individual teal rounded rects (shrink to thin when compact)
+    cells.forEach((cell, idx) => {
+      if (!cell.done || !isVisible(idx)) return;
+      const h = cellH(idx);
+      const isScaling = (idx === pressScaleIdx && pressScale < 0.999);
+      if (isScaling) {
+        const cx = CW / 2, cy = cell.homeY + h / 2;
+        ctx.save(); ctx.translate(cx, cy); ctx.scale(pressScale, pressScale); ctx.translate(-cx, -cy);
       }
-      const path = (j-i === 1) ? rrPath(cells[i].homeY, cellH(i)) : mergedPathV(ytop, ybot, joins);
-      let avgFill = 0, avgStroke = 0;
-      for (let k = i; k < j; k++) { avgFill += cells[k].fillOp; avgStroke += cells[k].strokeOp; }
-      avgFill /= (j-i); avgStroke /= (j-i);
-      ctx.fillStyle = fillColour(avgFill); ctx.fill(path);
-      ctx.strokeStyle = strokeColour(avgStroke); ctx.lineWidth = SW; ctx.stroke(path);
-      i = j;
-    }
+      const growFrac = Math.min((cell.doneH - DONE_CH) / (CH - DONE_CH), 1);
+      const cr = DONE_R + (R - DONE_R) * growFrac;
+      const p = rrPath(cell.homeY, h, cr);
+      ctx.fillStyle = `rgba(90,155,145,${(0.06 * cell.fillOp).toFixed(3)})`;
+      ctx.fill(p);
+      ctx.strokeStyle = `rgba(90,155,145,${(0.15 * cell.strokeOp).toFixed(3)})`;
+      ctx.lineWidth = 1.2; ctx.stroke(p);
+      if (isScaling) ctx.restore();
+    });
+
+    // Passed/skipped cells — amber rounded rects (shrink like done)
+    cells.forEach((cell, idx) => {
+      if (!cell.passed || !isVisible(idx)) return;
+      const h = cellH(idx);
+      const isScaling = (idx === pressScaleIdx && pressScale < 0.999);
+      if (isScaling) {
+        const cx = CW / 2, cy = cell.homeY + h / 2;
+        ctx.save(); ctx.translate(cx, cy); ctx.scale(pressScale, pressScale); ctx.translate(-cx, -cy);
+      }
+      const growFrac = Math.min((cell.doneH - DONE_CH) / (CH - DONE_CH), 1);
+      const cr = DONE_R + (R - DONE_R) * growFrac;
+      const p = rrPath(cell.homeY, h, cr);
+      ctx.fillStyle = `rgba(196,164,60,${(0.06 * cell.fillOp).toFixed(3)})`;
+      ctx.fill(p);
+      ctx.strokeStyle = `rgba(196,164,60,${(0.15 * cell.strokeOp).toFixed(3)})`;
+      ctx.lineWidth = 1.2; ctx.stroke(p);
+      if (isScaling) ctx.restore();
+    });
 
     // Text — always drawn at the top of each cell (fixed CH area)
     cells.forEach((cell, idx) => {
+      if (!isVisible(idx)) return;
       const t = tasks[idx], y = cell.homeY;
       const selBoost = (idx === selectedIdx) ? 1.6 : 1.0;
       const isFinal = idx === N - 1;
@@ -2523,58 +2859,100 @@ function TaskCanvas(wrapEl, tasks, storageKey, colors, panelId) {
       // Task number aligned right
       function drawNum(alpha) {
         ctx.font = '600 11px JetBrains Mono, monospace';
-        ctx.fillStyle = isFinal ? finalTextColour(alpha) : textColour(alpha);
+        ctx.fillStyle = textColour(alpha);
         ctx.textAlign = 'right';
-        ctx.fillText(String(idx + 1), CW - 14, y + 18);
+        ctx.fillText(String(idx + 1), CW - 14, y + 27);
         ctx.textAlign = 'left';
       }
 
 
 
       if (cell.passed) {
-        const pr = Math.round(123 + (255-123)*solidFrac);
-        const pg = Math.round(139 + (255-139)*solidFrac);
-        const pb = Math.round(111 + (255-111)*solidFrac);
-        drawNum(0.3 + 0.3*solidFrac);
-        ctx.font = solidFrac > 0.5 ? 'italic 400 19px Nunito, sans-serif' : '400 19px Nunito, sans-serif';
-        ctx.fillStyle = `rgba(${pr},${pg},${pb},${(0.55 + 0.4*solidFrac).toFixed(3)})`;
-        ctx.fillText((solidFrac > 0.5 ? t.done : t.label) + ' \u00b7 Skipped', 16, y + 30);
-        drawSub(t.sub, `rgba(${pr},${pg},${pb},${(0.5 + 0.35*solidFrac).toFixed(3)})`, y + 48);
+        const skipA = cell.fillOp; // animates 0→1
+        const dh = cell.doneH;
+        const skipLabel = t.label;
+        const skipSub = t.sub;
+        const gf = Math.min((dh - DONE_CH) / (CH - DONE_CH), 1);
+        const compactCY = y + dh / 2 + 5;
+        const lblY = compactCY + (y + 28 - compactCY) * gf;
+        const numY = compactCY + (y + 27 - compactCY) * gf;
+        const numA = skipA * (0.3 + 0.2 * gf);
+        const lblA = skipA * (0.4 + 0.45 * gf);
+        const subA = skipA * (0.6 * gf);
+        ctx.font = '600 11px JetBrains Mono, monospace';
+        ctx.fillStyle = `rgba(160,130,40,${numA.toFixed(3)})`;
+        ctx.textAlign = 'right';
+        ctx.fillText(String(idx + 1), CW - 14, numY);
+        ctx.textAlign = 'left';
+        const fs = (15 + gf).toFixed(1);
+        ctx.font = `italic 400 ${fs}px Nunito, sans-serif`;
+        ctx.fillStyle = `rgba(160,130,40,${lblA.toFixed(3)})`;
+        ctx.fillText('\u2022  ' + skipLabel, gf > 0.5 ? 16 : 14, lblY);
+        if (gf > 0.15) {
+          drawSub(skipSub, `rgba(160,130,40,${subA.toFixed(3)})`, y + 52);
+        }
       } else if (locked) {
-        const tc = isFinal ? finalTextColour : textColour;
-        drawNum(0.15);
+        const isTemp = idx === tempVisibleIdx;
+        const tc = isTemp ? (a) => `rgba(120,115,108,${a.toFixed(3)})` : textColour;
+        drawNum(isTemp ? 0.25 : 0.15);
         ctx.font = '400 19px Nunito, sans-serif';
-        ctx.fillStyle = tc(0.22); ctx.fillText(t.label, 16, y + 30);
-        drawSub(t.sub, tc(0.16), y + 48);
+        ctx.fillStyle = tc(isTemp ? 0.4 : 0.22); ctx.fillText(t.label, 16, y + 30);
+        drawSub(t.sub, tc(isTemp ? 0.3 : 0.16), y + 52);
       } else {
-        const tc = isFinal ? finalTextColour : textColour;
+        const tc = textColour;
         const tf = cell.textFade;
-        const undoneA = (1 - tf) * 0.6, doneA = tf * 0.95;
+        const undoneA = (1 - tf) * 0.85, doneA = tf * 0.95;
         if (undoneA > 0.005) {
-          drawNum(Math.min(undoneA * 0.6 * selBoost, 0.5));
+          drawNum(Math.min(undoneA * 0.6 * selBoost, 0.6));
           ctx.font = '400 19px Nunito, sans-serif';
           ctx.fillStyle = tc(Math.min(undoneA * selBoost, 1));
           ctx.fillText(t.label, 16, y + 30);
-          drawSub(t.sub, tc(Math.min(undoneA * 0.85 * selBoost, 1)), y + 48);
+          drawSub(t.sub, tc(Math.min(undoneA * 0.9 * selBoost, 1)), y + 52);
         }
         if (doneA > 0.005) {
-          drawNum(doneA * 0.4);
-          ctx.font = 'italic 400 19px Nunito, sans-serif';
-          ctx.fillStyle = tc(doneA); ctx.fillText(t.done, 16, y + 30);
-          drawSub(t.sub, tc(doneA * 0.8), y + 48);
+          const dh = cell.doneH;
+          const gf = Math.min((dh - DONE_CH) / (CH - DONE_CH), 1);
+          // Interpolate Y: compact center → expanded fixed
+          const compactCY = y + dh / 2 + 5;
+          const lblY = compactCY + (y + 28 - compactCY) * gf;
+          const numY = compactCY + (y + 27 - compactCY) * gf;
+          // Interpolate alpha: faded compact → visible expanded
+          const numA2 = doneA * (0.3 + 0.2 * gf);
+          const lblA2 = doneA * (0.4 + 0.45 * gf);
+          const subA2 = doneA * (0.6 * gf);
+          ctx.font = '600 11px JetBrains Mono, monospace';
+          ctx.fillStyle = `rgba(60,130,118,${numA2.toFixed(3)})`;
+          ctx.textAlign = 'right';
+          ctx.fillText(String(idx + 1), CW - 14, numY);
+          ctx.textAlign = 'left';
+          const fs2 = (15 + gf).toFixed(1);
+          ctx.font = `italic 400 ${fs2}px Nunito, sans-serif`;
+          ctx.fillStyle = `rgba(60,130,118,${lblA2.toFixed(3)})`;
+          ctx.fillText('\u2713  ' + t.done, gf > 0.5 ? 16 : 14, lblY);
+          if (gf > 0.15) {
+            drawSub(t.sub, `rgba(60,130,118,${subA2.toFixed(3)})`, y + 52);
+          }
         }
       }
       ctx.restore();
     });
 
-    // Hold border — uses cellH for full cell height
+    // Hold border — uses cellH for full cell height, matches pressScale transform
     if (pressIdx >= 0 && holdProg > 0 && !holdDone) {
-      drawBorderAnim(cells[pressIdx].homeY, holdProg, cells[pressIdx].done, pressIdx);
+      const cell = cells[pressIdx];
+      const h = cellH(pressIdx);
+      if (pressScale < 0.999) {
+        const cx2 = CW / 2, cy2 = cell.homeY + h / 2;
+        ctx.save();
+        ctx.translate(cx2, cy2); ctx.scale(pressScale, pressScale); ctx.translate(-cx2, -cy2);
+      }
+      drawBorderAnim(cell.homeY, holdProg, cell.done || cell.passed, pressIdx);
+      if (pressScale < 0.999) ctx.restore();
     }
   }
 
   // Animation
-  const S_FILL = 0.055, S_STROKE = 0.07, S_DIVOT = 0.06, S_TEXT = 0.045, S_SOLID = 0.04, S_EXPAND = 0.14;
+  const S_FILL = 0.09, S_STROKE = 0.1, S_DIVOT = 0.12, S_TEXT = 0.08, S_SOLID = 0.08, S_EXPAND = 0.14;
   function tick() {
     let dirty = false;
     cells.forEach((cell, i) => {
@@ -2585,6 +2963,20 @@ function TaskCanvas(wrapEl, tasks, storageKey, colors, panelId) {
       }
       step('fillOp', S_FILL); step('strokeOp', S_STROKE);
       step('divotFrac', S_DIVOT); step('textFade', S_TEXT);
+      // doneH: spring with minimum velocity to avoid slow crawl at end
+      {
+        const d = tgt[i].doneH - cell.doneH;
+        if (Math.abs(d) > 0.5) {
+          const move = d * 0.14;
+          cell.doneH += Math.abs(move) < 1.5 ? Math.sign(d) * 1.5 : move;
+          dirty = true;
+        } else cell.doneH = tgt[i].doneH;
+      }
+      // Clean up fading-out temp cell once it's fully shrunk to 0
+      if (i === fadingOutTemp && cell.doneH < 0.5) {
+        fadingOutTemp = -1;
+        cell.doneH = CH; // reset for future use
+      }
     });
     const ds = tgtSolid - solidFrac;
     if (Math.abs(ds) > 0.001) { solidFrac += ds * S_SOLID; dirty = true; }
@@ -2597,19 +2989,31 @@ function TaskCanvas(wrapEl, tasks, storageKey, colors, panelId) {
     const de = expandTarget - expandH;
     if (Math.abs(de) > 0.5) { expandH += de * S_EXPAND; dirty = true; }
     else { expandH = expandTarget; if (expandH === 0) expandIdx = -1; }
+    // Animate collapse slot — mirror expand progress so total height stays stable
+    if (collapseIdx >= 0) {
+      const frac = expandTarget > 0 ? Math.min(expandH / expandTarget, 1) : 1;
+      collapseH = collapseH0 * (1 - frac);
+      if (collapseH < 0.5) { collapseH = 0; collapseIdx = -1; }
+      else { dirty = true; }
+    }
     // Relayout every frame while expanding/collapsing
     computeLayout(); resizeCanvas();
     if (expandIdx >= 0) {
       detailPanel.style.top = (cells[expandIdx].homeY + baseCellH(expandIdx)) + 'px';
+      // expandH is the allocated canvas space; panel can be up to 28px taller (overlap)
+      detailPanel.style.maxHeight = (expandH + 28) + 'px';
+    } else {
+      detailPanel.style.maxHeight = '';
     }
     draw();
+    if (dirty) recalcPanelSection(panelId);
     raf = dirty ? requestAnimationFrame(tick) : null;
   }
   function kick() { if (!raf) raf = requestAnimationFrame(tick); }
 
   // Detail panel elements
   const detailPanel = wrapEl.querySelector('.task-detail-panel');
-  const elSection = wrapEl.querySelector('.td-section');
+  const elDesc = wrapEl.querySelector('.td-desc');
   const elUnlock = wrapEl.querySelector('.td-unlock');
   const elBullets = wrapEl.querySelector('.td-bullets');
   const elDeliv = wrapEl.querySelector('.td-deliverable');
@@ -2648,42 +3052,90 @@ function TaskCanvas(wrapEl, tasks, storageKey, colors, panelId) {
 
   function showDetail(idx) {
     if (idx === selectedIdx) { hideDetail(); return; }
+    const wasSwitching = selectedIdx >= 0;
+    // Shrink previous done/passed cell back
+    if (selectedIdx >= 0 && (cells[selectedIdx].done || cells[selectedIdx].passed)) {
+      tgt[selectedIdx].doneH = (cells[selectedIdx].done || cells[selectedIdx].passed) ? DONE_CH : CH;
+    }
+    // When switching: move old expand to collapse slot so both animate simultaneously
+    if (wasSwitching && expandIdx >= 0 && expandH > 0) {
+      collapseIdx = expandIdx;
+      collapseH = expandH;
+      collapseH0 = expandH;
+    }
     selectedIdx = idx;
     expandIdx = idx;
-    expandH = 0; // start from zero for animation
+    expandH = 0; // always start new expand from 0
     const t = tasks[idx];
 
+    // Expand done/passed cells back to full height so detail panel fits
+    if (cells[idx].done || cells[idx].passed) {
+      tgt[idx].doneH = CH;
+    }
+
     // Populate content
-    elSection.textContent = t.sec;
-    elSection.style.color = colors.ACCENT_HEX;
+    elDesc.textContent = t.detail || t.sub;
     const deps = pendingDeps(idx);
     elUnlock.textContent = deps.length > 0
       ? 'COMPLETE ' + deps.map(d => String(d + 1)).join(' + ') + ' FIRST'
       : '';
     elBullets.innerHTML = t.bullets.map(b => '<li>' + b + '</li>').join('');
-    elBullets.style.setProperty('--dot-color', colors.MID_HEX);
+    elBullets.style.setProperty('--dot-color', colors.ACCENT_HEX);
     elDeliv.textContent = '\u2714 ' + t.deliverable;
     elDeliv.style.color = colors.ACCENT_HEX;
-    if (btnDoc) { btnDoc.href = t.url || '#'; btnDoc.style.display = t.url ? '' : 'none'; }
+    if (btnDoc) {
+      btnDoc.href = t.url || '#';
+      btnDoc.style.display = t.url ? '' : 'none';
+      btnDoc.parentElement.style.display = t.url ? '' : 'none';
+    }
     refreshDetailButtons(idx);
+    detailPanel.classList.toggle('is-locked', isLocked(idx));
 
     // Measure panel height: show invisibly, measure, then animate open
     detailPanel.style.visibility = 'hidden';
+    detailPanel.style.maxHeight = '';
     detailPanel.style.top = '0';
     detailPanel.classList.add('open');
-    expandTarget = detailPanel.offsetHeight + 8;
+    expandTarget = detailPanel.offsetHeight - 28;
     detailPanel.style.visibility = '';
 
     // Start expand animation
     kick();
 
-    setTimeout(() => detailPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 250);
+    // Scroll after expand animation settles (avoid fighting layout shifts)
+    setTimeout(() => {
+      const rect = detailPanel.getBoundingClientRect();
+      const viewH = window.innerHeight;
+      // Only scroll if the panel bottom is below the viewport
+      if (rect.bottom > viewH - 20) {
+        window.scrollBy({ top: rect.bottom - viewH + 40, behavior: 'smooth' });
+      } else if (rect.top < 20) {
+        window.scrollBy({ top: rect.top - 40, behavior: 'smooth' });
+      }
+    }, 400);
   }
 
   function hideDetail() {
     detailPanel.classList.remove('open');
     expandTarget = 0;
+    collapseIdx = -1; collapseH = 0;
+    const prevIdx = selectedIdx;
     selectedIdx = -1;
+    // Shrink done/passed cells back to compact height
+    if (prevIdx >= 0 && (cells[prevIdx].done || cells[prevIdx].passed)) {
+      tgt[prevIdx].doneH = (cells[prevIdx].done || cells[prevIdx].passed) ? DONE_CH : CH;
+    }
+    // Clear any in-progress fade-out
+    if (fadingOutTemp >= 0) {
+      cells[fadingOutTemp].doneH = CH;
+      fadingOutTemp = -1;
+    }
+    // Animate temp-visible cell out — tick cleanup handles removal at doneH ≈ 0
+    if (tempVisibleIdx >= 0) {
+      tgt[tempVisibleIdx].doneH = 0;
+      fadingOutTemp = tempVisibleIdx;
+      tempVisibleIdx = -1;
+    }
     // expandIdx stays so cellH still applies during collapse animation
     // it gets cleared when expandH reaches 0 in tick
     kick();
@@ -2708,10 +3160,13 @@ function TaskCanvas(wrapEl, tasks, storageKey, colors, panelId) {
       cascadeUndo(idx);
     } else {
       cells[idx].done = true; cells[idx].passed = false;
+      // Close detail panel when completing a task so it can shrink
+      if (idx === selectedIdx) hideDetail();
     }
     saveLS(); updateCounter(); recalcTargets(); kick();
     if (selectedIdx >= 0) {
-      refreshDetailButtons(selectedIdx);
+      if (!isVisible(selectedIdx)) hideDetail();
+      else refreshDetailButtons(selectedIdx);
     }
   }
 
@@ -2721,9 +3176,18 @@ function TaskCanvas(wrapEl, tasks, storageKey, colors, panelId) {
       cascadeUndo(idx);
     } else {
       cells[idx].passed = true; cells[idx].done = false;
+      if (idx === selectedIdx) hideDetail();
     }
     saveLS(); updateCounter(); recalcTargets(); kick();
-    if (selectedIdx >= 0) refreshDetailButtons(selectedIdx);
+    if (selectedIdx >= 0) {
+      if (!isVisible(selectedIdx)) hideDetail();
+      else {
+        refreshDetailButtons(selectedIdx);
+        // Remeasure expand target in case cell changed size (e.g. unskip)
+        detailPanel.style.maxHeight = '';
+        expandTarget = Math.max(expandTarget, detailPanel.offsetHeight - 28);
+      }
+    }
   }
 
   btnPass.addEventListener('click', (e) => {
@@ -2744,6 +3208,7 @@ function TaskCanvas(wrapEl, tasks, storageKey, colors, panelId) {
     const rect = canvas.getBoundingClientRect();
     const my = clientY - rect.top;
     for (let k = 0; k < N; k++) {
+      if (!isVisible(k)) continue;
       const top = cells[k].homeY;
       if (my >= top && my < top + baseCellH(k)) return k;
     }
@@ -2803,17 +3268,90 @@ function TaskCanvas(wrapEl, tasks, storageKey, colors, panelId) {
     pressIdx = -1; holdProg = 0; pressScaleTarget = 1.0;
     if (holdDone) { holdDone = false; kick(); return; }
     holdDone = false; holdPointerId = -1; kick();
-    if (idx >= 0 && elapsed < 250) { showDetail(idx); }
+    if (idx >= 0 && elapsed < 250) {
+      // Animate temp cell out when tapping a different canvas cell
+      if (tempVisibleIdx >= 0 && idx !== tempVisibleIdx) {
+        tgt[tempVisibleIdx].doneH = 0;
+        fadingOutTemp = tempVisibleIdx;
+        tempVisibleIdx = -1;
+      }
+      showDetail(idx);
+    }
   });
   canvas.addEventListener('pointercancel', cancelHold);
   canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+  // Circle pill clicks — open task detail, temporarily reveal hidden tasks
+  wrapEl.querySelectorAll('.task-circle').forEach(el => {
+    // Press animation on the SVG pill behind this circle
+    function findPill(idx) {
+      const svg = wrapEl.querySelector('.task-progress-svg');
+      if (!svg) return null;
+      // Solo pill
+      const solo = svg.querySelector(`[data-pill="${idx}"]`);
+      if (solo) return solo;
+      // Merged blob
+      const all = svg.querySelectorAll('[data-pills]');
+      for (const p of all) {
+        if (p.dataset.pills.split(',').includes(String(idx))) return p;
+      }
+      return null;
+    }
+    el.addEventListener('pointerdown', () => {
+      const pill = findPill(parseInt(el.dataset.tidx, 10));
+      if (pill) { pill.style.transition = 'transform 0.08s ease'; pill.style.transform = 'scale(0.92)'; }
+      el.style.transition = 'transform 0.08s ease'; el.style.transform = 'scale(0.85)';
+    });
+    el.addEventListener('pointerup', () => {
+      const pill = findPill(parseInt(el.dataset.tidx, 10));
+      if (pill) { pill.style.transition = 'transform 0.15s ease'; pill.style.transform = ''; }
+      el.style.transition = 'transform 0.15s ease'; el.style.transform = '';
+    });
+    el.addEventListener('pointerleave', () => {
+      const pill = findPill(parseInt(el.dataset.tidx, 10));
+      if (pill) { pill.style.transition = 'transform 0.15s ease'; pill.style.transform = ''; }
+      el.style.transition = 'transform 0.15s ease'; el.style.transform = '';
+    });
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.tidx, 10);
+      if (isNaN(idx) || idx < 0 || idx >= N) return;
+      // If already selected, close it
+      if (idx === selectedIdx) { hideDetail(); return; }
+
+      const scrollY = window.scrollY;
+      const prevTemp = tempVisibleIdx;
+      const needsTemp = !isVisible(idx);
+
+      // Animate old temp cell out — shrink to 0, tick cleanup handles removal
+      if (prevTemp >= 0 && prevTemp !== idx) {
+        tgt[prevTemp].doneH = 0;
+        fadingOutTemp = prevTemp;
+        tempVisibleIdx = -1;
+      }
+
+      // Set new temp if needed
+      if (needsTemp) {
+        tempVisibleIdx = idx;
+        cells[idx].doneH = 1;
+        tgt[idx].doneH = CH;
+      } else {
+        tempVisibleIdx = -1;
+      }
+
+      // Show detail immediately (swap), let showDetail handle the panel transition
+      showDetail(idx);
+      computeLayout(); resizeCanvas();
+      window.scrollTo(0, scrollY);
+      kick();
+    });
+  });
 
   // Pre-measure sub text line counts for layout
   function measureTextHeights() {
     ctx.font = '12px JetBrains Mono, monospace';
     cells.forEach((cell, idx) => {
       const lines = wrapText(tasks[idx].sub, CW - 32, 2);
-      cell.textBtm = 48 + (lines.length - 1) * 15 + 12; // 48 = sub yBase relative to cell top
+      cell.textBtm = 52 + (lines.length - 1) * 15 + 12; // 52 = sub yBase relative to cell top
     });
   }
 
@@ -2826,6 +3364,8 @@ function TaskCanvas(wrapEl, tasks, storageKey, colors, panelId) {
   measureTextHeights();
   computeLayout(); resizeCanvas();
   updateCounter(); draw();
+  // SVG needs layout — defer until circles are rendered
+  requestAnimationFrame(() => drawProgressSvg());
   // Re-measure after fonts load (JetBrains Mono may change text widths)
   document.fonts.ready.then(() => {
     measureTextHeights(); computeLayout(); resizeCanvas(); draw();
@@ -2836,7 +3376,7 @@ function TaskCanvas(wrapEl, tasks, storageKey, colors, panelId) {
     if (holdRaf) cancelAnimationFrame(holdRaf);
     if (holdDelayTimer) clearTimeout(holdDelayTimer);
     // Reset detail panel so it doesn't bleed into next init
-    selectedIdx = -1; expandIdx = -1; expandH = 0; expandTarget = 0;
+    selectedIdx = -1; expandIdx = -1; expandH = 0; expandTarget = 0; collapseIdx = -1; collapseH = 0;
     detailPanel.classList.remove('open');
   };
 }
@@ -2863,45 +3403,115 @@ function initTaskCanvas(panelId) {
   const slot = wrap.querySelector('.tc-canvas-slot');
   if (slot) slot.innerHTML = '';
 
-  const accent = CLASS_ACCENTS[cls] || [140, 140, 140];
-  const colors = deriveColors(accent);
+  const colors = TASK_COLORS;
   const storageKey = `dates-tasks-${cls}`;
 
   taskCanvases[panelId] = new TaskCanvas(wrap, taskSet.tasks, storageKey, colors, panelId);
 }
 
 function renderHeader() {
-  const classItems = activeFilter ? ITEMS.filter(it => it.cls === activeFilter) : ITEMS;
-  const upDeadlines = classItems.filter(it => it.date >= TODAY_STR && (it.type === 'deadline' || it.type === 'assignment' || it.type === 'assessment')).length;
-  const miss = classItems.filter(it => it.status === 'Missing').length;
-  const done = classItems.filter(it => it.status === 'Turned in').length;
-
   document.getElementById('headerBlock').innerHTML = `
     <p class="date-line">${fmtDateLong(TODAY_STR).toUpperCase()}</p>
-    <p class="page-title">All Dates</p>
+    <p class="page-title">What's Due</p>
     <hr class="header-sep">
-    <div class="status-pills">
-      ${miss > 0 ? `<span class="pill pill-urgent${statusFilter === 'missing' ? ' active' : ''}" data-sf="missing">${miss} missing</span>` : ''}
-      <span class="pill pill-upcoming${statusFilter === 'upcoming' ? ' active' : ''}" data-sf="upcoming">${upDeadlines} upcoming</span>
-      ${done > 0 ? `<span class="pill pill-done${statusFilter === 'done' ? ' active' : ''}" data-sf="done">${done} turned in</span>` : ''}
-    </div>
   `;
 }
 
-function renderFilterBar() {
-  let html = `<button class="filter-btn${!activeFilter ? ' active' : ''}" data-cls="">All</button>`;
-  Object.keys(CLASSES).forEach(c => {
-    html += `<button class="filter-btn${activeFilter === c ? ' active' : ''}" data-cls="${c}">${c}</button>`;
+function isTasksComplete(cls) {
+  const taskSet = TASK_SETS[cls];
+  if (!taskSet || !taskSet.tasks || taskSet.tasks.length === 0) return false;
+  let state = {};
+  try { state = JSON.parse(localStorage.getItem(`dates-tasks-${cls}`)) || {}; } catch(e) {}
+  return taskSet.tasks.every(t => {
+    const v = state[t.id];
+    return v === true || v === 'done' || v === 'passed';
   });
-  document.getElementById('filterBar').innerHTML = html;
 }
 
-function applyStatusFilter(items) {
-  if (!statusFilter) return items;
-  if (statusFilter === 'missing') return items.filter(it => it.status === 'Missing');
-  if (statusFilter === 'done') return items.filter(it => it.status === 'Turned in');
-  if (statusFilter === 'upcoming') return items.filter(it => it.type === 'deadline' || it.type === 'assignment' || it.type === 'assessment');
-  return items;
+function renderMiniProgress(cls) {
+  const taskSet = TASK_SETS[cls];
+  if (!taskSet || !taskSet.tasks || taskSet.tasks.length === 0) return '';
+  const tasks = taskSet.tasks;
+  const N = tasks.length;
+
+  // Read state from localStorage (same key as TaskCanvas)
+  let state = {};
+  try { state = JSON.parse(localStorage.getItem(`dates-tasks-${cls}`)) || {}; } catch(e) {}
+
+  // Build cell states — requires uses numeric indices (same as TaskCanvas)
+  const cells = tasks.map((t, i) => {
+    const v = state[t.id];
+    return { done: v === true || v === 'done', passed: v === 'passed' };
+  });
+  // Compute locked/visible using same logic as TaskCanvas
+  const cellsFull = cells.map((c, i) => {
+    const reqs = tasks[i].requires || [];
+    const locked = reqs.length > 0 && reqs.some(r => r !== i && !cells[r].done && !cells[r].passed);
+    let visible = c.done || c.passed || !locked;
+    if (!visible) {
+      // Next-visible: locked but all pending deps are themselves unlocked
+      const pending = reqs.filter(r => r !== i && !cells[r].done && !cells[r].passed);
+      visible = pending.length > 0 && pending.every(r => {
+        const dreqs = tasks[r].requires || [];
+        return dreqs.length === 0 || !dreqs.some(dr => dr !== r && !cells[dr].done && !cells[dr].passed);
+      });
+    }
+    return { ...c, locked, visible };
+  });
+
+  const PH = 8, PR = PH / 2;
+  const gap = 3;
+  const pillW = 12;
+  const totalW = N * pillW + (N - 1) * gap;
+
+  let paths = '';
+  let i = 0;
+  while (i < N) {
+    if (cellsFull[i].done) {
+      let j = i;
+      while (j < N && cellsFull[j].done) j++;
+      const lx = i * (pillW + gap);
+      const rx = (j - 1) * (pillW + gap) + pillW;
+      paths += `<rect x="${lx}" y="0" width="${rx - lx}" height="${PH}" rx="${PR}" ry="${PR}" fill="rgba(70,145,130,0.85)"/>`;
+      i = j;
+    } else {
+      const x = i * (pillW + gap);
+      let fill;
+      if (cellsFull[i].passed) {
+        fill = 'rgba(170,140,30,0.45)';       // Gold — skipped
+      } else if (!cellsFull[i].locked) {
+        fill = 'rgba(185,85,105,0.8)';        // Pink — unlocked/active
+      } else if (cellsFull[i].visible) {
+        fill = 'rgba(192,110,125,0.35)';      // Light pink — next-locked
+      } else {
+        fill = 'rgba(190,185,175,0.4)';       // Grey — hidden
+      }
+      paths += `<rect x="${x}" y="0" width="${pillW}" height="${PH}" rx="${PR}" ry="${PR}" fill="${fill}"/>`;
+      i++;
+    }
+  }
+
+  const allComplete = cellsFull.every(c => c.done || c.passed);
+  return `<div class="mini-progress" data-cls="${cls}" data-complete="${allComplete ? '1' : '0'}"><svg class="mini-progress-svg" width="${totalW}" height="${PH}" viewBox="0 0 ${totalW} ${PH}">${paths}</svg></div>`;
+}
+
+function refreshMiniProgress() {
+  document.querySelectorAll('.mini-progress[data-cls]').forEach(el => {
+    const cls = el.dataset.cls;
+    const html = renderMiniProgress(cls);
+    if (html) {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      const newEl = tmp.firstElementChild;
+      const card = el.closest('.item-card');
+      el.replaceWith(newEl);
+      // Toggle solid border when all tasks complete
+      if (card) {
+        if (newEl.dataset.complete === '1') card.classList.add('tasks-complete');
+        else card.classList.remove('tasks-complete');
+      }
+    }
+  });
 }
 
 function renderItemCards(items, isPast) {
@@ -2929,7 +3539,9 @@ function renderItemCards(items, isPast) {
     const todayCard = isToday(it.date) && !isPast ? ' is-today-card' : '';
     const typeCls = (it.type === 'deadline' || it.type === 'assessment') ? ` type-label type-${it.type}` : 'type-label';
 
-    html += `<div class="item-card${pastCls}${doneCls}${missCls}${todayCard}" data-id="${id}" style="animation-delay:${idx * 40}ms">
+    const clsCss = CLASSES[it.cls].css;
+    const tasksCompCls = isTasksComplete(it.cls) ? ' tasks-complete' : '';
+    html += `<div class="item-card ${clsCss}${pastCls}${doneCls}${missCls}${todayCard}${tasksCompCls}" data-id="${id}" style="animation-delay:${idx * 40}ms">
       <svg class="card-border" overflow="visible"><rect x="0" y="0" width="100%" height="100%" rx="19" ry="19"/></svg>
       <div class="item-meta-line">
         <span class="class-pill ${CLASSES[it.cls].css}">${it.cls}</span>
@@ -2937,6 +3549,7 @@ function renderItemCards(items, isPast) {
         ${statusBadgeHTML(it.status)}
       </div>
       <div class="item-title">${it.short || it.title}</div>
+      ${renderMiniProgress(it.cls)}
     </div>`;
 
     // Detail panel (hidden by default, rendered inline for this card)
@@ -2963,20 +3576,22 @@ function renderItemCards(items, isPast) {
     const taskSet = TASK_SETS[it.cls];
     let tasksHtml = '';
     if (taskSet && taskSet.tasks && taskSet.tasks.length > 0) {
+      const circleCount = taskSet.tasks.length;
+      let circlesHtml = '';
+      for (let ci = 0; ci < circleCount; ci++) {
+        circlesHtml += `<span class="task-circle" data-tidx="${ci}">${ci + 1}</span>`;
+      }
       tasksHtml = `<div class="task-canvas-wrap" data-cls="${it.cls}">
-        <div class="task-status-pills">
-          <span class="task-pill task-pill-done tp-done"></span>
-          <span class="task-pill task-pill-todo tp-todo"></span>
-          <span class="task-pill task-pill-skip tp-skip"></span>
+        <div class="task-progress-row">
+          <svg class="task-progress-svg"></svg>
+          <div class="task-progress-circles">${circlesHtml}</div>
         </div>
         <div class="tc-canvas-slot"></div>
         <div class="task-detail-panel">
           <div class="task-detail-inner">
             <hr class="task-detail-sep">
-            <div class="task-detail-section-row">
-              <div class="task-detail-section td-section"></div>
-              <div class="task-unlock-hint td-unlock"></div>
-            </div>
+            <div class="task-detail-desc td-desc"></div>
+            <div class="task-unlock-hint td-unlock"></div>
             <ul class="task-detail-bullets td-bullets"></ul>
             <div class="task-detail-deliverable td-deliverable"></div>
             <div class="task-detail-actions">
@@ -2998,11 +3613,11 @@ function renderItemCards(items, isPast) {
       <div class="detail-pointer"></div>
       <div class="detail-inner">
         ${(it.detail || it.desc) ? `<div class="detail-desc">${it.detail || it.desc}</div>` : ''}
+        ${srcPath ? `<div class="detail-links"><a class="action-btn btn-doc" href="${srcPath}" target="_blank" onclick="event.stopPropagation()">&#8599; full analysis</a></div>` : ''}
         ${tasksHtml}
         ${srcHtml}
         <div class="detail-actions">
           ${classworkUrl ? `<a class="action-btn btn-classwork" href="${classworkUrl}" target="_blank" onclick="event.stopPropagation()">&#8599; classwork</a>` : ''}
-          ${srcPath ? `<a class="action-btn btn-doc" href="${srcPath}" target="_blank" onclick="event.stopPropagation()">&#8599; full analysis</a>` : ''}
           <button class="action-btn btn-close" onclick="event.stopPropagation(); closeDetail()">&times;</button>
         </div>
       </div>
@@ -3054,8 +3669,84 @@ function closeDetail() {
   const panel = document.getElementById('panel-' + expandedId);
   const card = document.querySelector(`[data-id="${expandedId}"]`);
   if (panel) panel.classList.remove('open');
-  if (card) card.classList.remove('is-expanded');
   expandedId = null;
+  // Keep SVG animating during close transition, then clean up
+  if (card) {
+    // RAF loop still running — it tracks the shrinking panel
+    setTimeout(() => {
+      card.classList.remove('is-expanded');
+      stopExpandBorder(card);
+    }, 320);
+  }
+}
+
+let expandBorderRaf = null;
+
+function drawExpandBorder(card, panel) {
+  // Create SVG if needed
+  let svg = card.querySelector('.expand-border-svg');
+  if (!svg) {
+    svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.classList.add('expand-border-svg');
+    card.appendChild(svg);
+  }
+
+  const R = 19;
+  const S = 1.8;
+  // Read the card's actual background before it was made transparent by is-expanded
+  // Use the class-based tint color from CSS
+  const clsList = card.classList;
+  let cardBg = 'rgba(216,226,233,0.55)'; // default
+  if (clsList.contains('cp-12ftx'))  cardBg = 'rgba(184,80,30,0.08)';
+  else if (clsList.contains('cp-enw223')) cardBg = 'rgba(80,120,160,0.08)';
+  else if (clsList.contains('cp-flm223')) cardBg = 'rgba(140,60,120,0.08)';
+  else if (clsList.contains('cp-mus223')) cardBg = 'rgba(60,130,100,0.08)';
+  else if (clsList.contains('cp-mat223')) cardBg = 'rgba(100,90,160,0.08)';
+  else if (clsList.contains('cp-fcm112')) cardBg = 'rgba(160,120,50,0.08)';
+  const detailBg = 'rgba(255,252,245,0.92)';
+
+  function update() {
+    // Keep running as long as the SVG exists (covers both open and closing animation)
+    if (!card.querySelector('.expand-border-svg')) {
+      expandBorderRaf = null;
+      return;
+    }
+
+    const cardH = card.offsetHeight;
+    const panelH = panel.offsetHeight;
+    const W = card.offsetWidth + 2;
+    const totalH = cardH + panelH + 2;
+    const splitY = cardH + 1;
+    const uid = card.dataset.id || '0';
+
+    svg.setAttribute('width', W);
+    svg.setAttribute('height', totalH);
+    svg.innerHTML = `
+      <defs>
+        <clipPath id="clip-top-${uid}"><rect x="0" y="0" width="${W}" height="${splitY}"/></clipPath>
+        <clipPath id="clip-btm-${uid}"><rect x="0" y="${splitY}" width="${W}" height="${totalH - splitY}"/></clipPath>
+      </defs>
+      <rect x="${S/2}" y="${S/2}" width="${W-S}" height="${totalH-S}" rx="${R}" ry="${R}"
+            fill="${cardBg}" clip-path="url(#clip-top-${uid})"/>
+      <rect x="${S/2}" y="${S/2}" width="${W-S}" height="${totalH-S}" rx="${R}" ry="${R}"
+            fill="${detailBg}" clip-path="url(#clip-btm-${uid})"/>
+      <rect x="${S/2}" y="${S/2}" width="${W-S}" height="${totalH-S}" rx="${R}" ry="${R}"
+            fill="none" stroke="rgba(43,95,138,0.6)" stroke-width="${S}"
+            stroke-dasharray="6 4"/>
+    `;
+
+    expandBorderRaf = requestAnimationFrame(update);
+  }
+
+  // Cancel any previous animation loop
+  if (expandBorderRaf) cancelAnimationFrame(expandBorderRaf);
+  update();
+}
+
+function stopExpandBorder(card) {
+  if (expandBorderRaf) { cancelAnimationFrame(expandBorderRaf); expandBorderRaf = null; }
+  const svg = card.querySelector('.expand-border-svg');
+  if (svg) svg.remove();
 }
 
 function closeAlert(aid) {
@@ -3067,56 +3758,51 @@ function closeAlert(aid) {
 }
 
 function render() {
-  const classFiltered = activeFilter ? ITEMS.filter(it => it.cls === activeFilter) : ITEMS;
-
-  const allFuture = applyStatusFilter(classFiltered.filter(it => it.date >= TODAY_STR)).sort((a,b) => a.date.localeCompare(b.date) || a.cls.localeCompare(b.cls));
+  const allFuture = ITEMS.filter(it => it.date >= TODAY_STR).sort((a,b) => a.date.localeCompare(b.date) || a.cls.localeCompare(b.cls));
   const current = allFuture.filter(it => daysUntil(it.date) <= 14);
   const upcoming = allFuture.filter(it => daysUntil(it.date) > 14);
-  const filteredPast = applyStatusFilter(classFiltered.filter(it => it.date < TODAY_STR)).sort((a,b) => b.date.localeCompare(a.date) || a.cls.localeCompare(b.cls));
+  const pastItems = ITEMS.filter(it => it.date < TODAY_STR).sort((a,b) => b.date.localeCompare(a.date) || a.cls.localeCompare(b.cls));
 
   renderHeader();
-  renderFilterBar();
 
   let html = '';
 
   // Alerts
-  const filteredAnomalies = activeFilter ? ANOMALIES.filter(a => a.cls === activeFilter) : ANOMALIES;
-  if (filteredAnomalies.length > 0 && !statusFilter) {
+  if (ANOMALIES.length > 0) {
     html += `<div class="section-label section-alerts" data-section="alerts">
       <span class="section-chevron${!alertsCollapsed ? ' open' : ''}">&#x25B8;</span>
-      Alerts <span class="section-count">(${filteredAnomalies.length})</span>
+      Alerts <span class="section-count">(${ANOMALIES.length})</span>
     </div>`;
     html += `<div class="section-body${alertsCollapsed ? ' collapsed' : ''}" id="alertsBody" style="max-height:${alertsCollapsed ? '0' : 'none'}">`;
-    html += renderAlerts(filteredAnomalies);
+    html += renderAlerts(ANOMALIES);
     html += `</div>`;
   }
 
-  // Past
-  html += `<div class="section-label section-past" data-section="past">
-    <span class="section-chevron${!pastCollapsed ? ' open' : ''}">&#x25B8;</span>
-    Past <span class="section-count">(${filteredPast.length})</span>
-  </div>`;
-  html += `<div class="section-body${pastCollapsed ? ' collapsed' : ''}" id="pastBody" style="max-height:${pastCollapsed ? '0' : 'none'}">`;
-  html += filteredPast.length > 0 ? renderItemCards(filteredPast, true) : `<div class="empty-note">${statusFilter ? 'No matching items' : 'No past items'}</div>`;
+  // Current items — no section header, flow directly
+  html += `<div class="section-body" id="currentBody" style="max-height:none">`;
+  html += current.length > 0 ? renderItemCards(current, false) : `<div class="empty-note">Nothing due in the next 2 weeks</div>`;
   html += `</div>`;
 
-  // Current
-  html += `<div class="section-label section-current" data-section="current">
-    <span class="section-chevron${!currentCollapsed ? ' open' : ''}">&#x25B8;</span>
-    Current <span class="section-count">(${current.length})</span>
+  // Tab pills
+  html += `<div class="tab-row">
+    <button class="tab-btn${activeTab === 'upcoming' ? ' active' : ''}" data-tab="upcoming">Upcoming</button>
+    <button class="tab-btn${activeTab === 'past' ? ' active' : ''}" data-tab="past">Past</button>
   </div>`;
-  html += `<div class="section-body${currentCollapsed ? ' collapsed' : ''}" id="currentBody" style="max-height:${currentCollapsed ? '0' : 'none'}">`;
-  html += current.length > 0 ? renderItemCards(current, false) : `<div class="empty-note">${statusFilter ? 'No matching items' : 'Nothing due in the next 2 weeks'}</div>`;
-  html += `</div>`;
 
-  // Upcoming
-  html += `<div class="section-label" data-section="upcoming">
-    <span class="section-chevron${!upcomingCollapsed ? ' open' : ''}">&#x25B8;</span>
-    Upcoming <span class="section-count">(${upcoming.length})</span>
-  </div>`;
-  html += `<div class="section-body${upcomingCollapsed ? ' collapsed' : ''}" id="upcomingBody" style="max-height:${upcomingCollapsed ? '0' : 'none'}">`;
-  html += upcoming.length > 0 ? renderItemCards(upcoming, false) : `<div class="empty-note">${statusFilter ? 'No matching items' : 'No upcoming items'}</div>`;
-  html += `</div>`;
+  // Full-width frame — upcoming (left pill → from-left)
+  html += `<div class="tab-frame from-left${activeTab === 'upcoming' ? ' open' : ''}" id="upcomingTab">`;
+  html += `<svg class="tab-frame-svg"></svg>`;
+  html += `<div class="tab-frame-content">`;
+  html += upcoming.length > 0 ? renderItemCards(upcoming, false) : `<div class="empty-note">No upcoming items</div>`;
+  html += `</div></div>`;
+
+  // Full-width frame — past (right pill → from-right)
+  html += `<div class="tab-frame from-right${activeTab === 'past' ? ' open' : ''}" id="pastTab">`;
+  html += `<svg class="tab-frame-svg"></svg>`;
+  html += `<div class="tab-frame-content">`;
+  html += pastItems.length > 0 ? renderItemCards(pastItems, true) : `<div class="empty-note">No past items</div>`;
+  html += `</div></div>`;
+
 
   document.getElementById('sections').innerHTML = html;
   document.getElementById('sections').style.width = '100%';
@@ -3127,30 +3813,123 @@ function render() {
 
   expandedId = null;
   bindEvents();
+  drawTabConnectors();
+}
+
+function drawTabConnectors() {
+  // Draw the ENTIRE pill+frame outline as one SVG path — pill top + frame body
+  const PR = 14;      // pill top corner radius
+  const R = 10;       // chamfer / far-corner radius
+  const BR = 14;      // bottom corner radius
+  const S = 1.5;      // stroke width
+  const color = 'rgba(58,48,40,0.2)';
+  const frameBg = 'rgba(245,243,238,0.95)';
+
+  document.querySelectorAll('.tab-frame.open').forEach(frame => {
+    const svg = frame.querySelector('.tab-frame-svg');
+    if (!svg) return;
+
+    // Measure the active pill
+    const activeBtn = document.querySelector('.tab-btn.active');
+    if (!activeBtn) return;
+    const pillH = activeBtn.offsetHeight;
+    const pillW = activeBtn.offsetWidth;
+
+    const W = frame.offsetWidth;
+    const FH = frame.offsetHeight;
+    const TH = pillH + FH; // total height: pill + frame
+    if (W === 0 || TH === 0) return;
+
+    const isLeft = frame.classList.contains('from-left');
+
+    // For isLeft: pill spans x=[0, pillW], chamfer at x=pillW
+    // For isRight: pill spans x=[W-pillW, W], chamfer at x=W-pillW
+    let path;
+    if (isLeft) {
+      const cx = pillW; // chamfer x position
+      // Clockwise from pill top-left corner:
+      // 1. Pill top edge (left to right)
+      // 2. Pill top-right corner arc
+      // 3. Down pill right side to pill bottom = chamfer level
+      // 4. Chamfer arc (concave) curving down to frame top level
+      // 5. Horizontal at frame top level to far corner
+      // 6. Far corner arc (convex) curving down
+      // 7. Down frame right side
+      // 8. Bottom-right corner
+      // 9. Bottom edge
+      // 10. Bottom-left corner
+      // 11. Up frame left side + pill left side
+      // 12. Pill top-left corner arc → close
+      path = `
+        M ${PR} 0
+        L ${cx - PR} 0
+        A ${PR} ${PR} 0 0 1 ${cx} ${PR}
+        L ${cx} ${pillH}
+        A ${R} ${R} 0 0 0 ${cx + R} ${pillH + R}
+        L ${W - R} ${pillH + R}
+        A ${R} ${R} 0 0 1 ${W} ${pillH + R + R}
+        L ${W} ${TH - BR}
+        A ${BR} ${BR} 0 0 1 ${W - BR} ${TH}
+        L ${BR} ${TH}
+        A ${BR} ${BR} 0 0 1 0 ${TH - BR}
+        L 0 ${PR}
+        A ${PR} ${PR} 0 0 1 ${PR} 0
+        Z`;
+    } else {
+      const cx = W - pillW; // chamfer x position
+      // Counter-clockwise from pill top-right corner:
+      path = `
+        M ${W - PR} 0
+        A ${PR} ${PR} 0 0 1 ${W} ${PR}
+        L ${W} ${TH - BR}
+        A ${BR} ${BR} 0 0 1 ${W - BR} ${TH}
+        L ${BR} ${TH}
+        A ${BR} ${BR} 0 0 1 0 ${TH - BR}
+        L 0 ${pillH + R + R}
+        A ${R} ${R} 0 0 1 ${R} ${pillH + R}
+        L ${cx - R} ${pillH + R}
+        A ${R} ${R} 0 0 0 ${cx} ${pillH}
+        L ${cx} ${PR}
+        A ${PR} ${PR} 0 0 1 ${cx + PR} 0
+        Z`;
+    }
+
+    // Position SVG to extend above the frame into the pill area
+    svg.style.top = -pillH + 'px';
+    svg.setAttribute('width', W);
+    svg.setAttribute('height', TH);
+    svg.innerHTML = `<path d="${path}" fill="${frameBg}" stroke="${color}" stroke-width="${S}"/>`;
+  });
 }
 
 function bindEvents() {
-  // Status filter pills
-  document.querySelectorAll('.pill[data-sf]').forEach(pill => {
-    pill.addEventListener('click', () => {
-      statusFilter = statusFilter === pill.dataset.sf ? null : pill.dataset.sf;
-      render();
-    });
-  });
-
-  // Class filter buttons
-  document.querySelectorAll('.filter-btn').forEach(btn => {
+  // Tab switching — click toggles pill open/closed
+  document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
     btn.addEventListener('click', () => {
-      activeFilter = btn.dataset.cls || null;
-      render();
+      const tab = btn.dataset.tab;
+      closeDetail();
+      if (activeTab === tab) {
+        // Close
+        btn.classList.remove('active');
+        document.getElementById(tab === 'upcoming' ? 'upcomingTab' : 'pastTab').classList.remove('open');
+        activeTab = null;
+      } else {
+        // Close any open
+        document.querySelectorAll('.tab-btn.active').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-frame.open').forEach(f => f.classList.remove('open'));
+        // Open this one
+        btn.classList.add('active');
+        document.getElementById(tab === 'upcoming' ? 'upcomingTab' : 'pastTab').classList.add('open');
+        activeTab = tab;
+        drawTabConnectors();
+      }
     });
   });
 
-  // Section toggles
-  document.querySelectorAll('.section-label[data-section]').forEach(label => {
+  // Alerts section toggle
+  document.querySelectorAll('.section-label[data-section="alerts"]').forEach(label => {
     label.addEventListener('click', () => {
-      const section = label.dataset.section;
-      const body = document.getElementById(section + 'Body');
+      const body = document.getElementById('alertsBody');
       if (!body) return;
       const chevron = label.querySelector('.section-chevron');
       const isCollapsed = body.classList.contains('collapsed');
@@ -3158,7 +3937,7 @@ function bindEvents() {
       if (body.dataset.animating === '1') return;
       body.dataset.animating = '1';
 
-      const children = Array.from(body.querySelectorAll('.item-card, .alert-card, .date-marker, .detail-panel'));
+      const children = Array.from(body.querySelectorAll('.alert-card, .date-marker'));
       const total = children.length;
 
       if (isCollapsed) {
@@ -3171,22 +3950,15 @@ function bindEvents() {
         body.style.transition = '';
         requestAnimationFrame(() => { body.style.maxHeight = body.scrollHeight + 'px'; });
         if (chevron) chevron.classList.add('open');
-        if (section === 'alerts') alertsCollapsed = false;
-        else if (section === 'past') pastCollapsed = false;
-        else if (section === 'current') currentCollapsed = false;
-        else if (section === 'upcoming') upcomingCollapsed = false;
+        alertsCollapsed = false;
         setTimeout(() => { body.classList.remove('opening'); body.style.maxHeight = body.scrollHeight + 'px'; body.dataset.animating = '0'; }, Math.max(400, total * 40 + 400));
       } else {
-        // Close any open detail panel inside this section first
         closeDetail();
         children.forEach((child, i) => { child.style.animationDelay = ((total - 1 - i) * 30) + 'ms'; });
         body.classList.remove('opening');
         body.classList.add('closing');
         if (chevron) chevron.classList.remove('open');
-        if (section === 'alerts') alertsCollapsed = true;
-        else if (section === 'past') pastCollapsed = true;
-        else if (section === 'current') currentCollapsed = true;
-        else if (section === 'upcoming') upcomingCollapsed = true;
+        alertsCollapsed = true;
         body.style.transition = 'none';
         body.style.maxHeight = body.scrollHeight + 'px';
         body.offsetHeight;
@@ -3206,28 +3978,37 @@ function bindEvents() {
       if (!panel) return;
 
       if (expandedId === id) {
-        // Close
+        // Close — keep SVG animating during panel collapse
         panel.classList.remove('open');
-        card.classList.remove('is-expanded');
         expandedId = null;
-        // Shrink section smoothly after panel collapses
-        setTimeout(() => { recalcSectionHeight(card); }, 300);
+        setTimeout(() => {
+          card.classList.remove('is-expanded');
+          stopExpandBorder(card);
+          recalcSectionHeight(card);
+        }, 320);
       } else {
         // Close previous
         if (expandedId) {
           const prevPanel = document.getElementById('panel-' + expandedId);
           const prevCard = document.querySelector(`[data-id="${expandedId}"]`);
           if (prevPanel) prevPanel.classList.remove('open');
-          if (prevCard) prevCard.classList.remove('is-expanded');
+          if (prevCard) {
+            // Let SVG animate during close, then clean up
+            setTimeout(() => {
+              prevCard.classList.remove('is-expanded');
+              stopExpandBorder(prevCard);
+            }, 320);
+          }
         }
         // Open this one — immediately grow section to avoid pop-in reflow
-        const body = card.closest('.section-body');
-        if (body) { body.style.transition = 'none'; body.style.maxHeight = body.scrollHeight + 1200 + 'px'; body.offsetHeight; body.style.transition = ''; }
+        const body = card.closest('.section-body') || card.closest('.tab-frame');
+        if (body && body.classList.contains('section-body')) { body.style.transition = 'none'; body.style.maxHeight = body.scrollHeight + 1200 + 'px'; body.offsetHeight; body.style.transition = ''; }
         panel.classList.add('open');
         card.classList.add('is-expanded');
         expandedId = id;
         applyTaskStates(id);
-        // Refine section height after panel finishes opening
+        // Start animating border immediately — RAF loop tracks panel size
+        drawExpandBorder(card, panel);
         setTimeout(() => { recalcSectionHeight(card); }, 350);
         setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 380);
       }
@@ -3273,9 +4054,9 @@ function bindEvents() {
 }
 
 function recalcSectionHeight(el) {
-  const body = el.closest('.section-body');
+  const body = el.closest('.section-body') || el.closest('.tab-frame');
   if (body && !body.classList.contains('collapsed')) {
-    setTimeout(() => { body.style.maxHeight = body.scrollHeight + 'px'; }, 50);
+    setTimeout(() => { if (body.classList.contains('section-body')) body.style.maxHeight = body.scrollHeight + 'px'; }, 50);
   }
 }
 
