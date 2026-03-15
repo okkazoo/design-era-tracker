@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>What's Due — Classroom Dashboard</title>
+<title>Current — Classroom Dashboard</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,7 +19,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 36px 24px 90px;
+    padding: 16px 24px 90px;
     font-family: 'JetBrains Mono', monospace;
     gap: 6px;
     -webkit-user-select: none;
@@ -27,7 +27,7 @@
   }
 
   .header {
-    text-align: left;
+    text-align: center;
     width: 100%;
     max-width: 380px;
     padding: 0 4px;
@@ -37,20 +37,31 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px; font-weight: 600; letter-spacing: 0.18em;
     text-transform: uppercase; color: #8C7830;
-    margin-bottom: 7px;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .class-filter-row {
+    display: flex; flex-wrap: nowrap;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    width: 100%;
+  }
+  .class-filter-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+    padding: 4px 8px; border-radius: 8px;
+    cursor: pointer; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.15s, transform 0.1s;
+    opacity: 0.35;
+  }
+  .class-filter-pill.active {
+    opacity: 1;
+  }
+  .class-filter-pill:active {
+    transform: scale(0.95);
   }
 
-  .page-title {
-    font-family: 'Nunito', sans-serif;
-    font-size: 24px; font-weight: 700; color: #3A3028;
-    letter-spacing: 0.01em; line-height: 1.2;
-    margin-bottom: 2px;
-  }
-
-  .header-sep {
-    border: none; border-top: 1.5px solid #C8C0B4;
-    margin: 0 0 8px 0;
-  }
 
   /* Tab pills — individual rounded pills, frame extends below */
   .tab-row {
@@ -59,30 +70,90 @@
     margin: 32px 0 0;
     position: relative; z-index: 3;
   }
+  .tab-row:first-child { margin-top: 0; }
   .tab-btn {
     flex: 1;
+    width: 100%;
     font-family: 'Nunito', sans-serif;
-    font-size: 21px; font-weight: 700; letter-spacing: 0.02em;
-    color: rgba(160,152,136,0.5);
+    font-size: 25px; font-weight: 700; letter-spacing: 0.02em;
+    color: rgba(250,248,245,1);
     background: rgba(200,192,180,0.15);
-    border: 1.5px solid rgba(58,48,40,0.2);
+    border: 2px solid rgba(58,48,40,0.2);
     border-radius: 14px;
-    padding: 12px 16px; cursor: pointer;
-    transition: color 0.2s, background 0.2s, border-color 0.2s, border-radius 0.15s;
+    padding: 10px 16px; cursor: pointer;
+    transition: color 0.2s, background 0.2s, border-color 0.2s, border-radius 0.15s, transform 0.12s ease;
     -webkit-tap-highlight-color: transparent;
-    text-align: left;
+    text-align: center;
     position: relative;
     z-index: 3;
+    will-change: transform;
   }
-  .tab-btn:active { opacity: 0.7; }
+  .current-frame {
+    width: 100%; max-width: 380px;
+    border: 2px solid rgba(58,48,40,0.2);
+    border-radius: 14px;
+    background: rgba(245,243,238,0.95);
+    margin: 0;
+    overflow: hidden;
+  }
+  .current-header {
+    text-align: center;
+    padding: 12px 16px 10px;
+    position: relative;
+  }
+  .current-title {
+    font-family: 'Nunito', sans-serif;
+    font-size: 25px; font-weight: 700; letter-spacing: 0.02em;
+    color: rgba(58,48,40,0.38);
+  }
+  .current-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(50% - 32px);
+    height: 2px;
+    background: rgba(58,48,40,0.15);
+  }
+  .current-content {
+    padding: 16px 13.5px 13.5px;
+  }
+  .current-empty {
+    font-family: 'Nunito', sans-serif;
+    font-size: 22px; font-weight: 600;
+    color: rgba(58,48,40,0.2);
+    text-align: center;
+    padding: 2px 0 12px;
+  }
+  .tab-btn[data-tab="upcoming"] { background: rgba(160,210,80,0.18); border-color: rgba(140,190,60,0.35); }
+  .tab-btn[data-tab="past"] { background: rgba(210,140,50,0.15); border-color: rgba(190,120,30,0.35); }
   .tab-btn.active {
-    color: rgba(58,48,40,0.55);
     background: transparent;
     border-color: transparent;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     z-index: 3;
   }
+  .tab-btn[data-tab="upcoming"].active { color: rgba(140,190,60,0.55); }
+  .tab-btn[data-tab="past"].active { color: rgba(190,120,30,0.55); }
+  .tab-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 16px;
+    right: 16px;
+    height: 2px;
+    background: rgba(58,48,40,0.15);
+    opacity: 0;
+    transition: opacity 0.05s ease;
+  }
+  .tab-btn.active::after {
+    opacity: 1;
+    transition: opacity 0.15s ease 0.2s;
+  }
+  .tab-btn[data-tab="upcoming"].active::after { background: rgba(140,190,60,0.15); }
+  .tab-btn[data-tab="past"].active::after { background: rgba(190,120,30,0.15); }
   .tab-frame {
     display: none;
     background: transparent;
@@ -90,8 +161,10 @@
     padding: 0;
     position: relative;
     width: 100%; max-width: 380px;
+    will-change: transform;
+    transform-origin: top center;
   }
-  .tab-frame.open { display: block; }
+  .tab-frame.open, .tab-frame.opening, .tab-frame.closing { display: block; }
   /* SVG draws the entire pill+frame outline */
   .tab-frame-svg {
     position: absolute;
@@ -100,11 +173,20 @@
     pointer-events: none;
     z-index: 2;
     overflow: visible;
+    transition: opacity 0.2s ease;
   }
+  .tab-frame.opening .tab-frame-svg { opacity: 0; }
+  .tab-frame.opening.svg-ready .tab-frame-svg { opacity: 1; }
+  .tab-frame.closing.svg-fade .tab-frame-svg { opacity: 0; }
   .tab-frame-content {
     position: relative;
-    padding: 22px 13.5px 13.5px;
+    padding: 32px 13.5px 13.5px;
     z-index: 3;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .tab-frame.closing .tab-frame-content {
+    transition: max-height 0.32s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Section headers */
@@ -172,6 +254,10 @@
   .section-body.closing > .date-marker {
     animation: cascadeOut 0.2s ease both;
   }
+  .tab-frame.opening > .tab-frame-content > .item-card,
+  .tab-frame.opening > .tab-frame-content > .date-marker {
+    animation: cascadeIn 0.25s ease both;
+  }
 
   /* Date markers */
   .date-marker {
@@ -197,73 +283,32 @@
   .item-card {
     position: relative;
     background: rgba(216,226,233,0.55);
-    background-clip: padding-box;
-    border: 1px solid transparent;
-    border-radius: 18px;
+    border-radius: 19px;
     padding: 15px;
     margin-bottom: 10px;
     overflow: visible;
-    transition: transform 0.15s ease, background 0.2s ease;
+    transition: transform 0.15s ease, background 0.2s ease, border-radius 0.15s ease;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    will-change: transform;
   }
-  .item-card .card-border {
-    position: absolute; inset: -1px; width: calc(100% + 2px); height: calc(100% + 2px);
-    pointer-events: none; overflow: visible;
-  }
-  .item-card .card-border rect {
-    fill: none; stroke: rgba(43,95,138,0.25);
-    stroke-width: 1.8; stroke-dasharray: 6 4;
+  .card-border-svg {
+    position: absolute; top: -1px; left: -1px;
+    pointer-events: none; z-index: 0; overflow: visible;
   }
   .item-card:active { transform: scale(0.985); }
   .item-card.is-expanded {
-    background: transparent; background-clip: padding-box;
+    background: transparent !important;
     margin-bottom: 0;
+    border-radius: 0 !important; border-color: transparent !important;
   }
-  .item-card.is-expanded .card-border { display: none; }
-  .item-card.is-expanded > *:not(.expand-border-svg) {
+  .item-card.is-expanded > *:not(.card-border-svg) {
     position: relative; z-index: 2;
-  }
-  .expand-border-svg {
-    position: absolute;
-    top: -1px; left: -1px;
-    pointer-events: none;
-    z-index: 0;
   }
   .item-card.is-done {
     background: rgba(64,127,190,0.22);
-    background-clip: padding-box;
   }
-  .item-card.is-done .card-border rect {
-    stroke: rgba(43,95,138,1); stroke-dasharray: none;
-  }
-  .item-card.is-past { background: rgba(216,226,233,0.3); background-clip: padding-box; }
-  .item-card.is-past .card-border rect { stroke: rgba(43,95,138,0.1); }
-  .item-card.is-missing .card-border rect { stroke: rgba(180,60,50,0.4); }
-  .item-card.is-today-card .card-border rect { stroke: rgba(184,80,30,0.35); }
-
-  /* Per-class card border colors */
-  .item-card.cp-12ftx  .card-border rect { stroke: rgba(184,80,30,0.3); }
-  .item-card.cp-enw223 .card-border rect { stroke: rgba(80,120,160,0.3); }
-  .item-card.cp-flm223 .card-border rect { stroke: rgba(140,60,120,0.3); }
-  .item-card.cp-mus223 .card-border rect { stroke: rgba(60,130,100,0.3); }
-  .item-card.cp-mat223 .card-border rect { stroke: rgba(100,90,160,0.3); }
-  .item-card.cp-fcm112 .card-border rect { stroke: rgba(160,120,50,0.3); }
-  .item-card.is-past.cp-12ftx  .card-border rect { stroke: rgba(184,80,30,0.12); }
-  .item-card.is-past.cp-enw223 .card-border rect { stroke: rgba(80,120,160,0.12); }
-  .item-card.is-past.cp-flm223 .card-border rect { stroke: rgba(140,60,120,0.12); }
-  .item-card.is-past.cp-mus223 .card-border rect { stroke: rgba(60,130,100,0.12); }
-  .item-card.is-past.cp-mat223 .card-border rect { stroke: rgba(100,90,160,0.12); }
-  .item-card.is-past.cp-fcm112 .card-border rect { stroke: rgba(160,120,50,0.12); }
-
-  /* Solid border when all tasks complete */
-  .item-card.tasks-complete .card-border rect { stroke-dasharray: none !important; }
-  .item-card.tasks-complete.cp-12ftx  .card-border rect { stroke: rgba(184,80,30,0.5); }
-  .item-card.tasks-complete.cp-enw223 .card-border rect { stroke: rgba(80,120,160,0.5); }
-  .item-card.tasks-complete.cp-flm223 .card-border rect { stroke: rgba(140,60,120,0.5); }
-  .item-card.tasks-complete.cp-mus223 .card-border rect { stroke: rgba(60,130,100,0.5); }
-  .item-card.tasks-complete.cp-mat223 .card-border rect { stroke: rgba(100,90,160,0.5); }
-  .item-card.tasks-complete.cp-fcm112 .card-border rect { stroke: rgba(160,120,50,0.5); }
+  .item-card.is-past { background: rgba(216,226,233,0.3); }
 
   .item-meta-line {
     display: flex; align-items: center; gap: 6px;
@@ -346,7 +391,6 @@
     opacity: 1; transform: translateY(0);
     pointer-events: auto;
     max-height: 1200px;
-    margin-bottom: 10px;
   }
 
   .detail-pointer {
@@ -436,8 +480,8 @@
     pointer-events: none;
   }
   .task-progress-circles {
-    position: absolute; left: 0; top: 0; width: 100%; height: 100%;
-    display: flex; align-items: center; justify-content: space-around;
+    position: absolute; left: 0; top: 0; height: 100%;
+    display: flex; align-items: center; gap: 8px;
   }
   .task-circle {
     width: 38px; height: 22px; border-radius: 11px;
@@ -703,9 +747,10 @@
 
 <script>
 // Auto-generated by build_dates_webapp.py — do not edit manually
-// Generated: 2026-03-14
+// Generated: 2026-03-16
 
-const BUILD_DATE = '2026-03-14';
+const BUILD_DATE = '2026-03-16';
+const SCRAPE_DATE = '2026-03-13';
 
 const CLASSES = {
   "12FTX": {
@@ -748,9 +793,10 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "12FTX plan & tasks",
-    "desc": "This is your course overview for Year 12 Fashion and Textiles, including the year's plan and all assessments.",
-    "detail": "This document lays out the entire year for your Fashion and Textiles course. It's crucial for understanding the scope of your learning, key assessment dates, and what skills you'll be developing throughout the year."
+    "key": "12FTX-12ftx-2026-year-plan-and-assessments",
+    "short": "FTX Year Plan",
+    "desc": "Get the overview of your Fashion & Textiles year, including assessments.",
+    "detail": "This document outlines the entire year for Fashion & Textiles, covering all the topics you'll study and the major assessments you'll need to complete."
   },
   {
     "cls": "12FTX",
@@ -759,9 +805,10 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Design history stuff",
-    "desc": "This material covers different historical design eras and movements relevant to fashion and textiles.",
-    "detail": "Understanding historical design eras and movements is fundamental to developing your own design aesthetic. This resource will provide context and inspiration for your projects, helping you to connect contemporary design to its past."
+    "key": "12FTX-design-era-and-design-movements",
+    "short": "Design eras info",
+    "desc": "Learn about different historical design periods and their styles.",
+    "detail": "This material will introduce you to various design movements throughout history, helping you understand the evolution of fashion and textile design."
   },
   {
     "cls": "12FTX",
@@ -770,9 +817,10 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
+    "key": "12FTX-intro-to-the-elements-and-principles-of-design",
     "short": "Design elements basics",
-    "desc": "An introduction to the fundamental building blocks and principles used in design.",
-    "detail": "This material explains the core concepts like line, shape, colour, and texture (elements) and how they are organized using balance, contrast, and rhythm (principles). Mastering these will improve your design choices and communication."
+    "desc": "Understand the fundamental building blocks of design.",
+    "detail": "This covers the core concepts like line, shape, colour, and texture, and how they are used together to create effective designs."
   },
   {
     "cls": "12FTX",
@@ -781,9 +829,10 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
+    "key": "12FTX-examples-of-first-drawing-pages",
     "short": "Drawing examples",
-    "desc": "Examples of how to set up and present your initial drawing pages for design ideas.",
-    "detail": "This resource shows you good examples of how to sketch and present your early design concepts. It will help you develop a strong visual communication style for your portfolio and assignments."
+    "desc": "See examples of what your first drawing pages should look like.",
+    "detail": "This resource provides visual examples of how to set up and present your initial drawing pages for design projects, giving you a benchmark for quality."
   },
   {
     "cls": "12FTX",
@@ -792,9 +841,10 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Shapes on objects",
-    "desc": "Focuses on how to represent and draw basic shapes on three-dimensional forms.",
-    "detail": "This lesson will teach you techniques for drawing geometric and organic shapes and how they appear on solid objects, giving your designs a sense of volume and realism. This is a foundational skill for technical drawing in fashion."
+    "key": "12FTX-shapes-on-forms",
+    "short": "Shapes on forms",
+    "desc": "Explore how shapes are applied to three-dimensional objects.",
+    "detail": "This material focuses on understanding and representing shapes as they interact with three-dimensional forms, which is crucial for garment design and pattern making."
   },
   {
     "cls": "12FTX",
@@ -803,9 +853,10 @@ const RAW = [
     "type": "assignment",
     "status": "Turned in",
     "source": null,
-    "short": "Design era writing",
-    "desc": "Write about a specific historical design era or movement for your assignment.",
-    "detail": "This assignment requires you to research and write about a chosen historical design era or movement, analysing its key characteristics and influences. This written component will form part of a larger assessment on design exploration."
+    "key": "12FTX-design-era-movement-written",
+    "short": "Design era/movement writing",
+    "desc": "Write about a specific design era or movement.",
+    "detail": "This assignment requires you to research and document a particular historical design period, explaining its key characteristics and influences."
   },
   {
     "cls": "12FTX",
@@ -814,9 +865,10 @@ const RAW = [
     "type": "assignment",
     "status": "Assigned",
     "source": null,
+    "key": "12FTX-design-era-task-sheet-and-hand-in",
     "short": "Design era task sheet",
-    "desc": "Get the task sheet and submit your work for the design era assignment.",
-    "detail": "This task sheet outlines the specific requirements for your design era assignment. Make sure to read it carefully and submit your completed work by the due date."
+    "desc": "Complete the task sheet for your design era assignment.",
+    "detail": "This involves filling out a specific task sheet related to your chosen design era, likely detailing research, analysis, and design response requirements."
   },
   {
     "cls": "12FTX",
@@ -825,9 +877,10 @@ const RAW = [
     "type": "event",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "Design Era assessment intro",
-    "desc": "An introduction to the assessment focused on exploring different design eras.",
-    "detail": "This is the kick-off for your Design Era assessment, a major component of the Fashion and Textiles course. You'll be diving deep into a specific design movement, using it to inspire your own creative work and portfolio development."
+    "key": "12FTX-introduction-to-design-era-assessment",
+    "short": "Design Era Assessment Intro",
+    "desc": "Understand the requirements for the Design Era assessment.",
+    "detail": "This is the introduction to an assessment where you'll explore and apply characteristics of a design movement or era to your fashion and textile projects, using visual communication and advanced pattern adaptation techniques."
   },
   {
     "cls": "12FTX",
@@ -836,9 +889,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "Presentation draft due",
+    "key": "12FTX-presentation-written-draft-handed-in",
+    "short": "Design Era Presentation Draft",
     "desc": "Hand in a draft of your written presentation for feedback.",
-    "detail": "This is a crucial step for your Design Era assessment. Submitting a draft allows your teacher to provide feedback on your written work, helping you to refine your ideas and arguments before the final submission."
+    "detail": "This is a milestone for your Design Era assessment, where you submit a preliminary written version of your presentation for your teacher to review and provide feedback on, focusing on exploring design characteristics and visual communication."
   },
   {
     "cls": "12FTX",
@@ -847,9 +901,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "Finish Design Era assignment",
-    "desc": "Final submission for your Design Era assignment.",
-    "detail": "This is the final deadline for your Design Era assignment. Ensure all components, including research, written analysis, and any visual elements, are completed and submitted as per the requirements."
+    "key": "12FTX-design-era-assignment-finishing",
+    "short": "Design Era Assignment Finish",
+    "desc": "Finalize your Design Era assignment.",
+    "detail": "This deadline means you need to complete and polish your Design Era assignment, ensuring all aspects of exploring and applying design era characteristics and visual communication are met."
   },
   {
     "cls": "12FTX",
@@ -858,9 +913,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "Final presentation due",
-    "desc": "Submit your completed presentation for the Design Era assessment.",
-    "detail": "This is the final submission for your Design Era assessment, which includes your presentation. Make sure it effectively communicates your research and design ideas derived from a specific historical movement."
+    "key": "12FTX-design-era-finished-presentation-due",
+    "short": "Design Era Presentation Due",
+    "desc": "Submit your final Design Era presentation.",
+    "detail": "This is the final submission for your Design Era assessment, requiring you to present your exploration of a design movement or era, including your design ideas and visual communication techniques."
   },
   {
     "cls": "12FTX",
@@ -869,9 +925,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "Brief & designs due",
-    "desc": "Submit your written brief and initial design concepts.",
-    "detail": "This deadline is for submitting your initial design brief and your first set of design ideas related to your chosen design era. This is where you translate your research into tangible visual concepts."
+    "key": "12FTX-written-brief-and-design-due",
+    "short": "Written Brief & Designs Due",
+    "desc": "Submit your written design brief and initial design concepts.",
+    "detail": "This deadline marks the submission of your initial written brief and your first design ideas for the Fashion & Textiles project, which should be informed by your chosen design era and use visual communication."
   },
   {
     "cls": "12FTX",
@@ -880,9 +937,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "Pattern Adaptation due",
-    "desc": "Submit your work for the Pattern Adaptation assessment.",
-    "detail": "This assessment focuses on your ability to adapt and modify existing patterns to create new garment designs. It's a practical skill that allows for creative interpretation within fashion construction."
+    "key": "12FTX-pattern-adaptation-assessment-due",
+    "short": "Pattern Adaptation Due",
+    "desc": "Submit your pattern adaptation work.",
+    "detail": "This assessment requires you to demonstrate your learned advanced pattern adaptation techniques, a key component of the overall fashion and textiles project focusing on design and construction."
   },
   {
     "cls": "12FTX",
@@ -891,9 +949,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "Advanced Procedures work",
-    "desc": "Hand in your work on advanced construction techniques.",
-    "detail": "This is where you submit the practical work showcasing your skills in advanced garment construction techniques learned throughout the course. This demonstrates your ability to translate designs into finished garments."
+    "key": "12FTX-advanced-procedures-work-due",
+    "short": "Advanced Procedures Work Due",
+    "desc": "Submit your work on advanced construction techniques.",
+    "detail": "This deadline covers the practical construction aspects of your fashion and textiles project, focusing on applying advanced techniques learned throughout the course."
   },
   {
     "cls": "12FTX",
@@ -902,9 +961,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "2026-student-Calendar",
-    "short": "External portfolio due",
+    "key": "12FTX-external-portfolio-due",
+    "short": "External Portfolio Due",
     "desc": "Submit your final external portfolio.",
-    "detail": "This is the final submission of your external portfolio, which should showcase your best work, research, and development throughout the Fashion and Textiles course. It's a comprehensive representation of your skills and learning."
+    "detail": "This is the submission of your comprehensive portfolio for external assessment, showcasing all your work from the Fashion & Textiles course, including research, design, and construction."
   },
   {
     "cls": "12FTX",
@@ -913,9 +973,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Design-Era-Task-Sheet-2026",
-    "short": "Presentation draft due",
-    "desc": "Submit a draft of your presentation and initial design ideas.",
-    "detail": "This deadline is for a draft submission of your presentation about a design movement and your initial design ideas stemming from that research. It's a chance to get feedback before the final version is due."
+    "key": "12FTX-written-part-of-presentation-draft-copy-due",
+    "short": "Presentation Draft Due",
+    "desc": "Hand in a draft of your presentation.",
+    "detail": "This is a draft submission for your presentation related to a chosen design movement or era, where you'll showcase your research, characteristics, and initial design ideas."
   },
   {
     "cls": "12FTX",
@@ -924,9 +985,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Design-Era-Task-Sheet-2026",
-    "short": "Presentation & ideas due",
+    "key": "12FTX-final-presentation-and-design-ideas-due",
+    "short": "Final Presentation & Designs Due",
     "desc": "Submit your final presentation and design ideas.",
-    "detail": "This is the final submission for your research presentation on a design movement and your subsequent design ideas. Ensure your presentation is polished and your design concepts are well-developed."
+    "detail": "This is the final submission for your presentation on a design movement or era, including your developed design ideas that are informed by the movement's characteristics and visual communication techniques."
   },
   {
     "cls": "ENW223",
@@ -935,9 +997,10 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Writer's intro booklet",
-    "desc": "Read the introductory booklet for English for Writers.",
-    "detail": "This booklet provides an overview of the English for Writers course, outlining its goals, expectations, and the types of writing you'll be exploring. It's your first step into understanding the course structure."
+    "key": "ENW223-english-for-writers-intro-booklet",
+    "short": "English for Writers booklet",
+    "desc": "Read the intro booklet for Writers' English.",
+    "detail": "This is the introductory material for your English for Writers course, outlining expectations and the structure of the program."
   },
   {
     "cls": "ENW223",
@@ -946,9 +1009,10 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Writing prompts",
-    "desc": "Here are lots of writing prompts to inspire you.",
-    "detail": "This resource offers a collection of writing prompts designed to spark your creativity and encourage you to experiment with different writing styles and themes. Use these as starting points for your portfolio pieces."
+    "key": "ENW223-writing-prompts-galore",
+    "short": "More writing prompts",
+    "desc": "Access more creative writing prompts.",
+    "detail": "This material provides additional creative prompts to inspire your writing exercises and assignments throughout the English for Writers course."
   },
   {
     "cls": "ENW223",
@@ -957,9 +1021,10 @@ const RAW = [
     "type": "assignment",
     "status": "Turned in",
     "source": null,
-    "short": "Portfolio piece #1",
-    "desc": "Submit your first piece for your writing portfolio.",
-    "detail": "This is your first graded assignment for the English for Writers course. You'll be submitting a written piece that demonstrates your skills in a particular genre or style, based on the course's focus."
+    "key": "ENW223-writing-portfolio-piece-1",
+    "short": "Writing portfolio piece 1",
+    "desc": "Complete your first writing portfolio piece.",
+    "detail": "This is your first major assignment for English for Writers, requiring you to produce a piece of writing to be included in your portfolio."
   },
   {
     "cls": "ENW223",
@@ -968,9 +1033,10 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "English for Writers intro booklet",
+    "key": "ENW223-intro-booklet-posted-course-starts",
     "short": "Intro booklet posted",
-    "desc": "The introductory booklet is now available, and the course has begun.",
-    "detail": "This marks the official start of the English for Writers course. You should have access to the introductory booklet, and the teacher will likely be covering its contents and course expectations."
+    "desc": "Intro booklet now available, class starts.",
+    "detail": "The introductory booklet for English for Writers has been posted, and your course officially begins now."
   },
   {
     "cls": "ENW223",
@@ -979,9 +1045,10 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "Writing prompts galore",
-    "short": "Writing prompts posted",
-    "desc": "The writing prompts material has been posted online.",
-    "detail": "This means the collection of writing prompts you can use for inspiration has been made available. You should check these out to start brainstorming ideas for your upcoming assignments."
+    "key": "ENW223-writing-prompts-material-posted",
+    "short": "Writing prompts available",
+    "desc": "New writing prompts have been posted.",
+    "detail": "You can now access new writing prompts for your English for Writers course, which will help you develop your creative writing skills."
   },
   {
     "cls": "ENW223",
@@ -990,9 +1057,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Writing portfolio piece #1",
-    "short": "Portfolio piece #1 due",
-    "desc": "Your first writing portfolio piece is due now.",
-    "detail": "This is the deadline for your first graded writing submission. Make sure you have completed and submitted your chosen writing piece, adhering to all instructions and requirements."
+    "key": "ENW223-writing-portfolio-piece-1-due",
+    "short": "Portfolio piece 1 due",
+    "desc": "Submit your first portfolio piece.",
+    "detail": "This is the deadline for your first writing portfolio submission for the English for Writers course."
   },
   {
     "cls": "ENW223",
@@ -1001,9 +1069,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Personal responses due",
-    "desc": "Submit your personal responses for AS91106.",
-    "detail": "This is an assessment where you'll demonstrate your personal responses to texts, a key part of the English for Writers course. Your responses will show your understanding and engagement with the material."
+    "key": "ENW223-as91106-3-develop-personal-responses",
+    "short": "AS91106 #3 Personal Responses",
+    "desc": "Submit your third set of personal responses.",
+    "detail": "This deadline requires you to submit your third set of personal responses for standard AS91106, which involves developing your own writing based on texts read in the English for Writers course."
   },
   {
     "cls": "ENW223",
@@ -1012,9 +1081,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Writing portfolio due",
-    "desc": "Submit your writing portfolio for AS91101.",
-    "detail": "This is a deadline for submitting your writing portfolio, which will likely contain a collection of your best writing pieces developed throughout the course. It's a comprehensive assessment of your writing skills."
+    "key": "ENW223-as91101-3-writing-portfolio-due",
+    "short": "AS91101 #3 Portfolio Due",
+    "desc": "Submit your third portfolio for AS91101.",
+    "detail": "This is the deadline for submitting your third collection of writing pieces for standard AS91101, contributing to your overall writing portfolio in English for Writers."
   },
   {
     "cls": "ENW223",
@@ -1023,9 +1093,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Personal responses due",
-    "desc": "Submit your personal responses for AS91106.",
-    "detail": "This is another submission point for your personal responses to texts. Ensure you are developing your analytical and creative engagement with the reading material as the course progresses."
+    "key": "ENW223-as91106-4-develop-personal-responses",
+    "short": "AS91106 #4 Personal Responses",
+    "desc": "Submit your fourth set of personal responses.",
+    "detail": "This deadline requires you to submit your fourth set of personal responses for standard AS91106, showcasing your developing writing skills in response to various texts in English for Writers."
   },
   {
     "cls": "ENW223",
@@ -1034,9 +1105,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Writing portfolio due",
-    "desc": "Submit your writing portfolio for AS91101.",
-    "detail": "This is a further deadline for submitting components of your writing portfolio. It's important to keep track of these submissions to ensure your overall portfolio is strong."
+    "key": "ENW223-as91101-4-writing-portfolio-due",
+    "short": "AS91101 #4 Portfolio Due",
+    "desc": "Submit your fourth portfolio for AS91101.",
+    "detail": "This is the deadline for submitting your fourth collection of writing pieces for standard AS91101, continuing to build your writing portfolio for the English for Writers course."
   },
   {
     "cls": "ENW223",
@@ -1045,9 +1117,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Analyse text connections",
-    "desc": "This assessment requires you to analyse connections across texts.",
-    "detail": "This is a specific assessment focused on identifying and analysing the relationships between different texts you've studied. It tests your ability to synthesize information and draw broader conclusions about literary themes or techniques."
+    "key": "ENW223-as91104-analyse-connections-across-texts",
+    "short": "AS91104 Text Connections",
+    "desc": "Submit your analysis of text connections.",
+    "detail": "This deadline is for submitting your work on standard AS91104, where you will analyze the connections between different texts studied in the English for Writers course."
   },
   {
     "cls": "ENW223",
@@ -1056,9 +1129,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Personal responses due",
-    "desc": "Submit your personal responses for AS91106.",
-    "detail": "This is a subsequent submission for your personal responses. Continue to engage critically with the texts and develop your own unique perspectives and insights."
+    "key": "ENW223-as91106-5-develop-personal-responses",
+    "short": "AS91106 #5 Personal Responses",
+    "desc": "Submit your fifth set of personal responses.",
+    "detail": "This deadline requires you to submit your fifth set of personal responses for standard AS91106, demonstrating your ongoing development in writing based on the texts explored in English for Writers."
   },
   {
     "cls": "ENW223",
@@ -1067,9 +1141,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Personal responses due",
-    "desc": "Submit your personal responses for AS91106.",
-    "detail": "This is another submission opportunity for your personal responses. Focus on demonstrating your deepening understanding and ability to articulate your thoughts on the texts."
+    "key": "ENW223-as91106-6-develop-personal-responses",
+    "short": "AS91106 #6 Personal Responses",
+    "desc": "Submit your sixth set of personal responses.",
+    "detail": "This deadline requires you to submit your sixth set of personal responses for standard AS91106, further showcasing your writing abilities and engagement with course texts in English for Writers."
   },
   {
     "cls": "ENW223",
@@ -1078,9 +1153,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Personal responses due",
-    "desc": "Submit your personal responses for AS91106.",
-    "detail": "This is the first submission for your personal responses to texts. This assessment will evaluate your initial engagement with and interpretation of the reading material."
+    "key": "ENW223-as91106-1-develop-personal-responses",
+    "short": "AS91106 #1 Personal Responses",
+    "desc": "Submit your first personal responses.",
+    "detail": "This is the deadline for your first submission of personal responses for standard AS91106, where you'll develop your writing based on texts read in the English for Writers course."
   },
   {
     "cls": "ENW223",
@@ -1089,9 +1165,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Coco-Inez-Penn-2026-AS91106-Independent-reading-responses",
-    "short": "Week 9 tasks due",
-    "desc": "Complete and submit all tasks for Week 9 of Term 3.",
-    "detail": "This is a general deadline for all outstanding tasks and assignments for Week 9 of Term 3. Ensure you check the course outline for specific requirements and submit everything on time."
+    "key": "ENW223-deadline-for-week-9-term-3-tasks",
+    "short": "Week 9, Term 3 Tasks",
+    "desc": "Complete tasks for Week 9, Term 3.",
+    "detail": "This deadline covers all the specific tasks assigned for Week 9 of Term 3 in English for Writers, focusing on reading texts as a writer and developing your own writing skills, which will feed into your connections essay."
   },
   {
     "cls": "ENW223",
@@ -1100,9 +1177,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Writing portfolio due",
-    "desc": "Submit your writing portfolio for AS91101.",
-    "detail": "This is an early deadline for submitting parts of your writing portfolio. It's important to start compiling and refining your work to meet this requirement."
+    "key": "ENW223-as91101-1-writing-portfolio-due",
+    "short": "AS91101 #1 Portfolio Due",
+    "desc": "Submit your first portfolio for AS91101.",
+    "detail": "This is the deadline for submitting your first collection of writing pieces for standard AS91101, contributing to your overall writing portfolio in English for Writers."
   },
   {
     "cls": "ENW223",
@@ -1111,9 +1189,10 @@ const RAW = [
     "type": "info",
     "status": null,
     "source": "Coco-Inez-Penn-ENW223-portfolio-piece-1-student-sheet",
-    "short": "Portfolio feedback",
-    "desc": "Feedback has been provided for portfolio piece 1.",
-    "detail": "You should now check Google Classroom or your preferred platform for feedback on your first portfolio piece. Use this feedback constructively to improve your subsequent writing."
+    "key": "ENW223-feedback-provided-for-portfolio-piece-1-in-term-3",
+    "short": "Portfolio feedback provided",
+    "desc": "Feedback for portfolio piece 1 received.",
+    "detail": "You will receive feedback on your first portfolio piece in Term 3, specifically on two short stories titled 'A bug's final bow' that explore perspective and empathy."
   },
   {
     "cls": "ENW223",
@@ -1122,9 +1201,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Personal responses due",
-    "desc": "Submit your personal responses for AS91106.",
-    "detail": "This is an early submission for your personal responses to texts. This allows for earlier feedback and helps you stay on track with the course requirements."
+    "key": "ENW223-as91106-2-develop-personal-responses",
+    "short": "AS91106 #2 Personal Responses",
+    "desc": "Submit your second personal responses.",
+    "detail": "This is the deadline for your second submission of personal responses for standard AS91106, demonstrating your growing ability to write in response to course texts in English for Writers."
   },
   {
     "cls": "ENW223",
@@ -1133,9 +1213,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "ENW223-Intro-booklet-2026",
-    "short": "Writing portfolio due",
-    "desc": "Submit your writing portfolio for AS91101.",
-    "detail": "This is another deadline for submitting components of your writing portfolio. Stay organized and ensure you're making consistent progress on your writing pieces."
+    "key": "ENW223-as91101-2-writing-portfolio-due",
+    "short": "AS91101 #2 Portfolio Due",
+    "desc": "Submit your second portfolio for AS91101.",
+    "detail": "This is the deadline for submitting your second collection of writing pieces for standard AS91101, continuing to build your writing portfolio for the English for Writers course."
   },
   {
     "cls": "FLM223",
@@ -1144,9 +1225,10 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Femininity in media slides",
-    "desc": "Slideshow about femininity and representation in media.",
-    "detail": "This material provides slides that explore the concept of femininity and how it's represented in media, likely in relation to the upcoming assessment on representation."
+    "key": "FLM223-femininity-in-the-media-representation-assessment-info-slide",
+    "short": "Femininity media slides",
+    "desc": "Slides on femininity in media.",
+    "detail": "These slides cover the topic of femininity as represented in the media, likely as preparation for an assessment on representation."
   },
   {
     "cls": "FLM223",
@@ -1155,9 +1237,10 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
+    "key": "FLM223-horror-slides-final-girl",
     "short": "Horror slides - final girl",
-    "desc": "Slides focusing on the 'final girl' trope in horror films.",
-    "detail": "This resource delves into the 'final girl' archetype within the horror genre. Understanding this trope is essential for analyzing horror films and their narrative structures."
+    "desc": "Slides on the 'final girl' in horror.",
+    "detail": "This material focuses on the 'Final Girl' trope in horror films, a key concept for understanding horror genre conventions and representation."
   },
   {
     "cls": "FLM223",
@@ -1166,9 +1249,10 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
+    "key": "FLM223-course-information",
     "short": "Course information",
-    "desc": "General information about the Film Studies course.",
-    "detail": "This document provides an overview of the Film Studies course, including its structure, learning objectives, and assessment expectations. It's a good starting point for understanding the whole year."
+    "desc": "General course information.",
+    "detail": "This provides essential details about the Film and Media Studies course, including expectations and structure."
   },
   {
     "cls": "FLM223",
@@ -1177,9 +1261,10 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
+    "key": "FLM223-d1-materials-assessment-schedule-and-course-outline",
     "short": "Assessment schedule & outline",
-    "desc": "Your assessment schedule and course outline for D1.",
-    "detail": "This is a key document outlining all the assessments for the year, including their weighting and due dates, as well as the overall structure and topics covered in the course."
+    "desc": "Film & Media assessment schedule.",
+    "detail": "This document outlines the assessments for the Film and Media course, including deadlines and what each assessment entails."
   },
   {
     "cls": "FLM223",
@@ -1188,9 +1273,10 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
+    "key": "FLM223-horror-films-to-watch-folder",
     "short": "Horror films to watch",
-    "desc": "A folder containing horror films recommended for viewing.",
-    "detail": "This is a curated list or collection of horror films you should watch as part of the course. Viewing these films will provide you with material and context for analysis."
+    "desc": "List of horror films for study.",
+    "detail": "This folder contains a list of horror films that you are expected to watch and analyze for the course."
   },
   {
     "cls": "FLM223",
@@ -1199,9 +1285,10 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
+    "key": "FLM223-halloween-final-girl-brainstorm",
     "short": "Final girl brainstorm",
-    "desc": "Brainstorming material related to the 'final girl' concept.",
-    "detail": "This resource will help you generate ideas and develop your understanding of the 'final girl' trope in horror films, likely as preparation for an assignment or discussion."
+    "desc": "Brainstorm ideas for the 'final girl'.",
+    "detail": "This is a brainstorming activity related to the 'Final Girl' trope, encouraging you to generate ideas and analysis points for discussion and assignments."
   },
   {
     "cls": "FLM223",
@@ -1210,9 +1297,10 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
-    "short": "Scream class brainstorm",
-    "desc": "Brainstorming session related to the film 'Scream'.",
-    "detail": "This material is from a class brainstorming session about the film 'Scream'. It will contain ideas, themes, and analytical points related to the movie, likely for a specific assignment."
+    "key": "FLM223-scream-class-brainstorm",
+    "short": "Scream brainstorm",
+    "desc": "Brainstorm ideas for 'Scream'.",
+    "detail": "This brainstorming session focuses on the film 'Scream,' likely to explore its themes, characters, and genre conventions."
   },
   {
     "cls": "FLM223",
@@ -1221,9 +1309,10 @@ const RAW = [
     "type": "assignment",
     "status": "Missing",
     "source": null,
-    "short": "Final girl articles",
-    "desc": "Articles and worksheets on the 'final girl' trope.",
-    "detail": "This assignment involves reading and working with articles and worksheets that explore the 'final girl' concept and related ideas, possibly as a precursor to a larger analytical task."
+    "key": "FLM223-final-girl-and-good-for-her-articles-and-worksheets-when-pbt",
+    "short": "Final girl articles/worksheets",
+    "desc": "Read articles on 'final girl' trope.",
+    "detail": "These articles and worksheets will help you delve deeper into the 'Final Girl' trope and related concepts, potentially for analysis or assignment preparation."
   },
   {
     "cls": "FLM223",
@@ -1232,9 +1321,10 @@ const RAW = [
     "type": "assignment",
     "status": "Assigned",
     "source": null,
-    "short": "Representation assessment",
-    "desc": "Your assignment on representation in media.",
-    "detail": "This is a specific assignment that requires you to analyse how different groups are represented in media, likely focusing on stereotypes within horror films, as per the course content."
+    "key": "FLM223-2-3-representation-assessment",
+    "short": "2.3 Representation Assignment",
+    "desc": "Start the Representation assignment.",
+    "detail": "This is the assignment where you will explore how a specific group is represented, often as a stereotype, in horror films and potentially other media."
   },
   {
     "cls": "FLM223",
@@ -1243,9 +1333,10 @@ const RAW = [
     "type": "info",
     "status": null,
     "source": "Coco-Inez-Penn-2026-AS2.3-Representation-Student-Assessment-Instructions-and-cov",
-    "short": "Representation assessment issued",
-    "desc": "The assessment on representation in media has been released.",
-    "detail": "This means the details and requirements for your assignment on representation have been provided. You should now familiarize yourself with what you need to do to complete it effectively."
+    "key": "FLM223-2-3-representation-assessment-issued",
+    "short": "2.3 Representation Assessment Issued",
+    "desc": "Representation assessment has been released.",
+    "detail": "The 2.3 Representation assessment, focusing on analyzing stereotypes in horror films, has now been officially issued to you."
   },
   {
     "cls": "FLM223",
@@ -1254,9 +1345,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Coco-Inez-Penn-2026-AS2.3-Representation-Student-Assessment-Instructions-and-cov",
-    "short": "Representation withdrawal deadline",
-    "desc": "The deadline to withdraw from the Representation assessment.",
-    "detail": "If you decide not to proceed with the Representation assessment, this is your final opportunity to formally withdraw. Make sure you understand the implications of withdrawing."
+    "key": "FLM223-withdrawal-deadline-for-2-3-representation-assessment",
+    "short": "Representation Assessment Withdrawal",
+    "desc": "Withdrawal deadline for Representation assessment.",
+    "detail": "This is the final date to withdraw from the 2.3 Representation assessment if you choose not to complete it."
   },
   {
     "cls": "FLM223",
@@ -1265,9 +1357,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "5/3 Period 4 and 5 Final girl and good for her articles and worksheets when PBT is away",
-    "short": "Final girl assignment due",
-    "desc": "The assignment on 'final girl' articles and worksheets is due.",
-    "detail": "This is the deadline for submitting the work related to the 'final girl' articles and worksheets. Ensure all tasks within this assignment have been completed and submitted."
+    "key": "FLM223-assignment-final-girl-and-good-for-her-articles-worksheets",
+    "short": "'Final girl' articles due",
+    "desc": "Submit 'Final Girl' articles/worksheets.",
+    "detail": "This deadline requires you to submit any completed articles or worksheets related to the 'Final Girl' trope and associated topics."
   },
   {
     "cls": "FLM223",
@@ -1276,9 +1369,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Coco-Inez-Penn-2026-AS2.3-Representation-Student-Assessment-Instructions-and-cov",
-    "short": "Representation assessment due",
-    "desc": "Your assessment on representation in media is due now.",
-    "detail": "This is the final deadline for your Representation assessment. Ensure you have selected appropriate media texts, analysed their representations, and described the relevant features."
+    "key": "FLM223-2-3-representation-assessment-due",
+    "short": "2.3 Representation Due",
+    "desc": "Submit your Representation assessment.",
+    "detail": "This is the final deadline to submit your analysis of group representation in horror films for the 2.3 Representation assessment."
   },
   {
     "cls": "FLM223",
@@ -1287,9 +1381,10 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "Film-223-Genre-study-horror-2026-PBT",
+    "key": "FLM223-intro-to-horror-genre-focus-on-final-girl",
     "short": "Horror genre intro",
-    "desc": "Introduction to the horror genre, focusing on the 'final girl'.",
-    "detail": "This lesson introduces the horror genre, its history, and key elements, with a special focus on the 'Final Girl' trope. You'll analyze films and concepts like representation."
+    "desc": "Intro to horror & final girl.",
+    "detail": "This lesson introduces the horror genre, its history, and key elements, with a specific focus on analyzing the 'Final Girl' trope and representation in films."
   },
   {
     "cls": "FLM223",
@@ -1298,9 +1393,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Film-223-Genre-study-horror-2026-PBT",
-    "short": "Horror analysis due",
-    "desc": "Submit your analysis of horror films.",
-    "detail": "This is the deadline for your horror film analysis assignment. You should have analysed specific films, discussed concepts like the 'Final Girl' trope, and demonstrated your understanding of the genre's conventions."
+    "key": "FLM223-horror-film-analysis-assessment-due",
+    "short": "Horror Film Analysis Due",
+    "desc": "Submit your horror film analysis.",
+    "detail": "This is the deadline for submitting your analysis of horror films, which should include understanding genre conventions and concepts like the 'Final Girl' and representation."
   },
   {
     "cls": "MUS223",
@@ -1309,9 +1405,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "L1-[2026]-Investigate-an-Aspect-of-New-Zealand-Music",
-    "short": "Research question approval",
-    "desc": "Submit your NZ music research question for approval.",
-    "detail": "This is the first step for your New Zealand music research project. You need to propose a specific research question about an aspect of NZ music for your teacher's approval."
+    "key": "MUS223-submit-final-research-question-for-teacher-approval",
+    "short": "Research question deadline",
+    "desc": "Submit your research question.",
+    "detail": "You need to finalize and submit your research question about an aspect of New Zealand music for teacher approval before you begin your presentation."
   },
   {
     "cls": "MUS223",
@@ -1320,9 +1417,10 @@ const RAW = [
     "type": "event",
     "status": null,
     "source": "L1-[2026]-Investigate-an-Aspect-of-New-Zealand-Music",
+    "key": "MUS223-present-research-outline-to-class-for-feedback",
     "short": "Research outline feedback",
-    "desc": "Present your research outline to the class for feedback.",
-    "detail": "You'll be presenting the plan for your NZ music research to your classmates to get constructive feedback. This will help you refine your research direction and presentation strategy."
+    "desc": "Present research outline for feedback.",
+    "detail": "This is an in-class session where you will present your research outline on New Zealand music to the class to receive constructive feedback."
   },
   {
     "cls": "MUS223",
@@ -1331,9 +1429,10 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "MUS223-2026-Who-are-we",
-    "short": "Identity slides creation",
-    "desc": "Create slides about 'Who you are' and 'Who you are musically'.",
-    "detail": "This task involves creating two slides with images that represent your personal identity and your musical interests. You'll use these slides to introduce yourself to the class."
+    "key": "MUS223-create-who-are-you-and-who-are-you-musically-slides",
+    "short": "Create 'Who are you?' slides",
+    "desc": "Make your identity slides.",
+    "detail": "You need to create two presentation slides with images: one about your personal identity ('Who are you?') and another about your musical identity ('Who are you musically?')."
   },
   {
     "cls": "MUS223",
@@ -1342,9 +1441,10 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "MUS223-2026-Who-are-we",
+    "key": "MUS223-add-completed-slides-to-presentation",
     "short": "Add slides to presentation",
-    "desc": "Add your completed identity slides to the main presentation.",
-    "detail": "Once you've created your 'Who you are' and 'Who you are musically' slides, you need to integrate them into a larger presentation, likely for your introduction or a related task."
+    "desc": "Add your slides to the presentation.",
+    "detail": "Once you have created your 'Who are you?' and 'Who are you musically?' slides, you need to upload and add them to the main class presentation."
   },
   {
     "cls": "MUS223",
@@ -1353,9 +1453,10 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "Solo performances due",
-    "desc": "Perform two substantial musical pieces as a soloist.",
-    "detail": "This is a key performance assessment where you will showcase your skills by performing two significant musical pieces individually. Focus on technicality, musicality, and stage presence."
+    "key": "MUS223-perform-two-substantial-pieces-as-a-featured-soloist",
+    "short": "Perform two solo pieces",
+    "desc": "Perform your two solo pieces.",
+    "detail": "This is an assessment where you will perform two substantial musical pieces as a featured soloist, demonstrating your technical and musical abilities."
   },
   {
     "cls": "MUS223",
@@ -1364,9 +1465,10 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "Group performance due",
-    "desc": "Perform a substantial musical piece as part of a group.",
-    "detail": "This assessment evaluates your ability to collaborate and perform effectively within an ensemble. You'll need to demonstrate strong group performance skills and contribute to a cohesive musical output."
+    "key": "MUS223-perform-a-substantial-piece-as-a-member-of-a-group",
+    "short": "Perform group piece",
+    "desc": "Perform your group music piece.",
+    "detail": "This assessment requires you to demonstrate your ensemble skills by performing a substantial piece of music as part of a group."
   },
   {
     "cls": "MUS223",
@@ -1375,9 +1477,10 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "Welcome-to-MUS223",
+    "key": "MUS223-compose-two-substantial-pieces-of-music",
     "short": "Compose two pieces",
-    "desc": "Compose two substantial pieces of music.",
-    "detail": "This is a composition assessment where you will create two original musical pieces. Focus on developing your compositional skills, exploring musical ideas, and demonstrating creativity."
+    "desc": "Complete your two compositions.",
+    "detail": "This assessment involves composing two substantial pieces of music, demonstrating your creativity and understanding of musical structure."
   },
   {
     "cls": "MUS223",
@@ -1386,9 +1489,10 @@ const RAW = [
     "type": "task",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "Investigate NZ music",
-    "desc": "Research an aspect of New Zealand music.",
-    "detail": "This is the core research task for the NZ Music standard. You'll be investigating a specific topic within New Zealand music, which will likely culminate in a presentation or written report."
+    "key": "MUS223-investigate-an-aspect-of-new-zealand-music",
+    "short": "Investigate NZ Music",
+    "desc": "Research an aspect of NZ music.",
+    "detail": "This task requires you to investigate and analyze a specific aspect of New Zealand music, which will form the basis of your presentation."
   },
   {
     "cls": "MUS223",
@@ -1397,9 +1501,10 @@ const RAW = [
     "type": "exam",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "NZ music assessment",
-    "desc": "The assessment for investigating New Zealand music.",
-    "detail": "This is the formal assessment for your research on New Zealand music. It will evaluate the depth of your investigation, your analysis, and how you present your findings."
+    "key": "MUS223-assessment-for-investigate-an-aspect-of-new-zealand-music",
+    "short": "NZ Music Assessment Exam",
+    "desc": "Take the NZ Music assessment.",
+    "detail": "This is the exam for the 'Investigate an Aspect of New Zealand Music' standard, where you will demonstrate your understanding and findings."
   },
   {
     "cls": "MUS223",
@@ -1408,9 +1513,10 @@ const RAW = [
     "type": "event",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "Solo 1 performance",
-    "desc": "Your first solo performance assessment.",
-    "detail": "This is the assessment for your first substantial solo musical performance. Ensure you are well-prepared and demonstrate your best musical and technical abilities."
+    "key": "MUS223-solo-1-performance-assessment",
+    "short": "Solo 1 Performance Assessment",
+    "desc": "Perform your first solo piece.",
+    "detail": "This is the assessment for your first solo performance, where you will play one of the two substantial pieces you are preparing."
   },
   {
     "cls": "MUS223",
@@ -1419,9 +1525,10 @@ const RAW = [
     "type": "event",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "Composition feedback 1",
-    "desc": "Receive formal feedback on your first composed piece.",
-    "detail": "This is when you'll get detailed feedback on your first composed piece of music. Use this feedback to understand strengths and areas for improvement before composing your second piece."
+    "key": "MUS223-formal-feedback-for-composition-piece-1",
+    "short": "Composition Piece 1 Feedback",
+    "desc": "Get feedback on composition 1.",
+    "detail": "You will receive formal feedback on your first composed piece of music, allowing you to make improvements before the final submission."
   },
   {
     "cls": "MUS223",
@@ -1430,9 +1537,10 @@ const RAW = [
     "type": "event",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "Composition feedback 2",
-    "desc": "Receive formal feedback on your second composed piece.",
-    "detail": "This is where you'll receive feedback on your second composed piece. This will help you assess your progress as a composer and refine your skills for future projects."
+    "key": "MUS223-formal-feedback-for-composition-piece-2",
+    "short": "Composition Piece 2 Feedback",
+    "desc": "Get feedback on composition 2.",
+    "detail": "You will receive formal feedback on your second composed piece of music, giving you guidance for final revisions."
   },
   {
     "cls": "MUS223",
@@ -1441,9 +1549,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Welcome-to-MUS223",
-    "short": "Composition hand-in",
-    "desc": "Final hand-in for your composed music pieces.",
-    "detail": "This is the final deadline for submitting your two composed musical pieces. Ensure they meet all the requirements and showcase your best compositional work."
+    "key": "MUS223-final-hand-in-for-composition",
+    "short": "Final Composition Hand-in",
+    "desc": "Submit your compositions.",
+    "detail": "This is the final deadline for submitting both of your composed pieces of music for assessment."
   },
   {
     "cls": "MAT223",
@@ -1452,9 +1561,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Info-about-MAT223-for-2026",
+    "key": "MAT223-latest-date-to-sit-first-internal-assessment-as2-3-is-end-of",
     "short": "First internal assessment",
-    "desc": "Latest date to sit the first internal assessment (AS2.3).",
-    "detail": "This is the deadline for your first internal assessment in Mathematics. You have flexibility to sit it between Week 4 and Week 7, so choose a time when you feel best prepared."
+    "desc": "Sit your first internal assessment.",
+    "detail": "This is the deadline window to sit your first internal assessment (AS2.3) for MAT223, allowing you to work at your own pace within weeks 4-7."
   },
   {
     "cls": "MAT223",
@@ -1463,9 +1573,10 @@ const RAW = [
     "type": "event",
     "status": null,
     "source": "Info-about-MAT223-for-2026",
+    "key": "MAT223-receive-more-information-about-sitting-internal-assessments",
     "short": "More assessment info",
-    "desc": "Receive more details about sitting internal assessments.",
-    "detail": "This is an opportunity to get further information and clarification on how to approach and complete your internal assessments in Mathematics. Ask any questions you have."
+    "desc": "Get more assessment details.",
+    "detail": "You will receive further information and guidance on how to sit your internal assessments for MAT223."
   },
   {
     "cls": "MAT223",
@@ -1474,9 +1585,10 @@ const RAW = [
     "type": "deadline",
     "status": null,
     "source": "Info-about-MAT223-for-2026",
-    "short": "External topics finish",
-    "desc": "External topics must be completed before derived grade exams.",
-    "detail": "This deadline means you must have finished all work related to the external assessment topics before you can sit your derived grade exams. This ensures you are prepared for those high-stakes assessments."
+    "key": "MAT223-external-topics-must-be-finished-before-derived-grade-exams",
+    "short": "External topics finish deadline",
+    "desc": "Finish external topics before exams.",
+    "detail": "You must complete all your external topic work before the derived grade exams begin for MAT223."
   },
   {
     "cls": "FCM112",
@@ -1485,9 +1597,10 @@ const RAW = [
     "type": "material",
     "status": null,
     "source": null,
+    "key": "FCM112-inspiration-slideshow",
     "short": "Inspiration slideshow",
-    "desc": "Review the inspiration slideshow for furniture projects.",
-    "detail": "This slideshow likely contains images, examples, and ideas to spark your creativity for your furniture design project. Look through it for inspiration on styles, materials, and forms."
+    "desc": "View furniture project inspiration.",
+    "detail": "This slideshow provides visual inspiration and ideas for your furniture design project."
   },
   {
     "cls": "FCM112",
@@ -1496,9 +1609,10 @@ const RAW = [
     "type": "assignment",
     "status": "Assigned",
     "source": null,
-    "short": "Furniture project docs",
-    "desc": "Full documentation of your furniture project goes here.",
-    "detail": "This is the place to compile all your work for the furniture project, including research, sketches, design development, and final outcomes. It's your comprehensive record of the project."
+    "key": "FCM112-full-documentation-of-your-furniture-project-here",
+    "short": "Furniture project documentation",
+    "desc": "Document your furniture project here.",
+    "detail": "This is where you will fully document all stages of your furniture project, from concept to completion, for assessment."
   }
 ];
 
@@ -1574,304 +1688,652 @@ const ANALYSIS = {
 const ANOMALIES = [];
 
 const TASK_SETS = {
-  "12FTX": {
+  "12FTX-written-part-of-presentation-draft-copy-due": {
     "assignment": "Written part of presentation/draft copy due",
     "due": "2026-03-17",
     "tasks": [
       {
-        "id": "t1",
-        "label": "Research Gothic Revival Origins",
-        "done": "Researched Gothic Revival Origins",
-        "sub": "Explore Gothic Revival's beginnings.",
-        "detail": "Begin by understanding when and why Gothic Revival architecture emerged. Focus on its initial emergence and primary influences to establish a foundational understanding.",
+        "id": "research-gothic-revival-architecture",
+        "label": "Gothic Revival Research",
+        "done": "Researched Gothic Revival architecture",
+        "skip": "Gothic Revival Research skipped",
+        "skipSub": "Skipping Gothic Revival research phase",
+        "sub": "Explore Gothic Revival architecture",
+        "detail": "Dive into the origins, timeframe, and key components of English Gothic Revival architecture. Understand its historical context and aesthetic principles.",
         "sec": "Research",
+        "time": 90,
         "requires": [],
         "bullets": [
-          "Define Gothic Revival.",
-          "Identify timeframe of origin.",
-          "Note early influences."
+          "Identify origins and timeframe",
+          "Note English Gothic Revival components",
+          "Connect to Industrial Revolution"
         ],
-        "deliverable": "Notes on the origins and timeframe of Gothic Revival.",
-        "url": null,
-        "skip": "Research skipped",
-        "skipSub": "Origins already known"
+        "deliverable": "Notes on Gothic Revival architecture",
+        "url": null
       },
       {
-        "id": "t2",
-        "label": "Identify Key Figures & Buildings",
-        "done": "Identified Key Figures & Buildings",
-        "sub": "Find important architects and sites.",
-        "detail": "Investigate prominent designers and landmark buildings associated with the Gothic Revival movement. This will provide concrete examples for your analysis.",
+        "id": "identify-designers-and-buildings",
+        "label": "Key Figures and Sites",
+        "done": "Identified key designers and sites",
+        "skip": "Key Figures and Sites skipped",
+        "skipSub": "Skipping designer and site identification",
+        "sub": "Identify key figures and sites",
+        "detail": "Find notable designers and buildings associated with the Gothic Revival movement. Use Strawberry Hill as a starting point.",
         "sec": "Research",
+        "time": 45,
         "requires": [
           0
         ],
         "bullets": [
-          "List key architects.",
-          "Name notable buildings.",
-          "Note their locations."
+          "List key designers",
+          "Identify famous buildings",
+          "Note specific examples like Strawberry Hill"
         ],
-        "deliverable": "List of key Gothic Revival designers and buildings.",
-        "url": null,
-        "skip": "Identification skipped",
-        "skipSub": "Key figures readily available"
+        "deliverable": "List of Gothic Revival designers and buildings",
+        "url": null
       },
       {
-        "id": "t3",
-        "label": "Connect to Industrial Revolution",
-        "done": "Connected to Industrial Revolution",
-        "sub": "Link architecture to historical events.",
-        "detail": "Explore how the Industrial Revolution influenced or intersected with the Gothic Revival movement. Consider societal changes and their architectural reflections.",
-        "sec": "Research",
+        "id": "connect-to-modern-relevance",
+        "label": "Modern Connections",
+        "done": "Connected Gothic Revival to modern relevance",
+        "skip": "Modern Connections skipped",
+        "skipSub": "Skipping modern relevance exploration",
+        "sub": "Link to current world and consumption",
+        "detail": "Consider how Gothic Revival principles relate to today's world, consumption habits, and the potential for a modern-day revival.",
+        "sec": "Analysis",
+        "time": 45,
         "requires": [
-          0
+          0,
+          1
         ],
         "bullets": [
-          "Explain Industrial Revolution's impact.",
-          "Discuss architectural responses.",
-          "Identify related social changes."
+          "Analyze current consumption habits",
+          "Explore links to Arts and Crafts",
+          "Brainstorm modern relevance"
         ],
-        "deliverable": "Notes on the connection between Gothic Revival and the Industrial Revolution.",
-        "url": null,
-        "skip": "Connection skipped",
-        "skipSub": "Link already understood"
+        "deliverable": "Notes on modern connections and relevance",
+        "url": null
       },
       {
-        "id": "t4",
-        "label": "Analyze Aesthetic & Function",
-        "done": "Analyzed Aesthetic & Function",
-        "sub": "Examine visual style and purpose.",
-        "detail": "Dive into the visual characteristics and practical uses of Gothic Revival architecture. Consider what made it appealing and how buildings were designed to function.",
-        "sec": "Research",
-        "requires": [
-          0
-        ],
-        "bullets": [
-          "Describe aesthetic features.",
-          "Discuss functional aspects.",
-          "Consider decorative elements."
-        ],
-        "deliverable": "Analysis of Gothic Revival's aesthetic and functional qualities.",
-        "url": null,
-        "skip": "Analysis skipped",
-        "skipSub": "Aesthetics clear now"
-      },
-      {
-        "id": "t5",
-        "label": "Explore Arts & Crafts Link",
-        "done": "Explored Arts & Crafts Link",
-        "sub": "Understand connection to Arts & Crafts.",
-        "detail": "Investigate the relationship between Gothic Revival and the Arts and Crafts movement. This will highlight evolving design philosophies and craft-focused ideals.",
-        "sec": "Research",
-        "requires": [
-          0
-        ],
-        "bullets": [
-          "Define Arts & Crafts.",
-          "Find overlaps/differences.",
-          "Note shared principles."
-        ],
-        "deliverable": "Notes on the link between Gothic Revival and the Arts and Crafts movement.",
-        "url": null,
-        "skip": "Exploration skipped",
-        "skipSub": "Arts & Crafts understood"
-      },
-      {
-        "id": "t6",
-        "label": "Draft Presentation Text",
-        "done": "Drafted Presentation Text",
-        "sub": "Write your initial draft copy.",
-        "detail": "Synthesize all your research into a coherent written draft for your presentation. Ensure all key requirements are addressed clearly and logically.",
+        "id": "draft-written-presentation",
+        "label": "Draft Written Content",
+        "done": "Drafted written presentation content",
+        "skip": "Draft Written Content skipped",
+        "skipSub": "Skipping initial draft writing",
+        "sub": "Write draft of presentation",
+        "detail": "Start writing the content for your presentation, incorporating your research on Gothic Revival architecture, its historical context, and modern connections.",
         "sec": "Drafting",
+        "time": 90,
         "requires": [
-          1,
-          2,
-          3,
-          4
+          2
         ],
         "bullets": [
-          "Structure your written copy.",
-          "Incorporate research findings.",
-          "Address all key requirements.",
-          "Write for clarity."
+          "Outline presentation structure",
+          "Write about origins and aesthetics",
+          "Include modern relevance points",
+          "Draft based on research notes"
         ],
-        "deliverable": "First complete draft of the written part of the presentation.",
-        "url": null,
-        "skip": "Drafting skipped",
-        "skipSub": "Ready to finalize"
+        "deliverable": "First draft of written presentation content",
+        "url": null
       },
       {
-        "id": "t7",
-        "label": "Review & Finalize Draft",
-        "done": "Reviewed & Finalized Draft",
-        "sub": "Polish and prepare for submission.",
-        "detail": "Thoroughly review your drafted text for clarity, accuracy, and completeness. Make any necessary edits and ensure it meets all assignment criteria before submitting.",
+        "id": "finalize-written-draft",
+        "label": "Finalize Written Draft",
+        "done": "Finalized written presentation draft",
+        "skip": "Finalize Written Draft skipped",
+        "skipSub": "Skipping finalization of written draft",
+        "sub": "Finalize presentation draft",
+        "detail": "Review and refine your written draft. Ensure it is clear, coherent, and addresses all key requirements of the assignment before submission.",
         "sec": "Refining",
+        "time": 60,
         "requires": [
-          5
+          3
         ],
         "bullets": [
-          "Check for errors.",
-          "Ensure all points covered.",
-          "Proofread carefully.",
-          "Submit draft."
+          "Proofread for errors",
+          "Check for clarity and flow",
+          "Ensure all requirements are met",
+          "Add citations for sources"
         ],
-        "deliverable": "Finalized written draft of the presentation ready for submission.",
-        "url": null,
-        "skip": "Review skipped",
-        "skipSub": "Draft is perfect"
+        "deliverable": "Finalized written draft of presentation",
+        "url": null
       }
     ]
   },
-  "FLM223": {
+  "12FTX-final-presentation-and-design-ideas-due": {
+    "assignment": "Final presentation and design ideas due",
+    "due": "2026-04-14",
+    "tasks": [
+      {
+        "id": "refine-design-concepts",
+        "label": "Refine Design Concepts",
+        "done": "Refined design concepts",
+        "skip": "Refine Design Concepts skipped",
+        "skipSub": "Skipping design concept refinement",
+        "sub": "Refine garment designs",
+        "detail": "Develop your initial design ideas further. Focus on selecting your strongest concepts and refining them to clearly reflect the chosen design movement.",
+        "sec": "Refining",
+        "time": 60,
+        "requires": [],
+        "bullets": [
+          "Select 1-2 strongest concepts",
+          "Add more detail to sketches",
+          "Ensure clear link to design movement",
+          "Consider fabric and silhouette"
+        ],
+        "deliverable": "Refined design sketches",
+        "url": null
+      },
+      {
+        "id": "develop-final-design",
+        "label": "Develop Final Design",
+        "done": "Developed final design",
+        "skip": "Develop Final Design skipped",
+        "skipSub": "Skipping final design development",
+        "sub": "Create the final design",
+        "detail": "Translate your refined concepts into a fully developed final design for your shirt/top. Consider all aesthetic and functional aspects.",
+        "sec": "Design",
+        "time": 60,
+        "requires": [
+          0
+        ],
+        "bullets": [
+          "Finalize garment silhouette",
+          "Add detailing and embellishments",
+          "Consider construction methods",
+          "Prepare for working drawing"
+        ],
+        "deliverable": "Detailed description of final design",
+        "url": null
+      },
+      {
+        "id": "create-working-drawing",
+        "label": "Create Working Drawing",
+        "done": "Created working drawing",
+        "skip": "Create Working Drawing skipped",
+        "skipSub": "Skipping working drawing creation",
+        "sub": "Draw the working details",
+        "detail": "Produce a detailed line drawing of your final design, clearly illustrating construction details, seams, and any necessary adaptations.",
+        "sec": "Technical Drawing",
+        "time": 60,
+        "requires": [
+          1
+        ],
+        "bullets": [
+          "Draw in clear line art",
+          "Include seam lines",
+          "Show measurements or scale if applicable",
+          "Add annotations for construction"
+        ],
+        "deliverable": "Working drawing of the final design",
+        "url": null
+      },
+      {
+        "id": "render-final-design",
+        "label": "Render Final Design",
+        "done": "Rendered final design",
+        "skip": "Render Final Design skipped",
+        "skipSub": "Skipping final design rendering",
+        "sub": "Render the final garment",
+        "detail": "Create a rendered drawing of your final design on a body. Include notes on fabric choice, notions, and explicitly link it back to your inspiration.",
+        "sec": "Design",
+        "time": 60,
+        "requires": [
+          1,
+          2
+        ],
+        "bullets": [
+          "Draw design on a figure",
+          "Add color and texture rendering",
+          "Specify fabric and notions",
+          "Write clear inspiration links"
+        ],
+        "deliverable": "Rendered drawing of final design with notes",
+        "url": null
+      },
+      {
+        "id": "write-bibliography",
+        "label": "Write Bibliography",
+        "done": "Wrote bibliography",
+        "skip": "Write Bibliography skipped",
+        "skipSub": "Skipping bibliography writing",
+        "sub": "Compile list of sources",
+        "detail": "Compile a complete list of all sources used in your research and presentation. Ensure it follows the required citation style.",
+        "sec": "Writing",
+        "time": 30,
+        "requires": [],
+        "bullets": [
+          "List all books and websites",
+          "Include images sources",
+          "Format correctly",
+          "Proofread for accuracy"
+        ],
+        "deliverable": "Bibliography of all sources",
+        "url": null
+      },
+      {
+        "id": "finalize-presentation",
+        "label": "Finalize Presentation",
+        "done": "Finalized presentation",
+        "skip": "Finalize Presentation skipped",
+        "skipSub": "Skipping final presentation edits",
+        "sub": "Complete the visual presentation",
+        "detail": "Make final adjustments to your A3 visual presentation. Ensure all elements are polished, correctly attributed, and visually impactful.",
+        "sec": "Refining",
+        "time": 45,
+        "requires": [
+          4
+        ],
+        "bullets": [
+          "Review layout and design",
+          "Check all image attributions",
+          "Ensure text is proofread",
+          "Confirm all requirements met"
+        ],
+        "deliverable": "Final A3 visual presentation",
+        "url": null
+      },
+      {
+        "id": "submit-all-work",
+        "label": "Submit All Work",
+        "done": "Submitted all work",
+        "skip": "Submit All Work skipped",
+        "skipSub": "Skipping submission of final work",
+        "sub": "Hand in final assignment",
+        "detail": "Attach your finished presentation, working drawing, final design rendering, and bibliography to the assignment for hand-in. Ensure all scans are clear.",
+        "sec": "Submission",
+        "time": 15,
+        "requires": [
+          3,
+          5
+        ],
+        "bullets": [
+          "Upload presentation file",
+          "Attach working drawing scans",
+          "Attach final design rendering scans",
+          "Submit bibliography",
+          "Confirm all files uploaded correctly"
+        ],
+        "deliverable": "Completed assignment submission",
+        "url": null
+      }
+    ]
+  },
+  "12FTX-design-era-task-sheet-and-hand-in-design-era-assignment-fini": {
+    "assignment": "Design era task sheet and hand in + Design Era assignment finishing + Design Era finished presentation due",
+    "due": "2026-04-02",
+    "tasks": [
+      {
+        "id": "select-design-movement",
+        "label": "Choose Design Movement",
+        "done": "Selected design movement",
+        "skip": "Choose Design Movement skipped",
+        "skipSub": "Skipping design movement selection",
+        "sub": "Select a design movement",
+        "detail": "Choose a design movement or era that genuinely interests you. Discuss your choice with your teacher, BKJ, before proceeding.",
+        "sec": "Planning",
+        "time": 30,
+        "requires": [],
+        "bullets": [
+          "Brainstorm potential movements",
+          "Consider personal interest",
+          "Discuss with teacher"
+        ],
+        "deliverable": "Chosen design movement",
+        "url": null
+      },
+      {
+        "id": "research-chosen-movement",
+        "label": "Research Chosen Movement",
+        "done": "Researched chosen design movement",
+        "skip": "Research Chosen Movement skipped",
+        "skipSub": "Skipping research for chosen movement",
+        "sub": "Research the chosen movement",
+        "detail": "Gather information about your chosen design movement, including its characteristics, key designers, and social/cultural influences. Use the provided worksheet.",
+        "sec": "Research",
+        "time": 90,
+        "requires": [
+          0
+        ],
+        "bullets": [
+          "Identify characteristics",
+          "List key designers",
+          "Explore social/cultural influences",
+          "Use Design Era Research Notes worksheet"
+        ],
+        "deliverable": "Organized research notes on chosen design movement",
+        "url": "https://docs.google.com/document/d/1M06F9K1x5v2M5iF1l14c2z_G4f5eR0fF/edit?usp=sharing&ouid=113647902960949838283"
+      },
+      {
+        "id": "develop-presentation-content",
+        "label": "Develop Presentation Content",
+        "done": "Developed presentation content",
+        "skip": "Develop Presentation Content skipped",
+        "skipSub": "Skipping presentation content development",
+        "sub": "Create presentation content",
+        "detail": "Synthesize your research into a maximum 3-page A3 visual presentation. Include characteristics, social factors, and examples of your chosen movement.",
+        "sec": "Drafting",
+        "time": 75,
+        "requires": [
+          1
+        ],
+        "bullets": [
+          "Structure presentation pages",
+          "Select key information",
+          "Include relevant images with attribution",
+          "Summarize social factors"
+        ],
+        "deliverable": "Content for A3 visual presentation",
+        "url": null
+      },
+      {
+        "id": "initial-design-concepts",
+        "label": "Initial Design Concepts",
+        "done": "Developed initial design concepts",
+        "skip": "Initial Design Concepts skipped",
+        "skipSub": "Skipping initial design concept development",
+        "sub": "Brainstorm design ideas",
+        "detail": "Begin exploring design ideas for a shirt/top inspired by your chosen movement. Use ideation techniques to explore shapes and forms.",
+        "sec": "Ideation",
+        "time": 60,
+        "requires": [
+          1
+        ],
+        "bullets": [
+          "Use ideation techniques (tessellating, stretching, etc.)",
+          "Sketch initial garment shapes",
+          "Focus on movement's aesthetic influence",
+          "Think about fabric possibilities"
+        ],
+        "deliverable": "Sketches of initial design concepts",
+        "url": null
+      },
+      {
+        "id": "assemble-presentation-draft",
+        "label": "Assemble Presentation Draft",
+        "done": "Assembled draft presentation",
+        "skip": "Assemble Presentation Draft skipped",
+        "skipSub": "Skipping presentation assembly",
+        "sub": "Draft the visual presentation",
+        "detail": "Combine your presentation content and initial design ideas into a draft visual presentation. Focus on layout and visual appeal.",
+        "sec": "Assembly",
+        "time": 60,
+        "requires": [
+          2,
+          3
+        ],
+        "bullets": [
+          "Arrange content on A3 pages",
+          "Incorporate initial design sketches",
+          "Ensure visual coherence",
+          "Get feedback on structure/content"
+        ],
+        "deliverable": "Draft visual presentation",
+        "url": null
+      },
+      {
+        "id": "prepare-for-hand-in",
+        "label": "Prepare for Hand-in",
+        "done": "Prepared draft presentation for hand-in",
+        "skip": "Prepare for Hand-in skipped",
+        "skipSub": "Skipping preparation for hand-in",
+        "sub": "Finalize draft for submission",
+        "detail": "Review your assembled presentation draft. Make any necessary adjustments to content, layout, and ensure it's ready for the upcoming deadline.",
+        "sec": "Refining",
+        "time": 45,
+        "requires": [
+          4
+        ],
+        "bullets": [
+          "Check for completeness",
+          "Review image attributions",
+          "Ensure links between research and design are clear",
+          "Prepare to submit"
+        ],
+        "deliverable": "Draft presentation ready for hand-in",
+        "url": null
+      }
+    ]
+  },
+  "FLM223-5-3-period-4-and-5-final-girl-and-good-for-her-articles-and-": {
     "assignment": "5/3 Period 4 and 5 Final girl and good for her articles and worksheets when PBT is away",
     "due": "2026-03-05",
     "tasks": [
       {
         "id": "t1",
-        "label": "Initial Reading",
+        "label": "Read Final Girl Article",
         "done": "Read",
-        "sub": "Read Final Girl Article",
-        "detail": "Start by reading 'The Rise of The Final Girl.pdf' to understand the historical context and development of this horror trope. This will provide a foundation for the worksheet questions.",
+        "skip": "Read",
+        "skipSub": "Article already read",
+        "sub": "The Rise of The Final Girl",
+        "detail": "Read the provided article to understand the origins and evolution of the 'final girl' trope in horror films.",
         "sec": "Reading",
+        "time": 45,
         "requires": [],
         "bullets": [
-          "Open and read 'The Rise of The Final Girl.pdf'.",
-          "Take initial notes on key terms.",
-          "Highlight important film examples."
+          "Identify key characteristics of the final girl.",
+          "Note historical context of the trope.",
+          "Summarize origins and influences."
         ],
-        "deliverable": "Initial understanding of the final girl trope.",
-        "url": null,
-        "skip": "Reading skipped",
-        "skipSub": "Moving on to worksheet"
+        "deliverable": "Notes on 'The Rise of The Final Girl'",
+        "url": null
       },
       {
         "id": "t2",
-        "label": "Final Girl Worksheet",
+        "label": "Read Good For Her Article",
+        "done": "Read",
+        "skip": "Read",
+        "skipSub": "Article already read",
+        "sub": "'Good for Her' Horror Trope",
+        "detail": "Read the article on the 'good for her' trope to understand its definition and feminist implications.",
+        "sec": "Reading",
+        "time": 45,
+        "requires": [],
+        "bullets": [
+          "Define the 'good for her' trope.",
+          "Analyze its feminist impact.",
+          "Identify examples from films."
+        ],
+        "deliverable": "Notes on 'Good for Her' trope",
+        "url": null
+      },
+      {
+        "id": "t3",
+        "label": "Complete Final Girl Worksheet",
         "done": "Completed",
-        "sub": "Answer Final Girl Worksheet",
-        "detail": "Work through the 'Coco-Inez-Penn-Rise-of-the-final-girl-work-sheet' using the article you just read. Focus on using specific quotes and film examples as requested.",
-        "sec": "Worksheet 1",
+        "skip": "Completed",
+        "skipSub": "Worksheet done",
+        "sub": "Analysis of Final Girl Article",
+        "detail": "Answer the questions on the 'Rise of the Final Girl' worksheet, using quotes and film examples from the article.",
+        "sec": "Analysis",
+        "time": 60,
         "requires": [
           0
         ],
         "bullets": [
-          "Answer worksheet questions with quotes.",
+          "Use article quotes for evidence.",
           "Include specific film examples.",
-          "Check requirements for evidence."
+          "Address worksheet questions thoroughly."
         ],
-        "deliverable": "Completed Final Girl worksheet.",
-        "url": null,
-        "skip": "Worksheet skipped",
-        "skipSub": "Already answered"
+        "deliverable": "Completed Final Girl Worksheet",
+        "url": null
       },
       {
-        "id": "t3",
-        "label": "Good For Her Reading",
-        "done": "Read",
-        "sub": "Read Good for Her Article",
-        "detail": "Read the 'Coco-Inez-Penn-Good-for-her-horror-worksheet' to understand the 'good for her' trope. Pay attention to its definition, critiques, and potential feminist implications.",
-        "sec": "Reading",
+        "id": "t4",
+        "label": "Complete Good For Her Worksheet",
+        "done": "Completed",
+        "skip": "Completed",
+        "skipSub": "Worksheet done",
+        "sub": "Analysis of Good For Her Article",
+        "detail": "Complete the 'Good for Her' worksheet, focusing on the feminist comparison with the final girl concept.",
+        "sec": "Analysis",
+        "time": 60,
         "requires": [
           1
         ],
         "bullets": [
-          "Open and read the 'good for her' article.",
-          "Note the author's definition of the trope.",
-          "Identify critiques and examples used."
+          "Answer discussion questions.",
+          "Discuss feminist improvements.",
+          "Use simple, clear language."
         ],
-        "deliverable": "Initial understanding of the 'good for her' trope.",
-        "url": null,
-        "skip": "Reading skipped",
-        "skipSub": "Moving on to worksheet"
+        "deliverable": "Completed Good For Her Worksheet",
+        "url": null
+      },
+      {
+        "id": "t5",
+        "label": "Submit Articles and Worksheets",
+        "done": "Submitted",
+        "skip": "Submitted",
+        "skipSub": "Already submitted",
+        "sub": "Final Deadline Submission",
+        "detail": "Submit both completed worksheets and any related notes for the 'Final Girl' and 'Good for Her' articles.",
+        "sec": "Submission",
+        "time": 15,
+        "requires": [
+          2,
+          3
+        ],
+        "bullets": [
+          "Ensure all questions are answered.",
+          "Check for clarity and evidence.",
+          "Upload all required documents."
+        ],
+        "deliverable": "Completed Assignments",
+        "url": null
+      }
+    ]
+  },
+  "FLM223-2-3-representation-assessment": {
+    "assignment": "2.3 Representation assessment",
+    "due": "2026-04-03",
+    "tasks": [
+      {
+        "id": "t1",
+        "label": "Understand Representation Assessment",
+        "done": "Understood",
+        "skip": "Understood",
+        "skipSub": "Assessment understood",
+        "sub": "2.3 Representation Assessment",
+        "detail": "Review the assignment description for the '2.3 Representation assessment' to grasp the key requirements and scope.",
+        "sec": "Understanding",
+        "time": 30,
+        "requires": [],
+        "bullets": [
+          "Read the full assignment brief.",
+          "Identify assessment criteria.",
+          "Note any specific formatting."
+        ],
+        "deliverable": "Clarified understanding of assessment",
+        "url": null
+      },
+      {
+        "id": "t2",
+        "label": "Brainstorm Representation Ideas",
+        "done": "Brainstormed",
+        "skip": "Brainstormed",
+        "skipSub": "Ideas already generated",
+        "sub": "Initial Ideas for Assessment",
+        "detail": "Begin brainstorming potential topics and angles related to representation that you could explore in your assessment.",
+        "sec": "Brainstorming",
+        "time": 45,
+        "requires": [
+          0
+        ],
+        "bullets": [
+          "List potential representation themes.",
+          "Consider examples from films/media.",
+          "Think about the 'why' behind choices."
+        ],
+        "deliverable": "List of potential assessment topics",
+        "url": null
+      },
+      {
+        "id": "t3",
+        "label": "Gather Initial Research",
+        "done": "Researched",
+        "skip": "Researched",
+        "skipSub": "Initial research done",
+        "sub": "Research for Representation",
+        "detail": "Start gathering initial research materials that align with your brainstormed ideas for the representation assessment.",
+        "sec": "Research",
+        "time": 60,
+        "requires": [
+          1
+        ],
+        "bullets": [
+          "Find academic articles.",
+          "Locate relevant film clips/reviews.",
+          "Save potential sources."
+        ],
+        "deliverable": "Collection of initial research sources",
+        "url": null
       },
       {
         "id": "t4",
-        "label": "Good For Her Worksheet",
-        "done": "Completed",
-        "sub": "Answer Good For Her Worksheet",
-        "detail": "Complete the discussion questions in the 'Coco-Inez-Penn-Good-for-her-horror-worksheet'. Use simple language and bullet points as instructed, reflecting on the feminist aspects.",
-        "sec": "Worksheet 2",
+        "label": "Develop Assessment Outline",
+        "done": "Outlined",
+        "skip": "Outlined",
+        "skipSub": "Outline created",
+        "sub": "Structuring the Assessment",
+        "detail": "Create a detailed outline for your 'Representation assessment' based on your research and understanding of the prompt.",
+        "sec": "Planning",
+        "time": 45,
         "requires": [
           2
         ],
         "bullets": [
-          "Answer discussion questions.",
-          "Use simple language and bullet points.",
-          "Reflect on feminist aspects."
+          "Structure your argument logically.",
+          "Map out key sections/paragraphs.",
+          "Identify where evidence will be used."
         ],
-        "deliverable": "Completed 'Good for Her' worksheet.",
-        "url": null,
-        "skip": "Worksheet skipped",
-        "skipSub": "Already answered"
+        "deliverable": "Detailed assessment outline",
+        "url": null
       },
       {
         "id": "t5",
-        "label": "Character Notes Review",
-        "done": "Reviewed",
-        "sub": "Review Halloween & Scream Notes",
-        "detail": "Look over the 'Halloween-final-girl-notes' and 'Scream-notes-on-Final-girl' to see how these specific films embody or subvert the final girl trope. This will help connect theory to practice.",
-        "sec": "Research",
+        "label": "Draft Introduction and Key Points",
+        "done": "Drafted",
+        "skip": "Drafted",
+        "skipSub": "Drafting started",
+        "sub": "Beginning the Assessment Draft",
+        "detail": "Write the introduction and begin drafting the main body of your 'Representation assessment', focusing on your strongest points.",
+        "sec": "Drafting",
+        "time": 90,
         "requires": [
-          1,
           3
         ],
         "bullets": [
-          "Read 'Halloween-final-girl-notes'.",
-          "Read 'Scream-notes-on-Final-girl'.",
-          "Identify connections to worksheets."
+          "Craft a compelling introduction.",
+          "Develop your first main argument.",
+          "Integrate initial evidence."
         ],
-        "deliverable": "Understanding of specific film examples.",
-        "url": null,
-        "skip": "Review skipped",
-        "skipSub": "Notes are clear"
+        "deliverable": "Draft of introduction and first section",
+        "url": null
       },
       {
         "id": "t6",
-        "label": "Synthesize and Draft",
-        "done": "Drafted",
-        "sub": "Combine Worksheets & Notes",
-        "detail": "Combine your answers from both worksheets and insights from the character notes into a cohesive set of responses. Ensure all key requirements are met for both parts of the assignment.",
-        "sec": "Drafting",
+        "label": "Submit Draft for Feedback",
+        "done": "Submitted",
+        "skip": "Submitted",
+        "skipSub": "Draft already submitted",
+        "sub": "Checkpoint: Assessment Draft",
+        "detail": "Submit your current draft of the 'Representation assessment' to receive feedback and identify areas for improvement.",
+        "sec": "Submission",
+        "time": 15,
         "requires": [
-          1,
           4
         ],
         "bullets": [
-          "Integrate answers from both worksheets.",
-          "Incorporate film examples from notes.",
-          "Check for consistent formatting.",
-          "Ensure all questions are answered."
+          "Ensure draft is coherent.",
+          "Check for all required elements.",
+          "Submit by the checkpoint deadline."
         ],
-        "deliverable": "Draft of completed assignment.",
-        "url": null,
-        "skip": "Drafting skipped",
-        "skipSub": "Already drafted"
-      },
-      {
-        "id": "t7",
-        "label": "Final Review",
-        "done": "Submitted",
-        "sub": "Proofread and Submit",
-        "detail": "Carefully proofread your entire assignment for any errors in grammar, spelling, or formatting. Make sure your answers are clear, concise, and directly address the assignment prompts before submitting.",
-        "sec": "Finishing",
-        "requires": [
-          5
-        ],
-        "bullets": [
-          "Read through all answers.",
-          "Check for spelling and grammar errors.",
-          "Confirm formatting is correct.",
-          "Submit the final assignment."
-        ],
-        "deliverable": "Final, submitted assignment.",
-        "url": null,
-        "skip": "Review skipped",
-        "skipSub": "Already submitted"
+        "deliverable": "Draft of 'Representation assessment'",
+        "url": null
       }
     ]
   },
-  "MUS223": {
+  "MUS223-submit-research-question-for-teacher-approval-investigate-nz": {
     "assignment": "Submit research question for teacher approval (Investigate NZ Music)",
     "due": "2026-03-23",
     "tasks": [
@@ -2015,7 +2477,7 @@ const TASK_SETS = {
       }
     ]
   },
-  "MAT223": {
+  "MAT223-latest-date-to-sit-first-internal-assessment-as2-3-is-end-of": {
     "assignment": "Latest date to sit first internal assessment AS2.3 is end of Week 7. (Earliest is Week 4)",
     "due": "2026-03-09",
     "tasks": [
@@ -2202,6 +2664,14 @@ function dedup(items) {
 
 const ITEMS = dedup(RAW);
 
+// Class filter state — empty set means "show all"
+let activeClassFilters = new Set();
+
+function filteredItems(items) {
+  if (activeClassFilters.size === 0) return items;
+  return items.filter(it => activeClassFilters.has(it.cls));
+}
+
 // Format helpers
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -2246,10 +2716,11 @@ function statusBadgeHTML(status) {
 function urgencyLabel(days) {
   if (days === 0) return 'today';
   if (days === 1) return 'tomorrow';
-  if (days < 7) return `${days} days`;
-  if (days === 7) return '1 week';
-  if (days < 14) return `${days} days`;
-  if (days === 14) return '2 weeks';
+  if (days <= 14) return `${days} days`;
+  if (days < 21) {
+    const extra = days - 14;
+    return `2 weeks ${extra} day${extra !== 1 ? 's' : ''}`;
+  }
   const w = Math.round(days / 7);
   if (days <= 42) return `${w} weeks`;
   const m = Math.round(days / 30);
@@ -2322,9 +2793,8 @@ const taskCanvases = {};
 function recalcPanelSection(panelId) {
   const panel = document.getElementById('panel-' + panelId);
   if (panel) {
-    const body = panel.closest('.section-body');
+    const body = panel.closest('.section-body') || panel.closest('.tab-frame-content') || panel.closest('.current-content');
     if (body) { body.style.transition = 'none'; body.style.maxHeight = body.scrollHeight + 'px'; body.offsetHeight; body.style.transition = ''; }
-    // tab-content panels don't need max-height adjustment
   }
 }
 
@@ -3389,8 +3859,8 @@ function applyTaskStates(panelId) {
 function initTaskCanvas(panelId) {
   const wrap = document.querySelector(`#panel-${panelId} .task-canvas-wrap`);
   if (!wrap) return;
-  const cls = wrap.dataset.cls;
-  const taskSet = TASK_SETS[cls];
+  const taskkey = wrap.dataset.taskkey;
+  const taskSet = TASK_SETS[taskkey];
   if (!taskSet || !taskSet.tasks || taskSet.tasks.length === 0) return;
 
   // Destroy previous instance if exists
@@ -3404,39 +3874,59 @@ function initTaskCanvas(panelId) {
   if (slot) slot.innerHTML = '';
 
   const colors = TASK_COLORS;
-  const storageKey = `dates-tasks-${cls}`;
+  const storageKey = `dates-tasks-${taskkey}`;
 
   taskCanvases[panelId] = new TaskCanvas(wrap, taskSet.tasks, storageKey, colors, panelId);
 }
 
 function renderHeader() {
+  let pillsHtml = '<div class="class-filter-row">';
+  for (const cls of Object.keys(CLASSES)) {
+    const css = CLASSES[cls].css;
+    const isActive = activeClassFilters.has(cls);
+    pillsHtml += `<span class="class-filter-pill ${css}${isActive ? ' active' : ''}" data-cls="${cls}">${cls}</span>`;
+  }
+  pillsHtml += '</div>';
+
   document.getElementById('headerBlock').innerHTML = `
-    <p class="date-line">${fmtDateLong(TODAY_STR).toUpperCase()}</p>
-    <p class="page-title">What's Due</p>
-    <hr class="header-sep">
+    <p class="date-line">UPDATED ${fmtDateLong(typeof SCRAPE_DATE !== 'undefined' ? SCRAPE_DATE : BUILD_DATE).toUpperCase()}</p>
+    ${pillsHtml}
   `;
+
+  // Bind click handlers
+  document.querySelectorAll('.class-filter-pill').forEach(el => {
+    el.addEventListener('click', () => {
+      const cls = el.dataset.cls;
+      if (activeClassFilters.has(cls)) {
+        activeClassFilters.delete(cls);
+      } else {
+        activeClassFilters.add(cls);
+      }
+      render();
+    });
+  });
 }
 
-function isTasksComplete(cls) {
-  const taskSet = TASK_SETS[cls];
+function isTasksComplete(key) {
+  const taskSet = TASK_SETS[key];
   if (!taskSet || !taskSet.tasks || taskSet.tasks.length === 0) return false;
   let state = {};
-  try { state = JSON.parse(localStorage.getItem(`dates-tasks-${cls}`)) || {}; } catch(e) {}
+  try { state = JSON.parse(localStorage.getItem(`dates-tasks-${key}`)) || {}; } catch(e) {}
   return taskSet.tasks.every(t => {
     const v = state[t.id];
     return v === true || v === 'done' || v === 'passed';
   });
 }
 
-function renderMiniProgress(cls) {
-  const taskSet = TASK_SETS[cls];
+function renderMiniProgress(key) {
+  const taskSet = TASK_SETS[key];
   if (!taskSet || !taskSet.tasks || taskSet.tasks.length === 0) return '';
   const tasks = taskSet.tasks;
   const N = tasks.length;
 
   // Read state from localStorage (same key as TaskCanvas)
   let state = {};
-  try { state = JSON.parse(localStorage.getItem(`dates-tasks-${cls}`)) || {}; } catch(e) {}
+  try { state = JSON.parse(localStorage.getItem(`dates-tasks-${key}`)) || {}; } catch(e) {}
 
   // Build cell states — requires uses numeric indices (same as TaskCanvas)
   const cells = tasks.map((t, i) => {
@@ -3492,13 +3982,13 @@ function renderMiniProgress(cls) {
   }
 
   const allComplete = cellsFull.every(c => c.done || c.passed);
-  return `<div class="mini-progress" data-cls="${cls}" data-complete="${allComplete ? '1' : '0'}"><svg class="mini-progress-svg" width="${totalW}" height="${PH}" viewBox="0 0 ${totalW} ${PH}">${paths}</svg></div>`;
+  return `<div class="mini-progress" data-taskkey="${key}" data-complete="${allComplete ? '1' : '0'}"><svg class="mini-progress-svg" width="${totalW}" height="${PH}" viewBox="0 0 ${totalW} ${PH}">${paths}</svg></div>`;
 }
 
 function refreshMiniProgress() {
-  document.querySelectorAll('.mini-progress[data-cls]').forEach(el => {
-    const cls = el.dataset.cls;
-    const html = renderMiniProgress(cls);
+  document.querySelectorAll('.mini-progress[data-taskkey]').forEach(el => {
+    const key = el.dataset.taskkey;
+    const html = renderMiniProgress(key);
     if (html) {
       const tmp = document.createElement('div');
       tmp.innerHTML = html;
@@ -3507,8 +3997,12 @@ function refreshMiniProgress() {
       el.replaceWith(newEl);
       // Toggle solid border when all tasks complete
       if (card) {
+        const wasDone = card.classList.contains('tasks-complete');
         if (newEl.dataset.complete === '1') card.classList.add('tasks-complete');
         else card.classList.remove('tasks-complete');
+        if (wasDone !== card.classList.contains('tasks-complete') && !card.classList.contains('is-expanded')) {
+          drawCardBorder(card);
+        }
       }
     }
   });
@@ -3540,16 +4034,15 @@ function renderItemCards(items, isPast) {
     const typeCls = (it.type === 'deadline' || it.type === 'assessment') ? ` type-label type-${it.type}` : 'type-label';
 
     const clsCss = CLASSES[it.cls].css;
-    const tasksCompCls = isTasksComplete(it.cls) ? ' tasks-complete' : '';
+    const tasksCompCls = isTasksComplete(it.key) ? ' tasks-complete' : '';
     html += `<div class="item-card ${clsCss}${pastCls}${doneCls}${missCls}${todayCard}${tasksCompCls}" data-id="${id}" style="animation-delay:${idx * 40}ms">
-      <svg class="card-border" overflow="visible"><rect x="0" y="0" width="100%" height="100%" rx="19" ry="19"/></svg>
       <div class="item-meta-line">
         <span class="class-pill ${CLASSES[it.cls].css}">${it.cls}</span>
         <span class="${typeCls}">${it.type}</span>
         ${statusBadgeHTML(it.status)}
       </div>
       <div class="item-title">${it.short || it.title}</div>
-      ${renderMiniProgress(it.cls)}
+      ${renderMiniProgress(it.key)}
     </div>`;
 
     // Detail panel (hidden by default, rendered inline for this card)
@@ -3572,8 +4065,8 @@ function renderItemCards(items, isPast) {
 
     const srcPath = it.source ? sourceUrl(it.cls, it.source) : null;
 
-    // Build canvas task widget if available for this class
-    const taskSet = TASK_SETS[it.cls];
+    // Build canvas task widget if available for this item
+    const taskSet = TASK_SETS[it.key];
     let tasksHtml = '';
     if (taskSet && taskSet.tasks && taskSet.tasks.length > 0) {
       const circleCount = taskSet.tasks.length;
@@ -3581,7 +4074,7 @@ function renderItemCards(items, isPast) {
       for (let ci = 0; ci < circleCount; ci++) {
         circlesHtml += `<span class="task-circle" data-tidx="${ci}">${ci + 1}</span>`;
       }
-      tasksHtml = `<div class="task-canvas-wrap" data-cls="${it.cls}">
+      tasksHtml = `<div class="task-canvas-wrap" data-taskkey="${it.key}">
         <div class="task-progress-row">
           <svg class="task-progress-svg"></svg>
           <div class="task-progress-circles">${circlesHtml}</div>
@@ -3605,8 +4098,6 @@ function renderItemCards(items, isPast) {
         </div>
         <div class="task-hold-hint">hold to complete \u00b7 tap to expand</div>
       </div>`;
-    } else if (it.detail || it.desc) {
-      tasksHtml = `<div class="task-no-tasks">${it.detail || it.desc}</div>`;
     }
 
     html += `<div class="detail-panel" id="panel-${id}">
@@ -3670,55 +4161,125 @@ function closeDetail() {
   const card = document.querySelector(`[data-id="${expandedId}"]`);
   if (panel) panel.classList.remove('open');
   expandedId = null;
-  // Keep SVG animating during close transition, then clean up
   if (card) {
-    // RAF loop still running — it tracks the shrinking panel
+
+    card.style.transition = 'margin-bottom 0.3s ease, transform 0.15s ease';
+    card.style.marginBottom = '10px';
     setTimeout(() => {
+      card.style.transition = 'none';
       card.classList.remove('is-expanded');
-      stopExpandBorder(card);
+      card.style.marginBottom = '';
+      stopCardBorderAnim(card);
+      drawCardBorder(card);
+      card.offsetHeight;
+      // Restore with transform transition so :active bounce-back animates
+      card.style.transition = 'transform 0.15s ease';
+      requestAnimationFrame(() => { card.style.transition = ''; });
     }, 320);
+    // Recalc parent container height
+    const body = card.closest('.section-body') || card.closest('.tab-frame-content') || card.closest('.current-content');
+    if (body) setTimeout(() => { body.style.maxHeight = body.scrollHeight + 'px'; }, 350);
   }
 }
 
-let expandBorderRaf = null;
+// --- Unified card border system ---
+// One persistent SVG per card, four-path dashes (same technique as task canvas).
+// Expanded: SVG grows to include detail panel with dual fills + RAF animation.
+// Closed: static SVG at card size, no fills needed (card has its own CSS bg).
 
-function drawExpandBorder(card, panel) {
-  // Create SVG if needed
-  let svg = card.querySelector('.expand-border-svg');
+let cardBorderRaf = null;
+let cardBorderAnimCard = null; // which card is currently animating
+
+function getCardStroke(card) {
+  const cl = card.classList;
+  const isPast = cl.contains('is-past');
+  const isDone = cl.contains('tasks-complete');
+  if (cl.contains('cp-12ftx'))  return isPast ? 'rgba(184,80,30,0.04)' : isDone ? 'rgba(184,80,30,0.18)' : 'rgba(184,80,30,0.1)';
+  if (cl.contains('cp-enw223')) return isPast ? 'rgba(80,120,160,0.04)' : isDone ? 'rgba(80,120,160,0.18)' : 'rgba(80,120,160,0.1)';
+  if (cl.contains('cp-flm223')) return isPast ? 'rgba(140,60,120,0.04)' : isDone ? 'rgba(140,60,120,0.18)' : 'rgba(140,60,120,0.1)';
+  if (cl.contains('cp-mus223')) return isPast ? 'rgba(60,130,100,0.04)' : isDone ? 'rgba(60,130,100,0.18)' : 'rgba(60,130,100,0.1)';
+  if (cl.contains('cp-mat223')) return isPast ? 'rgba(100,90,160,0.04)' : isDone ? 'rgba(100,90,160,0.18)' : 'rgba(100,90,160,0.1)';
+  if (cl.contains('cp-fcm112')) return isPast ? 'rgba(160,120,50,0.04)' : isDone ? 'rgba(160,120,50,0.18)' : 'rgba(160,120,50,0.1)';
+  if (cl.contains('is-done')) return 'rgba(43,95,138,0.4)';
+  if (cl.contains('is-missing')) return 'rgba(180,60,50,0.15)';
+  if (cl.contains('is-today-card')) return 'rgba(184,80,30,0.12)';
+  if (isPast) return 'rgba(43,95,138,0.035)';
+  return 'rgba(43,95,138,0.08)';
+}
+
+function getCardDash(card) {
+  return (card.classList.contains('tasks-complete') || card.classList.contains('is-done')) ? 'none' : '6 4';
+}
+
+function getExpandFillColor(card) {
+  const cl = card.classList;
+  // Pre-composited solid colors: rgba on page bg #ECEAE3 (236,234,227)
+  const onPage = { default: 'rgb(225,230,230)', '12ftx': 'rgb(232,222,211)', 'enw223': 'rgb(224,225,222)', 'flm223': 'rgb(228,220,219)', 'mus223': 'rgb(222,226,217)', 'mat223': 'rgb(225,223,222)', 'fcm112': 'rgb(230,225,213)' };
+  const onFrame = { default: 'rgb(234,238,235)', '12ftx': 'rgb(241,230,221)', 'enw223': 'rgb(232,233,232)', 'flm223': 'rgb(237,228,229)', 'mus223': 'rgb(230,234,227)', 'mat223': 'rgb(233,231,232)', 'fcm112': 'rgb(238,233,223)' };
+  const inFrame = !!(card.closest('.tab-frame-content') || card.closest('.current-content'));
+  const map = inFrame ? onFrame : onPage;
+  for (const key of ['12ftx','enw223','flm223','mus223','mat223','fcm112']) {
+    if (cl.contains('cp-' + key)) return map[key];
+  }
+  return map.default;
+}
+
+function renderBorderPaths(W, H, strokeColor, dashArray, S, R) {
+  const i = S / 2;
+  const x0 = i, y0 = i, x1 = W - i, y1 = H - i;
+  const r = R;
+  const topD = `M${x0},${y0+r} Q${x0},${y0} ${x0+r},${y0} L${x1-r},${y0} Q${x1},${y0} ${x1},${y0+r}`;
+  const rightD = `M${x1},${y0+r} L${x1},${y1-r}`;
+  const btmD = `M${x1},${y1-r} Q${x1},${y1} ${x1-r},${y1} L${x0+r},${y1} Q${x0},${y1} ${x0},${y1-r}`;
+  const leftD = `M${x0},${y0+r} L${x0},${y1-r}`;
+  const da = dashArray === 'none' ? '' : `stroke-dasharray="${dashArray}"`;
+  const attr = `fill="none" stroke="${strokeColor}" stroke-width="${S}" ${da}`;
+  return `<path d="${topD}" ${attr}/><path d="${rightD}" ${attr}/><path d="${btmD}" ${attr}/><path d="${leftD}" ${attr}/>`;
+}
+
+function drawCardBorder(card) {
+  let svg = card.querySelector('.card-border-svg');
   if (!svg) {
     svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.classList.add('expand-border-svg');
+    svg.classList.add('card-border-svg');
     card.appendChild(svg);
   }
+  const R = 19, S = 1.8;
+  const W = card.offsetWidth + 2;
+  const H = card.offsetHeight + 2;
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
+  svg.innerHTML = renderBorderPaths(W, H, getCardStroke(card), getCardDash(card), S, R);
+}
 
-  const R = 19;
-  const S = 1.8;
-  // Read the card's actual background before it was made transparent by is-expanded
-  // Use the class-based tint color from CSS
-  const clsList = card.classList;
-  let cardBg = 'rgba(216,226,233,0.55)'; // default
-  if (clsList.contains('cp-12ftx'))  cardBg = 'rgba(184,80,30,0.08)';
-  else if (clsList.contains('cp-enw223')) cardBg = 'rgba(80,120,160,0.08)';
-  else if (clsList.contains('cp-flm223')) cardBg = 'rgba(140,60,120,0.08)';
-  else if (clsList.contains('cp-mus223')) cardBg = 'rgba(60,130,100,0.08)';
-  else if (clsList.contains('cp-mat223')) cardBg = 'rgba(100,90,160,0.08)';
-  else if (clsList.contains('cp-fcm112')) cardBg = 'rgba(160,120,50,0.08)';
-  const detailBg = 'rgba(255,252,245,0.92)';
+function drawAllCardBorders() {
+  document.querySelectorAll('.item-card[data-id]').forEach(card => {
+    if (!card.classList.contains('is-expanded')) drawCardBorder(card);
+  });
+}
+
+function startCardBorderAnim(card, panel) {
+  const R = 19, S = 1.8;
+  let svg = card.querySelector('.card-border-svg');
+  if (!svg) {
+    svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.classList.add('card-border-svg');
+    card.appendChild(svg);
+  }
+  const strokeColor = getCardStroke(card);
+  const dashArray = getCardDash(card);
+  const cardFill = getExpandFillColor(card);
+  const detailFill = 'rgb(253,251,246)';
+  const uid = card.dataset.id || '0';
 
   function update() {
-    // Keep running as long as the SVG exists (covers both open and closing animation)
-    if (!card.querySelector('.expand-border-svg')) {
-      expandBorderRaf = null;
-      return;
-    }
-
+    if (!card.querySelector('.card-border-svg')) { cardBorderRaf = null; return; }
     const cardH = card.offsetHeight;
     const panelH = panel.offsetHeight;
     const W = card.offsetWidth + 2;
     const totalH = cardH + panelH + 2;
     const splitY = cardH + 1;
-    const uid = card.dataset.id || '0';
-
+    const i = S / 2;
     svg.setAttribute('width', W);
     svg.setAttribute('height', totalH);
     svg.innerHTML = `
@@ -3726,27 +4287,26 @@ function drawExpandBorder(card, panel) {
         <clipPath id="clip-top-${uid}"><rect x="0" y="0" width="${W}" height="${splitY}"/></clipPath>
         <clipPath id="clip-btm-${uid}"><rect x="0" y="${splitY}" width="${W}" height="${totalH - splitY}"/></clipPath>
       </defs>
-      <rect x="${S/2}" y="${S/2}" width="${W-S}" height="${totalH-S}" rx="${R}" ry="${R}"
-            fill="${cardBg}" clip-path="url(#clip-top-${uid})"/>
-      <rect x="${S/2}" y="${S/2}" width="${W-S}" height="${totalH-S}" rx="${R}" ry="${R}"
-            fill="${detailBg}" clip-path="url(#clip-btm-${uid})"/>
-      <rect x="${S/2}" y="${S/2}" width="${W-S}" height="${totalH-S}" rx="${R}" ry="${R}"
-            fill="none" stroke="rgba(43,95,138,0.6)" stroke-width="${S}"
-            stroke-dasharray="6 4"/>
+      <rect x="${i}" y="${i}" width="${W-S}" height="${totalH-S}" rx="${R}" ry="${R}"
+            fill="${cardFill}" clip-path="url(#clip-top-${uid})"/>
+      <rect x="${i}" y="${i}" width="${W-S}" height="${totalH-S}" rx="${R}" ry="${R}"
+            fill="${detailFill}" clip-path="url(#clip-btm-${uid})"/>
+      ${renderBorderPaths(W, totalH, strokeColor, dashArray, S, R)}
     `;
-
-    expandBorderRaf = requestAnimationFrame(update);
+    cardBorderRaf = requestAnimationFrame(update);
   }
 
-  // Cancel any previous animation loop
-  if (expandBorderRaf) cancelAnimationFrame(expandBorderRaf);
+  if (cardBorderRaf) cancelAnimationFrame(cardBorderRaf);
+  cardBorderAnimCard = card;
   update();
 }
 
-function stopExpandBorder(card) {
-  if (expandBorderRaf) { cancelAnimationFrame(expandBorderRaf); expandBorderRaf = null; }
-  const svg = card.querySelector('.expand-border-svg');
-  if (svg) svg.remove();
+function stopCardBorderAnim(card) {
+  if (cardBorderRaf && cardBorderAnimCard === card) {
+    cancelAnimationFrame(cardBorderRaf);
+    cardBorderRaf = null;
+    cardBorderAnimCard = null;
+  }
 }
 
 function closeAlert(aid) {
@@ -3758,12 +4318,18 @@ function closeAlert(aid) {
 }
 
 function render() {
-  const allFuture = ITEMS.filter(it => it.date >= TODAY_STR).sort((a,b) => a.date.localeCompare(b.date) || a.cls.localeCompare(b.cls));
+  const filtered = filteredItems(ITEMS);
+  const allFuture = filtered.filter(it => it.date >= TODAY_STR).sort((a,b) => a.date.localeCompare(b.date) || a.cls.localeCompare(b.cls));
   const current = allFuture.filter(it => daysUntil(it.date) <= 14);
   const upcoming = allFuture.filter(it => daysUntil(it.date) > 14);
-  const pastItems = ITEMS.filter(it => it.date < TODAY_STR).sort((a,b) => b.date.localeCompare(a.date) || a.cls.localeCompare(b.cls));
+  const pastItems = filtered.filter(it => it.date < TODAY_STR).sort((a,b) => b.date.localeCompare(a.date) || a.cls.localeCompare(b.cls));
 
   renderHeader();
+
+  // Auto-open Future tab if nothing is current
+  if (current.length === 0 && upcoming.length > 0 && activeTab === null) {
+    activeTab = 'upcoming';
+  }
 
   let html = '';
 
@@ -3778,14 +4344,19 @@ function render() {
     html += `</div>`;
   }
 
-  // Current items — no section header, flow directly
-  html += `<div class="section-body" id="currentBody" style="max-height:none">`;
-  html += current.length > 0 ? renderItemCards(current, false) : `<div class="empty-note">Nothing due in the next 2 weeks</div>`;
-  html += `</div>`;
+  // Current — simple pill-shaped container with centred label
+  html += `<div class="current-frame">
+    <div class="current-header">
+      <span class="current-title">Current</span>
+    </div>
+    <div class="current-content">
+      ${current.length > 0 ? renderItemCards(current, false) : '<div class="current-empty">Nothing Due</div>'}
+    </div>
+  </div>`;
 
   // Tab pills
   html += `<div class="tab-row">
-    <button class="tab-btn${activeTab === 'upcoming' ? ' active' : ''}" data-tab="upcoming">Upcoming</button>
+    <button class="tab-btn${activeTab === 'upcoming' ? ' active' : ''}" data-tab="upcoming">Future</button>
     <button class="tab-btn${activeTab === 'past' ? ' active' : ''}" data-tab="past">Past</button>
   </div>`;
 
@@ -3813,115 +4384,216 @@ function render() {
 
   expandedId = null;
   bindEvents();
-  drawTabConnectors();
+  // Defer drawing until layout is fully settled
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      drawTabConnectors();
+      drawAllCardBorders();
+    });
+  });
 }
 
-function drawTabConnectors() {
-  // Draw the ENTIRE pill+frame outline as one SVG path — pill top + frame body
-  const PR = 14;      // pill top corner radius
-  const R = 10;       // chamfer / far-corner radius
-  const BR = 14;      // bottom corner radius
-  const S = 1.5;      // stroke width
+let tabBorderRaf = null;
+
+function drawTabConnectorForFrame(frame) {
+  const PR = 14, R = 18, BR = 14, S = 1.5;
   const color = 'rgba(58,48,40,0.2)';
   const frameBg = 'rgba(245,243,238,0.95)';
 
-  document.querySelectorAll('.tab-frame.open').forEach(frame => {
-    const svg = frame.querySelector('.tab-frame-svg');
-    if (!svg) return;
+  const svg = frame.querySelector('.tab-frame-svg');
+  if (!svg) return;
+  // Find the active button that owns this frame
+  let activeBtn;
+  if (frame.id === 'currentTab') activeBtn = document.querySelector('.tab-btn[data-tab="current"].active');
+  else if (frame.id === 'upcomingTab') activeBtn = document.querySelector('.tab-btn[data-tab="upcoming"].active');
+  else if (frame.id === 'pastTab') activeBtn = document.querySelector('.tab-btn[data-tab="past"].active');
+  else activeBtn = document.querySelector('.tab-btn.active');
+  if (!activeBtn) return;
+  const pillH = activeBtn.offsetHeight;
+  const pillW = activeBtn.offsetWidth;
+  const W = frame.offsetWidth;
+  const FH = frame.offsetHeight;
+  const TH = pillH + FH;
+  if (W === 0 || TH === 0) return;
 
-    // Measure the active pill
-    const activeBtn = document.querySelector('.tab-btn.active');
-    if (!activeBtn) return;
-    const pillH = activeBtn.offsetHeight;
-    const pillW = activeBtn.offsetWidth;
+  const isLeft = frame.classList.contains('from-left');
+  const UP = 5; // shift frame outline upward into pill area
+  const pH = pillH - UP; // effective junction height
+  let path;
+  if (isLeft) {
+    const cx = pillW;
+    path = `M ${PR} 0 L ${cx - PR} 0 A ${PR} ${PR} 0 0 1 ${cx} ${PR} L ${cx} ${pH} A ${R} ${R} 0 0 0 ${cx + R} ${pH + R} L ${W - R} ${pH + R} A ${R} ${R} 0 0 1 ${W} ${pH + R + R} L ${W} ${TH - BR} A ${BR} ${BR} 0 0 1 ${W - BR} ${TH} L ${BR} ${TH} A ${BR} ${BR} 0 0 1 0 ${TH - BR} L 0 ${PR} A ${PR} ${PR} 0 0 1 ${PR} 0 Z`;
+  } else {
+    const cx = W - pillW;
+    path = `M ${W - PR} 0 A ${PR} ${PR} 0 0 1 ${W} ${PR} L ${W} ${TH - BR} A ${BR} ${BR} 0 0 1 ${W - BR} ${TH} L ${BR} ${TH} A ${BR} ${BR} 0 0 1 0 ${TH - BR} L 0 ${pH + R + R} A ${R} ${R} 0 0 1 ${R} ${pH + R} L ${cx - R} ${pH + R} A ${R} ${R} 0 0 0 ${cx} ${pH} L ${cx} ${PR} A ${PR} ${PR} 0 0 1 ${cx + PR} 0 Z`;
+  }
+  svg.style.top = -pillH + 'px';
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', TH);
+  svg.innerHTML = `<path d="${path}" fill="${frameBg}" stroke="${color}" stroke-width="${S}"/>`;
+}
 
-    const W = frame.offsetWidth;
-    const FH = frame.offsetHeight;
-    const TH = pillH + FH; // total height: pill + frame
-    if (W === 0 || TH === 0) return;
+function drawTabConnectors() {
+  document.querySelectorAll('.tab-frame.open').forEach(drawTabConnectorForFrame);
+}
 
-    const isLeft = frame.classList.contains('from-left');
+function startTabBorderAnim(frame) {
+  stopTabBorderAnim();
+  function tick() {
+    drawTabConnectorForFrame(frame);
+    tabBorderRaf = requestAnimationFrame(tick);
+  }
+  tabBorderRaf = requestAnimationFrame(tick);
+}
 
-    // For isLeft: pill spans x=[0, pillW], chamfer at x=pillW
-    // For isRight: pill spans x=[W-pillW, W], chamfer at x=W-pillW
-    let path;
-    if (isLeft) {
-      const cx = pillW; // chamfer x position
-      // Clockwise from pill top-left corner:
-      // 1. Pill top edge (left to right)
-      // 2. Pill top-right corner arc
-      // 3. Down pill right side to pill bottom = chamfer level
-      // 4. Chamfer arc (concave) curving down to frame top level
-      // 5. Horizontal at frame top level to far corner
-      // 6. Far corner arc (convex) curving down
-      // 7. Down frame right side
-      // 8. Bottom-right corner
-      // 9. Bottom edge
-      // 10. Bottom-left corner
-      // 11. Up frame left side + pill left side
-      // 12. Pill top-left corner arc → close
-      path = `
-        M ${PR} 0
-        L ${cx - PR} 0
-        A ${PR} ${PR} 0 0 1 ${cx} ${PR}
-        L ${cx} ${pillH}
-        A ${R} ${R} 0 0 0 ${cx + R} ${pillH + R}
-        L ${W - R} ${pillH + R}
-        A ${R} ${R} 0 0 1 ${W} ${pillH + R + R}
-        L ${W} ${TH - BR}
-        A ${BR} ${BR} 0 0 1 ${W - BR} ${TH}
-        L ${BR} ${TH}
-        A ${BR} ${BR} 0 0 1 0 ${TH - BR}
-        L 0 ${PR}
-        A ${PR} ${PR} 0 0 1 ${PR} 0
-        Z`;
-    } else {
-      const cx = W - pillW; // chamfer x position
-      // Counter-clockwise from pill top-right corner:
-      path = `
-        M ${W - PR} 0
-        A ${PR} ${PR} 0 0 1 ${W} ${PR}
-        L ${W} ${TH - BR}
-        A ${BR} ${BR} 0 0 1 ${W - BR} ${TH}
-        L ${BR} ${TH}
-        A ${BR} ${BR} 0 0 1 0 ${TH - BR}
-        L 0 ${pillH + R + R}
-        A ${R} ${R} 0 0 1 ${R} ${pillH + R}
-        L ${cx - R} ${pillH + R}
-        A ${R} ${R} 0 0 0 ${cx} ${pillH}
-        L ${cx} ${PR}
-        A ${PR} ${PR} 0 0 1 ${cx + PR} 0
-        Z`;
-    }
-
-    // Position SVG to extend above the frame into the pill area
-    svg.style.top = -pillH + 'px';
-    svg.setAttribute('width', W);
-    svg.setAttribute('height', TH);
-    svg.innerHTML = `<path d="${path}" fill="${frameBg}" stroke="${color}" stroke-width="${S}"/>`;
-  });
+function stopTabBorderAnim() {
+  if (tabBorderRaf) { cancelAnimationFrame(tabBorderRaf); tabBorderRaf = null; }
 }
 
 function bindEvents() {
   // Tab switching — click toggles pill open/closed
+  function openTabFrame(frame) {
+    const content = frame.querySelector('.tab-frame-content');
+    const children = Array.from(content.querySelectorAll('.item-card, .date-marker'));
+    children.forEach((child, i) => { child.style.animationDelay = (i * 30) + 'ms'; });
+    frame.classList.remove('closing');
+    frame.classList.add('opening', 'open');
+    // Start content collapsed, animate to full height
+    content.style.transition = 'none';
+    content.style.maxHeight = '0';
+    content.offsetHeight; // force reflow
+    content.style.transition = '';
+    requestAnimationFrame(() => {
+      content.style.maxHeight = content.scrollHeight + 'px';
+      startTabBorderAnim(frame);
+      frame.classList.add('svg-ready');
+      const dur = Math.max(350, children.length * 30 + 250);
+      // Redraw card borders at key moments during animation, not every frame
+      const cardRedrawTimes = [50, 150, 250, dur];
+      cardRedrawTimes.forEach(t => {
+        setTimeout(() => {
+          content.querySelectorAll('.item-card[data-id]').forEach(card => {
+            if (!card.classList.contains('is-expanded')) drawCardBorder(card);
+          });
+        }, t);
+      });
+      setTimeout(() => {
+        stopTabBorderAnim();
+        frame.classList.remove('opening', 'svg-ready');
+        content.style.maxHeight = '';
+        content.style.overflow = '';
+        drawTabConnectors();
+        drawAllCardBorders();
+      }, dur);
+    });
+  }
+
+  function closeTabFrame(frame, cb) {
+    const content = frame.querySelector('.tab-frame-content');
+    frame.classList.remove('opening', 'svg-ready');
+    frame.classList.add('closing');
+    content.style.transition = 'none';
+    content.style.maxHeight = content.scrollHeight + 'px';
+    content.offsetHeight; // force reflow
+    content.style.transition = '';
+    startTabBorderAnim(frame);
+    requestAnimationFrame(() => { content.style.maxHeight = '0'; });
+    function onEnd(e) {
+      if (e.propertyName !== 'max-height') return;
+      content.removeEventListener('transitionend', onEnd);
+      stopTabBorderAnim();
+      frame.classList.remove('closing', 'open', 'svg-fade');
+      content.style.maxHeight = '';
+      content.style.transition = '';
+      // Snap pill border back instantly — no fade, no second stage
+      if (cb) {
+        const btn = frame.id === 'currentTab' ? document.querySelector('.tab-btn[data-tab="current"]')
+                  : frame.id === 'upcomingTab' ? document.querySelector('.tab-btn[data-tab="upcoming"]')
+                  : document.querySelector('.tab-btn[data-tab="past"]');
+        if (btn) {
+          btn.style.transition = 'none';
+          cb();
+          btn.offsetHeight; // force reflow
+          btn.style.transition = '';
+        } else { cb(); }
+      }
+    }
+    content.addEventListener('transitionend', onEnd);
+  }
+
+  function getFrameForTab(tab) {
+    if (tab === 'upcoming') return document.getElementById('upcomingTab');
+    if (tab === 'past') return document.getElementById('pastTab');
+    return null;
+  }
+
+  function pushTabDown(btn) {
+    const tab = btn.dataset.tab;
+    const frame = getFrameForTab(tab);
+    const withFrame = frame && frame.classList.contains('open');
+    if (withFrame) {
+      const bRect = btn.getBoundingClientRect();
+      const fRect = frame.getBoundingClientRect();
+      const pillCx = bRect.left + bRect.width / 2;
+      const pillCy = bRect.top + bRect.height / 2;
+      btn.style.transformOrigin = '50% 50%';
+      frame.style.transformOrigin = (pillCx - fRect.left) + 'px ' + (pillCy - fRect.top) + 'px';
+    }
+    const els = withFrame ? [btn, frame] : [btn];
+    els.forEach(el => {
+      el.style.transition = 'transform 0.08s ease';
+      el.style.transform = 'scale(0.975)';
+    });
+  }
+
+  function pushTabUp(btn) {
+    const tab = btn.dataset.tab;
+    const frame = getFrameForTab(tab);
+    [btn, frame].forEach(el => {
+      if (!el) return;
+      el.style.transition = 'transform 0.25s cubic-bezier(0.18, 0.89, 0.32, 1.15)';
+      el.style.transform = '';
+    });
+    setTimeout(() => {
+      [btn, frame].forEach(el => {
+        if (!el) return;
+        el.style.transition = '';
+        el.style.transformOrigin = '';
+      });
+    }, 280);
+  }
+
   document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
+    if (btn.classList.contains('no-collapse')) return; // Current — skip all interaction
+    btn.addEventListener('pointerdown', () => pushTabDown(btn));
+    btn.addEventListener('pointerup', () => pushTabUp(btn));
+    btn.addEventListener('pointerleave', () => pushTabUp(btn));
+    btn.addEventListener('pointercancel', () => pushTabUp(btn));
     btn.addEventListener('click', () => {
       const tab = btn.dataset.tab;
       closeDetail();
+      const frame = getFrameForTab(tab);
+
+      // Future/Past — mutual exclusive pair
       if (activeTab === tab) {
-        // Close
-        btn.classList.remove('active');
-        document.getElementById(tab === 'upcoming' ? 'upcomingTab' : 'pastTab').classList.remove('open');
         activeTab = null;
+        closeTabFrame(frame, () => {
+          btn.classList.remove('active');
+        });
       } else {
-        // Close any open
-        document.querySelectorAll('.tab-btn.active').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tab-frame.open').forEach(f => f.classList.remove('open'));
-        // Open this one
-        btn.classList.add('active');
-        document.getElementById(tab === 'upcoming' ? 'upcomingTab' : 'pastTab').classList.add('open');
-        activeTab = tab;
-        drawTabConnectors();
+        const oldBtn = activeTab ? document.querySelector('.tab-btn[data-tab="' + activeTab + '"].active') : null;
+        const oldFrame = activeTab ? getFrameForTab(activeTab) : null;
+        const doOpen = () => {
+          if (oldBtn) oldBtn.classList.remove('active');
+          btn.classList.add('active');
+          activeTab = tab;
+          openTabFrame(frame);
+        };
+        if (oldFrame && oldFrame.classList.contains('open')) {
+          closeTabFrame(oldFrame, doOpen);
+        } else {
+          doOpen();
+        }
       }
     });
   });
@@ -3978,12 +4650,21 @@ function bindEvents() {
       if (!panel) return;
 
       if (expandedId === id) {
-        // Close — keep SVG animating during panel collapse
+        // Close — border keeps animating as panel shrinks
         panel.classList.remove('open');
         expandedId = null;
+    
+        card.style.transition = 'margin-bottom 0.3s ease, transform 0.15s ease';
+        card.style.marginBottom = '10px';
         setTimeout(() => {
+          card.style.transition = 'none';
           card.classList.remove('is-expanded');
-          stopExpandBorder(card);
+          card.style.marginBottom = '';
+          stopCardBorderAnim(card);
+          drawCardBorder(card);
+          card.offsetHeight;
+          card.style.transition = 'transform 0.15s ease';
+          requestAnimationFrame(() => { card.style.transition = ''; });
           recalcSectionHeight(card);
         }, 320);
       } else {
@@ -3993,22 +4674,30 @@ function bindEvents() {
           const prevCard = document.querySelector(`[data-id="${expandedId}"]`);
           if (prevPanel) prevPanel.classList.remove('open');
           if (prevCard) {
-            // Let SVG animate during close, then clean up
+
+            prevCard.style.transition = 'margin-bottom 0.3s ease, transform 0.15s ease';
+            prevCard.style.marginBottom = '10px';
             setTimeout(() => {
+              prevCard.style.transition = 'none';
               prevCard.classList.remove('is-expanded');
-              stopExpandBorder(prevCard);
+              prevCard.style.marginBottom = '';
+              stopCardBorderAnim(prevCard);
+              drawCardBorder(prevCard);
+              prevCard.offsetHeight;
+              prevCard.style.transition = 'transform 0.15s ease';
+              requestAnimationFrame(() => { prevCard.style.transition = ''; });
             }, 320);
           }
         }
         // Open this one — immediately grow section to avoid pop-in reflow
-        const body = card.closest('.section-body') || card.closest('.tab-frame');
-        if (body && body.classList.contains('section-body')) { body.style.transition = 'none'; body.style.maxHeight = body.scrollHeight + 1200 + 'px'; body.offsetHeight; body.style.transition = ''; }
+        const body = card.closest('.section-body') || card.closest('.tab-frame-content') || card.closest('.current-content');
+        if (body) { body.style.transition = 'none'; body.style.maxHeight = body.scrollHeight + 1200 + 'px'; body.offsetHeight; body.style.transition = ''; }
         panel.classList.add('open');
         card.classList.add('is-expanded');
         expandedId = id;
         applyTaskStates(id);
-        // Start animating border immediately — RAF loop tracks panel size
-        drawExpandBorder(card, panel);
+        // Start animating border — RAF loop tracks panel size
+        startCardBorderAnim(card, panel);
         setTimeout(() => { recalcSectionHeight(card); }, 350);
         setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 380);
       }
@@ -4039,8 +4728,8 @@ function bindEvents() {
         detail.classList.add('open');
         requestAnimationFrame(() => {
           detail.style.maxHeight = detail.scrollHeight + 'px';
-          // Update parent section height
-          const body = card.closest('.section-body');
+          // Update parent section/tab-frame-content height
+          const body = card.closest('.section-body') || card.closest('.tab-frame-content') || card.closest('.current-content');
           if (body) setTimeout(() => { body.style.maxHeight = body.scrollHeight + 'px'; }, 50);
           setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 150);
         });
@@ -4054,9 +4743,9 @@ function bindEvents() {
 }
 
 function recalcSectionHeight(el) {
-  const body = el.closest('.section-body') || el.closest('.tab-frame');
+  const body = el.closest('.section-body') || el.closest('.tab-frame-content') || el.closest('.current-content');
   if (body && !body.classList.contains('collapsed')) {
-    setTimeout(() => { if (body.classList.contains('section-body')) body.style.maxHeight = body.scrollHeight + 'px'; }, 50);
+    setTimeout(() => { body.style.maxHeight = body.scrollHeight + 'px'; }, 50);
   }
 }
 
